@@ -38,6 +38,33 @@
     --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
     --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color-scheme: dark;
+}
+
+html[data-theme='light'] {
+    --bg-primary: #F7F1E8;
+    --bg-secondary: #EFE6D6;
+    --bg-card: #FFFCF7;
+    --bg-card-hover: #F8F0E2;
+    --bg-surface: #FFFDF9;
+    --bg-elevated: #F4E9D8;
+    --border-subtle: rgba(184, 146, 47, 0.16);
+    --border-medium: rgba(184, 146, 47, 0.24);
+    --border-strong: rgba(184, 146, 47, 0.40);
+    --gold: #B8922F;
+    --gold-light: #C7A247;
+    --gold-dark: #8F6F1D;
+    --gold-glow: rgba(184, 146, 47, 0.18);
+    --gold-subtle: rgba(184, 146, 47, 0.10);
+    --text-primary: #19140E;
+    --text-secondary: rgba(25, 20, 14, 0.78);
+    --text-muted: rgba(25, 20, 14, 0.56);
+    --text-faint: rgba(25, 20, 14, 0.36);
+    --shadow-sm: 0 1px 3px rgba(61,42,16,0.08), 0 1px 2px rgba(61,42,16,0.06);
+    --shadow-md: 0 10px 30px rgba(61,42,16,0.10);
+    --shadow-lg: 0 20px 50px rgba(61,42,16,0.12);
+    --shadow-gold: 0 10px 30px rgba(184, 146, 47, 0.18);
+    color-scheme: light;
 }
 
 /* Reset & Base */
@@ -54,6 +81,10 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+body.landing-page {
+    background: var(--bg-primary);
+}
+
 body.sidebar-open {
     overflow: hidden;
 }
@@ -61,6 +92,11 @@ body.sidebar-open {
 img { max-width: 100%; height: auto; display: block; }
 a { color: var(--gold); text-decoration: none; transition: color var(--transition); }
 a:hover { color: var(--gold-light); }
+
+:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+}
 
 /* Typography */
 h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.2; color: var(--text-primary); }
@@ -122,6 +158,48 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.2; color: var(
 .btn-block { display: block; width: 100%; }
 .btn-danger { background: var(--error); color: #fff; }
 .btn-danger:hover { background: #E03E35; color: #fff; }
+
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border-medium);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: transform var(--transition), border-color var(--transition), background-color var(--transition), color var(--transition), box-shadow var(--transition);
+    font: inherit;
+    backdrop-filter: blur(8px);
+}
+
+html[data-theme='light'] .theme-toggle {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.theme-toggle:hover {
+    transform: translateY(-1px);
+    border-color: var(--gold);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.theme-toggle-icon {
+    width: 18px;
+    text-align: center;
+    color: var(--gold);
+    font-size: 14px;
+    line-height: 1;
+}
+
+.theme-toggle-text {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
 
 /* Alerts */
 .alert {

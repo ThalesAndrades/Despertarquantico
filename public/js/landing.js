@@ -120,6 +120,44 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // === Story scroll sync ===
+    var storySteps = document.querySelectorAll('[data-story-step]');
+    var storyImages = document.querySelectorAll('[data-story-image]');
+    if (!prefersReducedMotion && storySteps.length > 0 && storyImages.length > 0 && 'IntersectionObserver' in window) {
+        var storyObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) {
+                    return;
+                }
+
+                var activeIndex = entry.target.getAttribute('data-story-step');
+
+                storySteps.forEach(function (step) {
+                    step.classList.toggle('is-active', step.getAttribute('data-story-step') === activeIndex);
+                });
+
+                storyImages.forEach(function (image) {
+                    image.classList.toggle('is-active', image.getAttribute('data-story-image') === activeIndex);
+                });
+            });
+        }, { threshold: 0.45, rootMargin: '-10% 0px -20% 0px' });
+
+        storySteps.forEach(function (step) {
+            storyObserver.observe(step);
+        });
+    }
+
+    // === Soft hero parallax ===
+    if (!prefersReducedMotion) {
+        var heroVisual = document.querySelector('.hero-visual-frame');
+        if (heroVisual) {
+            window.addEventListener('scroll', function () {
+                var offset = Math.min(window.scrollY * 0.08, 28);
+                heroVisual.style.transform = 'translate3d(0,' + offset + 'px,0)';
+            }, { passive: true });
+        }
+    }
+
     // === Counter animation for results bar ===
     var countersAnimated = false;
     var counterElements = document.querySelectorAll('.result-number[data-count]');

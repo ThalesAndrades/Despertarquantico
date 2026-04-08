@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle ?? 'Área de Membros') ?> - <?= APP_NAME ?></title>
+    <meta name="theme-color" content="#0A0A0A" id="themeColorMeta">
+    <?= themeInitScript() ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
@@ -63,6 +65,7 @@
             <h1 class="topbar-title"><?= e($pageTitle ?? '') ?></h1>
             <div class="topbar-right">
                 <span class="topbar-greeting">Olá, <?= e($user['name'] ?? '') ?></span>
+                <?= themeToggleButton('theme-toggle theme-toggle-topbar', 'Modo claro') ?>
             </div>
         </header>
         <div class="main-inner">

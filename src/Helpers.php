@@ -42,6 +42,40 @@ function asset(string $path): string
     return APP_URL . '/' . $relativePath . '?v=' . $version;
 }
 
+function themeInitScript(): string
+{
+    return <<<HTML
+<script>
+(function () {
+    try {
+        var storageKey = 'mulher-espiral-theme';
+        var savedTheme = localStorage.getItem(storageKey);
+        var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+        var theme = savedTheme || (prefersLight ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.style.colorScheme = theme;
+    } catch (error) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.style.colorScheme = 'dark';
+    }
+})();
+</script>
+HTML;
+}
+
+function themeScriptTag(): string
+{
+    return '<script src="' . asset('js/theme.js') . '" defer></script>';
+}
+
+function themeToggleButton(string $classes = 'theme-toggle', string $label = 'Tema'): string
+{
+    return '<button type="button" class="' . e($classes) . '" data-theme-toggle aria-label="Alternar tema" aria-pressed="false">'
+        . '<span class="theme-toggle-icon" aria-hidden="true"></span>'
+        . '<span class="theme-toggle-text">' . e($label) . '</span>'
+        . '</button>';
+}
+
 function old(string $key, string $default = ''): string
 {
     ensureSessionStarted();
@@ -166,5 +200,5 @@ function uploadImage(array $file, string $directory): ?string
 
 function closeLayout(): void
 {
-    echo '</div><script src="' . asset('js/app.js') . '" defer></script></main></body></html>';
+    echo '</div>' . themeScriptTag() . '<script src="' . asset('js/app.js') . '" defer></script></main></body></html>';
 }

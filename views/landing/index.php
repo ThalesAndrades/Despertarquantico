@@ -8,8 +8,9 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title><?= e($pageTitle) ?></title>
-    <meta name="description" content="O programa de transformacao feminina mais completo do Brasil. Metodo exclusivo de Sunyan Nunes para despertar sua essencia e ativar seu poder interior.">
-    <meta name="theme-color" content="#0A0A0A">
+    <meta name="description" content="Metodo Mulher Espiral: uma jornada simplificada e transformadora para mulheres que desejam mapear o caminho da cura e viver com mais leveza, seguranca e liberdade.">
+    <meta name="theme-color" content="#0A0A0A" id="themeColorMeta">
+    <?= themeInitScript() ?>
     <meta property="og:title" content="Mulher Espiral - Sunyan Nunes">
     <meta property="og:description" content="Desperte a mulher espiral que existe em voce. Programa completo de transformacao feminina.">
     <meta property="og:type" content="website">
@@ -19,7 +20,7 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
     <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/landing.css') ?>">
 </head>
-<body>
+<body class="landing-page">
 
 <!-- NAV -->
 <nav class="landing-nav" id="nav">
@@ -30,9 +31,10 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
             <a href="#sobre">Sunyan</a>
             <a href="#programa">Programa</a>
             <a href="#depoimentos">Resultados</a>
+            <?= themeToggleButton('theme-toggle theme-toggle-nav', 'Modo claro') ?>
             <a href="<?= url('login') ?>" class="nav-cta-btn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                Acessar
+                Ja sou aluna
             </a>
         </div>
         <button class="nav-toggle" id="navToggle" aria-label="Abrir menu" aria-controls="navLinks" aria-expanded="false">
@@ -48,37 +50,72 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
         <div class="hero-orb hero-orb-2"></div>
     </div>
     <div class="container hero-content">
-        <span class="hero-badge">
-            <span class="hero-badge-dot"></span>
-            Programa exclusivo
-        </span>
-        <h1 class="hero-title">
-            Voce nao precisa de mais<br>
-            informacao. Voce precisa<br>
-            de <em>transformacao.</em>
-        </h1>
-        <p class="hero-subtitle">
-            O Mulher Espiral e o metodo que ja guiou mais de 2.500 mulheres
-            a reconectarem com sua essencia, dissolverem padroes limitantes
-            e criarem uma vida alinhada com quem realmente sao.
-        </p>
-        <a href="<?= e($checkoutUrl) ?>" class="btn btn-gold btn-lg hero-cta-main">
-            Comecar minha jornada
-        </a>
-        <div class="hero-proof">
-            <div class="hero-proof-item">
-                <strong>2.500+</strong>
-                <span>mulheres</span>
+        <div class="hero-layout">
+            <div class="hero-copy">
+                <span class="hero-badge">
+                    <span class="hero-badge-dot"></span>
+                    Jornada guiada com acolhimento real
+                </span>
+                <h1 class="hero-title">
+                    Um metodo para<br>
+                    mapear o caminho da sua<br>
+                    <em>cura.</em>
+                </h1>
+                <p class="hero-subtitle">
+                    O Mulher Espiral nasceu de uma jornada real de cura e hoje
+                    conduz mulheres a uma vida mais leve, livre e alinhada,
+                    sem viverem refens das suas dores fisicas e emocionais.
+                </p>
+                <div class="hero-cta-group">
+                    <a href="<?= e($checkoutUrl) ?>" class="btn btn-gold btn-lg hero-cta-main">
+                        Quero entrar para o Mulher Espiral
+                    </a>
+                    <a href="#programa" class="btn btn-outline btn-lg hero-cta-secondary">
+                        Ver como funciona
+                    </a>
+                </div>
+                <div class="hero-cta-trust">
+                    <span>Acesso imediato</span>
+                    <span class="trust-dot"></span>
+                    <span>Garantia de 7 dias</span>
+                    <span class="trust-dot"></span>
+                    <span>Comunidade privada</span>
+                </div>
+                <div class="hero-proof">
+                    <div class="hero-proof-item">
+                        <strong>21+</strong>
+                        <span>anos com mulheres</span>
+                    </div>
+                    <div class="hero-proof-sep"></div>
+                    <div class="hero-proof-item">
+                        <strong>15+</strong>
+                        <span>anos de estudos</span>
+                    </div>
+                    <div class="hero-proof-sep"></div>
+                    <div class="hero-proof-item">
+                        <strong>leveza</strong>
+                        <span>cura e reconexao</span>
+                    </div>
+                </div>
             </div>
-            <div class="hero-proof-sep"></div>
-            <div class="hero-proof-item">
-                <strong>10</strong>
-                <span>modulos</span>
-            </div>
-            <div class="hero-proof-sep"></div>
-            <div class="hero-proof-item">
-                <strong>4.9</strong>
-                <span>avaliacao</span>
+            <div class="hero-visual-wrap">
+                <div class="hero-visual-frame">
+                    <img
+                        src="<?= asset('images/landing/hero-essencia.svg') ?>"
+                        alt="Ilustracao editorial representando reconexao feminina e energia em espiral"
+                        class="hero-visual-image"
+                        fetchpriority="high"
+                        decoding="async"
+                    >
+                    <div class="hero-visual-card hero-visual-card-primary">
+                        <strong>Metodo em camadas</strong>
+                        <span>Voce entende, integra e aplica no seu tempo.</span>
+                    </div>
+                    <div class="hero-visual-card hero-visual-card-secondary">
+                        <strong>Experiencia acolhedora</strong>
+                        <span>Clareza, seguranca emocional e proximo passo evidente.</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -104,10 +141,63 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
     <div class="container container-sm">
         <div class="prose-block">
             <p class="prose-lead">Eu sei o que voce esta sentindo.</p>
-            <p>Voce acorda todos os dias com aquela sensacao de que falta algo. Faz tudo certo &#8212; trabalha, cuida, se dedica &#8212; mas por dentro, existe um vazio que ninguem ve.</p>
-            <p>Voce ja leu livros, assistiu videos, talvez ate fez terapia. E tudo ajudou um pouco. Mas a raiz continua la. Porque ninguem te ensinou a <strong>olhar para onde realmente importa.</strong></p>
-            <p>O problema nunca foi falta de forca. O problema e que voce aprendeu a viver desconectada de quem realmente e.</p>
-            <p class="prose-highlight">E se eu te dissesse que existe um caminho para reconectar com essa mulher que voce sente que perdeu?</p>
+            <p>Talvez voce esteja cansada de sustentar tudo, de parecer forte o tempo inteiro e ainda assim sentir que sua vida nao flui como deveria.</p>
+            <p>Muitas mulheres chegaram ate aqui depois de anos tentando resolver sintomas, culpas, medos e repeticoes sem conseguir enxergar a raiz do que as aprisiona.</p>
+            <p>O Metodo Mulher Espiral nasce exatamente desse ponto: quando voce entende que nao precisa continuar refem das suas dores e pode <strong>mapear conscientemente o caminho da cura.</strong></p>
+            <p class="prose-highlight">Existe um jeito mais leve, mais profundo e mais verdadeiro de voltar para si mesma.</p>
+        </div>
+    </div>
+</section>
+
+<!-- EXPERIENCIA GUIADA -->
+<section class="section section-story" id="experiencia">
+    <div class="container">
+        <div class="text-center">
+            <span class="section-label">COMO A EXPERIENCIA FLUI</span>
+            <h2 class="section-title">Uma jornada que revela o proximo passo enquanto voce avanca.</h2>
+            <p class="section-desc">A plataforma foi pensada para guiar, acolher e aprofundar sua experiencia sem ruido visual, sem excesso e sem confusao.</p>
+        </div>
+        <div class="story-scroll">
+            <div class="story-visual" data-story-visual>
+                <div class="story-visual-stack">
+                    <img src="<?= asset('images/landing/story-acolhimento.svg') ?>" alt="Painel visual de acolhimento e seguranca emocional" class="story-image is-active" data-story-image="0" loading="lazy" decoding="async">
+                    <img src="<?= asset('images/landing/story-jornada.svg') ?>" alt="Painel visual de jornada estruturada e progresso claro" class="story-image" data-story-image="1" loading="lazy" decoding="async">
+                    <img src="<?= asset('images/landing/story-comunidade.svg') ?>" alt="Painel visual de comunidade privada e integracao da experiencia" class="story-image" data-story-image="2" loading="lazy" decoding="async">
+                </div>
+                <div class="story-visual-chip">Experiencia premium guiada</div>
+            </div>
+            <div class="story-steps">
+                <article class="story-step is-active" data-story-step="0">
+                    <span class="story-step-index">01</span>
+                    <h3>Acolhe antes de acelerar</h3>
+                    <p>Desde o primeiro scroll, a experiencia explica o que voce vai receber, reduz friccao e transmite seguranca para que a decisao seja leve e consciente.</p>
+                    <ul class="story-step-list">
+                        <li>Mensagem central simples e elegante</li>
+                        <li>Contraste premium para leitura sem esforco</li>
+                        <li>CTA principal sempre visivel e compreensivel</li>
+                    </ul>
+                </article>
+                <article class="story-step" data-story-step="1">
+                    <span class="story-step-index">02</span>
+                    <h3>Mostra a jornada com clareza</h3>
+                    <p>Cada parte da pagina conduz a usuaria com uma narrativa visual que mostra transformacao, metodo e beneficios reais sem parecer agressiva.</p>
+                    <ul class="story-step-list">
+                        <li>Blocos visuais com leitura cadenciada</li>
+                        <li>Provas suaves e beneficios bem posicionados</li>
+                        <li>Sensacao de plataforma de alto nivel</li>
+                    </ul>
+                </article>
+                <article class="story-step" data-story-step="2">
+                    <span class="story-step-index">03</span>
+                    <h3>Fecha a decisao com confianca</h3>
+                    <p>Ao chegar no CTA, a usuaria sabe exatamente o que acontece depois do clique: checkout seguro, acesso imediato e continuidade na area de membros.</p>
+                    <ul class="story-step-list">
+                        <li>Compra com expectativa alinhada</li>
+                        <li>Proximo passo sempre evidente</li>
+                        <li>Suporte visual e emocional ate a conversao</li>
+                    </ul>
+                </article>
+            </div>
         </div>
     </div>
 </section>
@@ -118,10 +208,10 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
         <div class="method-layout">
             <div class="method-text">
                 <span class="section-label">O METODO</span>
-                <h2 class="section-title text-left">Mulher Espiral nao e um curso.<br>E uma jornada de volta pra voce.</h2>
+                <h2 class="section-title text-left">Nao e apenas um curso.<br>E um metodo vivo de reconexao e cura.</h2>
                 <div class="gold-line-left"></div>
-                <p>Desenvolvido ao longo de 10 anos por Sunyan Nunes, o Metodo Espiral combina <strong>sabedoria ancestral feminina</strong> com <strong>reprogramacao quantica</strong> para criar transformacoes que duram.</p>
-                <p>Nao e teoria. Nao e motivacao vazia. E um processo estruturado, modulo a modulo, que te leva da desconexao ao despertar real.</p>
+                <p>Depois de buscar em varias partes do mundo respostas para dores fisicas e emocionais, Sunyan transformou sua propria experiencia em um processo estruturado de cura, reconexao e materializacao de uma vida mais leve.</p>
+                <p>O metodo simplifica aquilo que antes parecia confuso: voce aprende a reconhecer seus padroes, equilibrar seu feminino e deixar de viver no piloto automatico do sofrimento.</p>
                 <div class="method-pillars">
                     <div class="method-pillar">
                         <span class="method-pillar-num">01</span>
@@ -162,17 +252,29 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
     <div class="container">
         <div class="about-layout">
             <div class="about-image">
-                <div class="about-photo-placeholder">SN</div>
+                <div class="about-photo-frame">
+                    <img
+                        src="<?= asset('images/landing/about-sunyan.svg') ?>"
+                        alt="Ilustracao editorial representando a guia da jornada Mulher Espiral"
+                        class="about-photo"
+                        loading="lazy"
+                        decoding="async"
+                    >
+                    <div class="about-photo-badge">
+                        <strong>21+ anos</strong>
+                        <span>acompanhando mulheres em autoestima e seguranca</span>
+                    </div>
+                </div>
             </div>
             <div class="about-text">
                 <span class="section-label">QUEM TE GUIA</span>
                 <h2 class="section-title text-left">Sunyan Nunes</h2>
                 <div class="gold-line-left"></div>
-                <p>Nao sou uma influenciadora. Nao sou coach. Sou uma mulher que passou pela propria espiral &#8212; e decidiu dedicar a vida a ajudar outras mulheres a fazerem o mesmo.</p>
-                <p>Ha mais de <strong>10 anos</strong> estudo energia feminina, espiritualidade e transformacao pessoal. Ja acompanhei mais de <strong>2.500 mulheres</strong> nessa jornada.</p>
-                <p>Criei o Mulher Espiral porque sei que toda mulher carrega dentro de si uma forca que nao precisa ser construida &#8212; <strong>precisa ser lembrada.</strong></p>
+                <p>Apaixonada por desenvolvimento pessoal e espiritual, Sunyan buscou em diferentes lugares do mundo caminhos para curar as proprias dores fisicas e emocionais.</p>
+                <p>Formada inicialmente em <strong>Odontologia</strong>, profissao que ainda exerce, dedicou mais de <strong>15 anos</strong> ao estudo de cursos e processos de desenvolvimento pessoal e espiritual.</p>
+                <p>Depois de mais de <strong>21 anos</strong> atendendo mulheres que buscavam autoestima e seguranca, decidiu compartilhar seu metodo para ajuda-las a se libertarem dos processos de sofrimento e viverem com mais leveza.</p>
                 <blockquote class="about-quote">
-                    "Eu nao te ensino nada novo. Eu te ajudo a lembrar quem voce sempre foi."
+                    "Hoje eu compartilho com o universo feminino um caminho simplificado e transformador para fazer a vida fluir de forma leve e fluida."
                 </blockquote>
             </div>
         </div>
@@ -301,8 +403,8 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
 <!-- CTA FINAL -->
 <section class="section section-cta" id="comprar">
     <div class="container container-sm text-center">
-        <h2 class="section-title">Voce ja sabe que precisa disso.</h2>
-        <p class="section-desc" style="margin-bottom:36px;">A unica pergunta e: vai ser agora ou vai continuar esperando?</p>
+        <h2 class="section-title">Entre hoje e comece sua transformacao com clareza.</h2>
+        <p class="section-desc final-cta-desc">Ao clicar no botao, voce segue para um checkout seguro e recebe as instrucoes de acesso no seu e-mail.</p>
         <div class="price-card">
             <div class="price-label">Programa completo + todos os bonus</div>
             <div class="price-old">De <s>R$ 997</s></div>
@@ -312,8 +414,9 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
             </div>
             <div class="price-info">Pagamento unico &#183; Acesso vitalicio</div>
             <a href="<?= e($checkoutUrl) ?>" class="btn btn-gold btn-lg btn-block">
-                Quero comecar agora
+                Entrar agora no Mulher Espiral
             </a>
+            <p class="cta-helper-note">Voce conclui a compra em poucos minutos, sem mensalidade e sem etapas confusas.</p>
             <div class="price-secure">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 Compra segura &#183; Dados protegidos
@@ -351,9 +454,10 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
 
 <!-- FLOATING CTA MOBILE -->
 <div class="floating-cta" id="floatingCta">
-    <a href="<?= e($checkoutUrl) ?>" class="btn btn-gold btn-block">Comecar minha jornada</a>
+    <a href="<?= e($checkoutUrl) ?>" class="btn btn-gold btn-block">Entrar agora</a>
 </div>
 
+<?= themeScriptTag() ?>
 <script src="<?= asset('js/landing.js') ?>" defer></script>
 </body>
 </html>

@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> - <?= APP_NAME ?></title>
+    <meta name="theme-color" content="#0A0A0A" id="themeColorMeta">
+    <?= themeInitScript() ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,10 +16,21 @@
 <body>
     <div class="auth-page">
         <div class="auth-card">
+            <div class="auth-card-toolbar">
+                <?= themeToggleButton('theme-toggle theme-toggle-card', 'Modo claro') ?>
+            </div>
             <div class="auth-logo">
                 <h1>MULHER ESPIRAL</h1>
-                <p>Area exclusiva de membros</p>
+                <p>Entre para continuar sua jornada com clareza e acesso imediato.</p>
                 <div class="gold-line"></div>
+            </div>
+
+            <div class="auth-benefits">
+                <span>Acesso aos cursos</span>
+                <span class="trust-dot"></span>
+                <span>Comunidade privada</span>
+                <span class="trust-dot"></span>
+                <span>Progresso salvo</span>
             </div>
 
             <?php if (!empty($error)): ?>
@@ -40,8 +53,10 @@
                     <input type="password" id="password" name="password" class="form-control" placeholder="Sua senha" required>
                 </div>
 
-                <button type="submit" class="auth-submit">Entrar</button>
+                <button type="submit" class="auth-submit">Entrar na minha area</button>
             </form>
+
+            <p class="auth-action-note">Use o e-mail da sua compra para acessar tudo em um so lugar.</p>
 
             <div class="auth-links">
                 <p><a href="<?= url('forgot-password') ?>">Esqueceu sua senha?</a></p>
@@ -50,5 +65,6 @@
             </div>
         </div>
     </div>
+    <?= themeScriptTag() ?>
 </body>
 </html>

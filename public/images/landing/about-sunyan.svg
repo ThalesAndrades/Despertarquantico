@@ -1,0 +1,38 @@
+<svg width="960" height="1140" viewBox="0 0 960 1140" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="960" height="1140" rx="48" fill="#0B0A0D"/>
+<rect x="26" y="26" width="908" height="1088" rx="36" fill="url(#bg)"/>
+<circle cx="690" cy="270" r="220" fill="url(#glow1)"/>
+<circle cx="310" cy="880" r="250" fill="url(#glow2)"/>
+<path d="M480 250C590 250 680 340 680 450C680 560 590 650 480 650C370 650 280 560 280 450C280 340 370 250 480 250Z" fill="#141119" stroke="#4C3F1F" stroke-width="2"/>
+<path d="M386 438C386 372 430 326 480 326C530 326 574 372 574 438C574 503 530 548 480 548C430 548 386 503 386 438Z" fill="url(#portrait)"/>
+<path d="M350 708C390 650 434 618 480 618C526 618 570 650 610 708C645 759 666 816 674 880C676 901 660 918 639 918H321C300 918 284 901 286 880C294 816 315 759 350 708Z" fill="#141119" stroke="#4C3F1F" stroke-width="2"/>
+<path d="M360 760C414 731 456 718 486 718C520 718 560 730 606 754" stroke="url(#line)" stroke-width="10" stroke-linecap="round" opacity="0.9"/>
+<rect x="154" y="158" width="220" height="58" rx="29" fill="#141119" stroke="#4C3F1F"/>
+<text x="264" y="194" text-anchor="middle" fill="#EADAA6" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Guia da jornada</text>
+<rect x="592" y="812" width="214" height="164" rx="28" fill="#141119" stroke="#4C3F1F"/>
+<text x="699" y="862" text-anchor="middle" fill="#C9A84C" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="800">Metodo vivo</text>
+<text x="699" y="896" text-anchor="middle" fill="#E6E0D0" font-family="Inter, Arial, sans-serif" font-size="15">Experiencia guiada</text>
+<text x="699" y="924" text-anchor="middle" fill="#A7A095" font-family="Inter, Arial, sans-serif" font-size="15">Clareza + acolhimento</text>
+<defs>
+<linearGradient id="bg" x1="480" y1="26" x2="480" y2="1114" gradientUnits="userSpaceOnUse">
+<stop stop-color="#121015"/>
+<stop offset="1" stop-color="#09080B"/>
+</linearGradient>
+<radialGradient id="glow1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(690 270) rotate(90) scale(220)">
+<stop stop-color="#C9A84C" stop-opacity="0.22"/>
+<stop offset="1" stop-color="#C9A84C" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="glow2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(310 880) rotate(90) scale(250)">
+<stop stop-color="#7E5D1C" stop-opacity="0.22"/>
+<stop offset="1" stop-color="#7E5D1C" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="portrait" x1="480" y1="326" x2="480" y2="548" gradientUnits="userSpaceOnUse">
+<stop stop-color="#F0E5C1"/>
+<stop offset="1" stop-color="#A68430"/>
+</linearGradient>
+<linearGradient id="line" x1="360" y1="718" x2="606" y2="760" gradientUnits="userSpaceOnUse">
+<stop stop-color="#F0E5C1"/>
+<stop offset="1" stop-color="#A68430"/>
+</linearGradient>
+</defs>
+</svg>
