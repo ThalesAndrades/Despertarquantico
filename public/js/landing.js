@@ -1,27 +1,30 @@
 /**
- * Landing Page - Sunyan Nunes
+ * Landing Page - Mulher Espiral
+ * Professional interactions & animations
  */
 document.addEventListener('DOMContentLoaded', function () {
 
     // === Nav scroll effect ===
-    const nav = document.getElementById('nav');
+    var nav = document.getElementById('nav');
     if (nav) {
         window.addEventListener('scroll', function () {
             nav.classList.toggle('scrolled', window.scrollY > 50);
-        });
+        }, { passive: true });
     }
 
     // === Mobile menu toggle ===
-    const toggle = document.getElementById('navToggle');
-    const links = document.querySelector('.nav-links');
+    var toggle = document.getElementById('navToggle');
+    var links = document.getElementById('navLinks');
     if (toggle && links) {
         toggle.addEventListener('click', function () {
             links.classList.toggle('open');
+            // Animate hamburger
+            toggle.classList.toggle('active');
         });
-        // Close menu on link click
         links.querySelectorAll('a').forEach(function (link) {
             link.addEventListener('click', function () {
                 links.classList.remove('open');
+                toggle.classList.remove('active');
             });
         });
     }
@@ -31,20 +34,14 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.addEventListener('click', function () {
             var item = this.closest('.faq-item');
             var wasOpen = item.classList.contains('open');
-
-            // Close all
             document.querySelectorAll('.faq-item').forEach(function (i) {
                 i.classList.remove('open');
             });
-
-            // Toggle clicked
-            if (!wasOpen) {
-                item.classList.add('open');
-            }
+            if (!wasOpen) item.classList.add('open');
         });
     });
 
-    // === Smooth scroll for anchor links ===
+    // === Smooth scroll ===
     document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
         anchor.addEventListener('click', function (e) {
             var id = this.getAttribute('href');
@@ -52,38 +49,105 @@ document.addEventListener('DOMContentLoaded', function () {
             var target = document.querySelector(id);
             if (target) {
                 e.preventDefault();
-                var offset = nav ? nav.offsetHeight : 0;
+                var offset = nav ? nav.offsetHeight + 20 : 20;
                 var top = target.getBoundingClientRect().top + window.pageYOffset - offset;
                 window.scrollTo({ top: top, behavior: 'smooth' });
             }
         });
     });
 
-    // === Fade-in on scroll ===
-    var fadeElements = document.querySelectorAll('.section');
-    if (fadeElements.length > 0 && 'IntersectionObserver' in window) {
-        var observer = new IntersectionObserver(function (entries) {
+    // === Fade-in on scroll (IntersectionObserver) ===
+    if ('IntersectionObserver' in window) {
+        var fadeObserver = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
+                    fadeObserver.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.1 });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-        fadeElements.forEach(function (el) {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(30px)';
-            el.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
-            observer.observe(el);
+        document.querySelectorAll('.section, .pain-card, .module-card, .testimonial-card, .bonus-card, .result-item').forEach(function (el) {
+            el.classList.add('fade-up');
+            fadeObserver.observe(el);
         });
 
         // Make hero always visible
         var hero = document.getElementById('hero');
         if (hero) {
+            hero.classList.remove('fade-up');
             hero.style.opacity = '1';
             hero.style.transform = 'none';
         }
     }
+
+    // === Counter animation for results bar ===
+    var countersAnimated = false;
+    var counterElements = document.querySelectorAll('.result-number[data-count]');
+    if (counterElements.length > 0 && 'IntersectionObserver' in window) {
+        var counterObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting && !countersAnimated) {
+                    countersAnimated = true;
+                    animateCounters();
+                    counterObserver.disconnect();
+                }
+            });
+        }, { threshold: 0.3 });
+
+        var resultsBar = document.querySelector('.results-bar');
+        if (resultsBar) counterObserver.observe(resultsBar);
+    }
+
+    function animateCounters() {
+        counterElements.forEach(function (el) {
+            var target = parseInt(el.getAttribute('data-count'), 10);
+            var duration = 2000;
+            var start = 0;
+            var startTime = null;
+
+            function easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); }
+
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                var progress = Math.min((timestamp - startTime) / duration, 1);
+                var easedProgress = easeOutQuart(progress);
+                var current = Math.floor(easedProgress * target);
+                el.textContent = current.toLocaleString('pt-BR');
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    el.textContent = target.toLocaleString('pt-BR');
+                }
+            }
+            requestAnimationFrame(step);
+        });
+    }
+
+    // === Floating CTA visibility ===
+    var floatingCta = document.getElementById('floatingCta');
+    if (floatingCta) {
+        var heroSection = document.getElementById('hero');
+        var ctaSection = document.getElementById('comprar');
+
+        window.addEventListener('scroll', function () {
+            var scrollY = window.scrollY;
+            var heroBottom = heroSection ? heroSection.offsetTop + heroSection.offsetHeight : 600;
+            var ctaTop = ctaSection ? ctaSection.offsetTop - window.innerHeight : Infinity;
+
+            if (scrollY > heroBottom && scrollY < ctaTop) {
+                floatingCta.classList.add('show');
+            } else {
+                floatingCta.classList.remove('show');
+            }
+        }, { passive: true });
+    }
+
+    // === Stagger children animation ===
+    document.querySelectorAll('.pain-grid, .modules-grid, .testimonials-grid, .bonus-grid').forEach(function (grid) {
+        var children = grid.children;
+        for (var i = 0; i < children.length; i++) {
+            children[i].style.transitionDelay = (i * 0.08) + 's';
+        }
+    });
 });
