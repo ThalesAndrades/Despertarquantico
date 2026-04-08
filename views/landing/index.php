@@ -101,13 +101,62 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
             </div>
             <div class="hero-visual-wrap">
                 <div class="hero-visual-frame">
-                    <img
-                        src="<?= asset('images/landing/hero-essencia.svg') ?>"
-                        alt="Ilustracao editorial representando reconexao feminina e energia em espiral"
-                        class="hero-visual-image"
-                        fetchpriority="high"
-                        decoding="async"
-                    >
+                    <div class="tablet-frame tablet-frame-hero">
+                        <div class="tablet-notch" aria-hidden="true"></div>
+                        <div class="tablet-screen">
+                            <img
+                                src="<?= asset('images/landing/hero-essencia.svg') ?>"
+                                alt="Visual da plataforma em formato tablet"
+                                class="tablet-screen-image"
+                                fetchpriority="high"
+                                decoding="async"
+                            >
+                            <div class="tablet-tool" data-frequency-tool>
+                                <div class="tablet-tool-top">
+                                    <div class="tablet-tool-title">Scanner de Frequencia</div>
+                                    <div class="tablet-tool-hz" data-ft-value>432 Hz</div>
+                                </div>
+                                <div class="tablet-tool-dots" aria-hidden="true">
+                                    <span class="tablet-dot is-active" data-ft-dot></span>
+                                    <span class="tablet-dot" data-ft-dot></span>
+                                    <span class="tablet-dot" data-ft-dot></span>
+                                </div>
+                                <div class="tablet-tool-step" data-ft-step>
+                                    <div class="tablet-tool-step-label">Passo 1/3 • Pessoal</div>
+                                    <div class="tablet-tool-step-help">Escreva 1 a 3 palavras que vem a cabeca.</div>
+                                    <input class="tablet-tool-input" type="text" placeholder="ex: cansaco, coragem, paz" data-ft-input="personal">
+                                </div>
+                                <div class="tablet-tool-step" data-ft-step style="display:none">
+                                    <div class="tablet-tool-step-label">Passo 2/3 • Familiar</div>
+                                    <div class="tablet-tool-step-help">Primeiras palavras sobre seu contexto familiar.</div>
+                                    <input class="tablet-tool-input" type="text" placeholder="ex: apoio, pressao, distancia" data-ft-input="family">
+                                </div>
+                                <div class="tablet-tool-step" data-ft-step style="display:none">
+                                    <div class="tablet-tool-step-label">Passo 3/3 • Profissional</div>
+                                    <div class="tablet-tool-step-help">Primeiras palavras sobre trabalho e rotina.</div>
+                                    <input class="tablet-tool-input" type="text" placeholder="ex: foco, sobrecarga, direcao" data-ft-input="professional">
+                                    <div class="tablet-tool-meter">
+                                        <div class="tablet-tool-meter-fill" data-ft-meter style="width:29%"></div>
+                                    </div>
+                                    <div class="tablet-tool-band">
+                                        <strong data-ft-band-title>Clareza</strong>
+                                        <span data-ft-band-desc>Sua energia esta organizando o caminho.</span>
+                                    </div>
+                                    <div class="tablet-tool-fine">
+                                        <button type="button" class="tablet-tool-btn" data-ft-minus aria-label="Diminuir 1 Hz">−</button>
+                                        <input type="range" min="200" max="1000" step="1" value="432" class="tablet-tool-range" data-ft-range aria-label="Ajustar Hz">
+                                        <button type="button" class="tablet-tool-btn" data-ft-plus aria-label="Aumentar 1 Hz">+</button>
+                                    </div>
+                                </div>
+                                <div class="tablet-tool-actions">
+                                    <button type="button" class="tablet-tool-ghost" data-ft-back>Voltar</button>
+                                    <button type="button" class="tablet-tool-primary" data-ft-next>Continuar</button>
+                                    <button type="button" class="tablet-tool-primary" data-ft-apply style="display:none">Aplicar ao fundo</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tablet-shadow" aria-hidden="true"></div>
+                    </div>
                     <div class="hero-visual-card hero-visual-card-primary">
                         <strong>Metodo em camadas</strong>
                         <span>Voce entende, integra e aplica no seu tempo.</span>
@@ -459,6 +508,7 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
 </div>
 
 <?= themeScriptTag() ?>
+<script src="<?= asset('js/frequency-tool.js') ?>" defer></script>
 <script src="<?= asset('js/landing.js') ?>" defer></script>
 </body>
 </html>

@@ -65,7 +65,8 @@ HTML;
 
 function themeScriptTag(): string
 {
-    return '<script src="' . asset('js/theme.js') . '" defer></script>';
+    return '<script src="' . asset('js/theme.js') . '" defer></script>'
+        . '<script src="' . asset('js/frequency-bg.js') . '" defer></script>';
 }
 
 function themeToggleButton(string $classes = 'theme-toggle', string $label = 'Tema'): string
