@@ -35,7 +35,7 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
                 Acessar
             </a>
         </div>
-        <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false">
             <span></span><span></span><span></span>
         </button>
     </div>
@@ -275,23 +275,23 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
         </div>
         <div class="faq-list">
             <div class="faq-item">
-                <button class="faq-question">Por quanto tempo terei acesso?<span class="faq-arrow">+</span></button>
+                <button class="faq-question" aria-expanded="false">Por quanto tempo terei acesso?<span class="faq-arrow">+</span></button>
                 <div class="faq-answer"><p>Acesso vitalicio. Sem mensalidade, sem renovacao. Uma vez dentro, sempre dentro.</p></div>
             </div>
             <div class="faq-item">
-                <button class="faq-question">Preciso de experiencia previa?<span class="faq-arrow">+</span></button>
+                <button class="faq-question" aria-expanded="false">Preciso de experiencia previa?<span class="faq-arrow">+</span></button>
                 <div class="faq-answer"><p>Nenhuma. O programa foi feito para mulheres de todos os niveis &#8212; desde quem nunca estudou autoconhecimento ate quem ja tem anos de caminhada.</p></div>
             </div>
             <div class="faq-item">
-                <button class="faq-question">Como funciona a comunidade?<span class="faq-arrow">+</span></button>
+                <button class="faq-question" aria-expanded="false">Como funciona a comunidade?<span class="faq-arrow">+</span></button>
                 <div class="faq-answer"><p>Voce escolhe um pseudonimo e participa de forma anonima. E um espaco seguro para compartilhar, perguntar e trocar sem julgamento.</p></div>
             </div>
             <div class="faq-item">
-                <button class="faq-question">Posso acessar pelo celular?<span class="faq-arrow">+</span></button>
+                <button class="faq-question" aria-expanded="false">Posso acessar pelo celular?<span class="faq-arrow">+</span></button>
                 <div class="faq-answer"><p>Sim. A plataforma e 100% otimizada para celular, tablet e computador.</p></div>
             </div>
             <div class="faq-item">
-                <button class="faq-question">E se eu nao gostar?<span class="faq-arrow">+</span></button>
+                <button class="faq-question" aria-expanded="false">E se eu nao gostar?<span class="faq-arrow">+</span></button>
                 <div class="faq-answer"><p>Voce tem 7 dias para decidir. Se nao for para voce, devolvemos 100%. Simples assim.</p></div>
             </div>
         </div>
@@ -302,7 +302,7 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
 <section class="section section-cta" id="comprar">
     <div class="container container-sm text-center">
         <h2 class="section-title">Voce ja sabe que precisa disso.</h2>
-        <p class="section-desc" style="margin-bottom:36px;">A unica pergunta e: vai ser agora ou vai continuar esperando?</p>
+        <p class="section-desc section-desc-cta">A unica pergunta e: vai ser agora ou vai continuar esperando?</p>
         <div class="price-card">
             <div class="price-label">Programa completo + todos os bonus</div>
             <div class="price-old">De <s>R$ 997</s></div>
@@ -348,6 +348,11 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
         </div>
     </div>
 </footer>
+
+<!-- SCROLL TO TOP -->
+<button class="scroll-top" id="scrollTop" aria-label="Voltar ao topo">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
 
 <!-- FLOATING CTA MOBILE -->
 <div class="floating-cta" id="floatingCta">

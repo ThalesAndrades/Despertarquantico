@@ -4,21 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle ?? 'Admin') ?> - <?= APP_NAME ?></title>
+    <meta name="theme-color" content="#0A0A0A" id="themeColorMeta">
+    <?= themeInitScript() ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/dashboard.css') ?>">
-    <style>
-        .admin-nav { display:flex; gap:6px; margin-bottom:32px; flex-wrap:wrap; }
-        .admin-nav a {
-            padding:10px 18px; border-radius:10px; font-size:13px; font-weight:600;
-            text-decoration:none; color:var(--text-muted); background:var(--bg-card);
-            border:1px solid var(--border-subtle); transition:all 0.2s;
-        }
-        .admin-nav a:hover { color:#fff; background:var(--bg-card-hover); border-color:var(--border-medium); }
-        .admin-nav a.active { color:#0A0A0A; background:var(--gold); border-color:var(--gold); }
-    </style>
 </head>
 <body class="app-body">
     <?php $user = currentUser(); ?>
@@ -64,10 +56,13 @@
 
     <main class="main-content">
         <header class="topbar">
-            <button class="topbar-toggle" id="sidebarToggle" aria-label="Menu">
+            <button class="topbar-toggle" id="sidebarToggle" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
             <h1 class="topbar-title"><?= e($pageTitle ?? 'Admin') ?></h1>
+            <div class="topbar-right">
+                <?= themeToggleButton('theme-toggle theme-toggle-topbar', 'Modo claro') ?>
+            </div>
         </header>
         <div class="main-inner">
             <?php $flashError = flash('error'); $flashSuccess = flash('success'); ?>

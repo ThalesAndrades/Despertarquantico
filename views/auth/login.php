@@ -46,7 +46,7 @@
             <div class="auth-links">
                 <p><a href="<?= url('forgot-password') ?>">Esqueceu sua senha?</a></p>
                 <p>Ainda nao tem conta? <a href="<?= url('register') ?>">Criar conta</a></p>
-                <p style="margin-top:18px;"><a href="<?= url('') ?>" class="back-link">&#8592; Voltar ao site</a></p>
+                <p class="mt-2"><a href="<?= url('') ?>" class="back-link">&#8592; Voltar ao site</a></p>
             </div>
         </div>
     </div>

@@ -44,6 +44,7 @@ class Auth
 
     public static function logout(): void
     {
+        ensureSessionStarted();
         $_SESSION = [];
         if (ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
@@ -94,6 +95,7 @@ class Auth
 
     private static function setSession(array $user): void
     {
+        ensureSessionStarted();
         session_regenerate_id(true);
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_name'] = $user['name'];

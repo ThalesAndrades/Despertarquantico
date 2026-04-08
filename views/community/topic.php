@@ -8,14 +8,14 @@
 
 <!-- Post -->
 <div class="topic-card">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+    <div class="topic-author-row">
         <div class="community-avatar community-avatar-lg">
             <?= e(mb_substr($post['anonymous_name'], 0, 1)) ?>
         </div>
         <div>
-            <span style="font-weight:700;font-size:15px;color:#fff;"><?= e($post['anonymous_name']) ?></span>
+            <span class="topic-author-name"><?= e($post['anonymous_name']) ?></span>
             <div class="community-post-meta">
-                <span class="badge badge-gold" style="font-size:10px;"><?= e($post['category']) ?></span>
+                <span class="badge badge-gold badge-xs"><?= e($post['category']) ?></span>
                 <span class="time"><?= timeAgo($post['created_at']) ?></span>
             </div>
         </div>
@@ -26,7 +26,7 @@
     <div class="community-post-body-full"><?= e($post['body']) ?></div>
 
     <div class="topic-actions">
-        <form method="POST" action="<?= url('community/like') ?>" style="display:inline;">
+        <form method="POST" action="<?= url('community/like') ?>" class="inline-form">
             <?= CSRF::field() ?>
             <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
             <input type="hidden" name="redirect" value="community/topic/<?= $post['id'] ?>">
@@ -39,13 +39,13 @@
 </div>
 
 <!-- Comments -->
-<div style="margin-bottom:24px;">
+<div class="mb-3">
     <h3 class="comments-section-title">
         Comentarios (<?= count($comments) ?>)
     </h3>
 
     <?php if (empty($comments)): ?>
-        <p class="text-muted" style="font-size:14px;padding:20px 0;">Nenhum comentario ainda. Seja a primeira a comentar!</p>
+        <p class="text-muted text-sm p-2">Nenhum comentario ainda. Seja a primeira a comentar!</p>
     <?php else: ?>
         <?php foreach ($comments as $comment): ?>
             <div class="comment-card">
@@ -60,11 +60,11 @@
                 </div>
                 <div class="comment-body"><?= e($comment['body']) ?></div>
                 <div class="comment-actions">
-                    <form method="POST" action="<?= url('community/like') ?>" style="display:inline;">
+                    <form method="POST" action="<?= url('community/like') ?>" class="inline-form">
                         <?= CSRF::field() ?>
                         <input type="hidden" name="comment_id" value="<?= $comment['id'] ?>">
                         <input type="hidden" name="redirect" value="community/topic/<?= $post['id'] ?>">
-                        <button type="submit" class="community-action-btn <?= $comment['user_liked'] ? 'liked' : '' ?>" style="font-size:12px;">
+                        <button type="submit" class="community-action-btn <?= $comment['user_liked'] ? 'liked' : '' ?> text-xs">
                             <?= $comment['user_liked'] ? '&#9733;' : '&#9734;' ?> <?= $comment['like_count'] ?>
                         </button>
                     </form>
@@ -81,7 +81,7 @@
         <?= CSRF::field() ?>
         <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
         <div class="form-group">
-            <textarea name="body" class="form-control" placeholder="Compartilhe seus pensamentos..." required style="min-height:100px;"></textarea>
+            <textarea name="body" class="form-control" placeholder="Compartilhe seus pensamentos..." required></textarea>
             <p class="comment-form-hint">Publicando como: <strong><?= e(currentUser()['anonymous_name'] ?? '') ?></strong></p>
         </div>
         <button type="submit" class="btn btn-primary btn-sm">Comentar</button>

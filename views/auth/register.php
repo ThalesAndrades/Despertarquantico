@@ -40,7 +40,7 @@
                 <div class="form-group">
                     <label for="anonymous_name">Seu nome na comunidade</label>
                     <input type="text" id="anonymous_name" name="anonymous_name" class="form-control" value="<?= old('anonymousName') ?>" placeholder="Ex: Lua Dourada, Estrela Cosmica..." required minlength="3" maxlength="50">
-                    <p class="text-xs text-muted mt-1" style="line-height:1.5;">Este sera seu pseudonimo na comunidade. Ninguem vera seu nome real.</p>
+                    <p class="text-xs text-muted mt-1">Este sera seu pseudonimo na comunidade. Ninguem vera seu nome real.</p>
                 </div>
 
                 <div class="form-row">
@@ -59,7 +59,7 @@
 
             <div class="auth-links">
                 <p>Ja tem uma conta? <a href="<?= url('login') ?>">Entrar</a></p>
-                <p style="margin-top:18px;"><a href="<?= url('') ?>" class="back-link">&#8592; Voltar ao site</a></p>
+                <p class="mt-2"><a href="<?= url('') ?>" class="back-link">&#8592; Voltar ao site</a></p>
             </div>
         </div>
     </div>

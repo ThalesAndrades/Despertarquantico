@@ -8,14 +8,18 @@ h1, h2, h3 { font-family: var(--font-display); }
 
 /* ========== NAV ========== */
 .landing-nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: var(--z-nav, 1000);
     padding: 18px 0;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    contain: layout style;
 }
 .landing-nav.scrolled {
-    background: rgba(10, 10, 10, 0.96);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    background: rgba(10, 10, 10, 0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     box-shadow: 0 1px 0 rgba(201, 168, 76, 0.06);
     padding: 12px 0;
 }
@@ -86,27 +90,28 @@ h1, h2, h3 { font-family: var(--font-display); }
     position: absolute; inset: 0;
     pointer-events: none;
     overflow: hidden;
+    contain: strict;
 }
 .hero-orb {
     position: absolute; border-radius: 50%;
-    filter: blur(100px);
-    animation: orbFloat 15s ease-in-out infinite;
+    filter: blur(80px);
+    will-change: transform;
+    animation: orbFloat 20s ease-in-out infinite;
 }
 .hero-orb-1 {
-    width: 600px; height: 600px;
-    background: rgba(201, 168, 76, 0.04);
+    width: 500px; height: 500px;
+    background: rgba(201, 168, 76, 0.05);
     top: -15%; left: 15%;
 }
 .hero-orb-2 {
-    width: 500px; height: 500px;
-    background: rgba(201, 168, 76, 0.03);
+    width: 400px; height: 400px;
+    background: rgba(201, 168, 76, 0.04);
     bottom: -10%; right: 10%;
-    animation-delay: -5s;
+    animation-delay: -7s;
 }
 @keyframes orbFloat {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(25px, -15px) scale(1.03); }
-    66% { transform: translate(-15px, 10px) scale(0.97); }
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(20px, -12px, 0) scale(1.02); }
 }
 
 .hero-content { position: relative; z-index: 2; max-width: 780px; }
@@ -190,11 +195,16 @@ h1, h2, h3 { font-family: var(--font-display); }
 }
 
 @media (max-width: 600px) {
-    .hero { padding: 120px 20px 60px; }
-    .hero-proof { gap: 20px; padding: 20px 24px; }
+    .hero { padding: 120px 16px 60px; }
+    .hero-proof { gap: 16px; padding: 18px 20px; flex-wrap: wrap; justify-content: center; }
     .hero-proof-item strong { font-size: 20px; }
     .hero-proof-sep { height: 24px; }
-    .hero-cta-main { padding: 16px 36px !important; font-size: 14px !important; }
+    .hero-cta-main { padding: 16px 36px !important; font-size: 14px !important; width: 100%; justify-content: center; }
+}
+@media (max-width: 380px) {
+    .hero-proof-sep { display: none; }
+    .hero-proof { gap: 12px; }
+    .hero-proof-item { min-width: 70px; }
 }
 
 /* ========== TRUST BAR ========== */
@@ -374,10 +384,12 @@ h1, h2, h3 { font-family: var(--font-display); }
 .spiral-visual {
     position: relative;
     width: 320px; height: 320px;
+    contain: layout style paint;
 }
 .spiral-ring {
     position: absolute; border-radius: 50%;
     border: 1px solid rgba(201, 168, 76, 0.10);
+    will-change: transform;
 }
 .ring-1 { inset: 0; animation: spin 30s linear infinite; }
 .ring-2 { inset: 40px; border-color: rgba(201, 168, 76, 0.18); animation: spin 20s linear infinite reverse; }
@@ -638,17 +650,18 @@ h1, h2, h3 { font-family: var(--font-display); }
 }
 .faq-question:hover { color: #fff; }
 .faq-arrow {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 300;
     color: var(--gold);
     flex-shrink: 0;
-    transition: transform 0.3s ease;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     line-height: 1;
     width: 20px;
     text-align: center;
+    user-select: none;
 }
 .faq-item.open .faq-arrow {
-    transform: rotate(45deg);
+    transform: rotate(135deg);
 }
 .faq-answer {
     max-height: 0; overflow: hidden;
@@ -816,7 +829,7 @@ h1, h2, h3 { font-family: var(--font-display); }
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border-top: 1px solid rgba(201, 168, 76, 0.12);
-    z-index: 999;
+    z-index: var(--z-floating, 500);
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -827,9 +840,56 @@ h1, h2, h3 { font-family: var(--font-display); }
     .landing-footer { padding-bottom: 80px; }
 }
 
+/* ========== SECTION DESC SPACING ========== */
+.section-desc-cta {
+    margin-bottom: 36px;
+}
+
+/* ========== SCROLL TO TOP ========== */
+.scroll-top {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(201, 168, 76, 0.15);
+    border: 1px solid rgba(201, 168, 76, 0.25);
+    color: var(--gold);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-floating, 500);
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.3s, transform 0.3s, background 0.2s;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+.scroll-top.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.scroll-top:hover {
+    background: rgba(201, 168, 76, 0.25);
+}
+@media (max-width: 768px) {
+    .scroll-top { bottom: 80px; right: 16px; width: 40px; height: 40px; }
+}
+
 /* ========== ANIMATIONS ========== */
 .fade-up {
     opacity: 0; transform: translateY(24px);
     transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+/* Touch device: no hover transforms on landing */
+@media (hover: none) {
+    .testimonial-item:hover,
+    .program-item:hover,
+    .method-pillar:hover,
+    .bonus-item:hover,
+    .faq-item:hover { border-color: inherit; transform: none; }
+}

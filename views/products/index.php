@@ -8,7 +8,7 @@
 <?php else: ?>
     <div class="products-grid">
         <?php foreach ($products as $prod): ?>
-            <a href="<?= url('products/' . e($prod['slug'])) ?>" class="product-card" style="text-decoration:none;">
+            <a href="<?= url('products/' . e($prod['slug'])) ?>" class="product-card no-decoration">
                 <div class="product-card-img">
                     <?php if ($prod['cover_image']): ?>
                         <img src="<?= url('uploads/' . e($prod['cover_image'])) ?>" alt="<?= e($prod['title']) ?>">

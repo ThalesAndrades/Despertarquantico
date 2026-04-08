@@ -4,12 +4,62 @@
  */
 document.addEventListener('DOMContentLoaded', function () {
 
+    // === Throttle utility ===
+    function throttle(fn, delay) {
+        var last = 0;
+        var timer = null;
+        return function () {
+            var now = Date.now();
+            var remaining = delay - (now - last);
+            if (remaining <= 0) {
+                if (timer) { clearTimeout(timer); timer = null; }
+                last = now;
+                fn();
+            } else if (!timer) {
+                timer = setTimeout(function () {
+                    last = Date.now();
+                    timer = null;
+                    fn();
+                }, remaining);
+            }
+        };
+    }
+
     // === Nav scroll effect ===
     var nav = document.getElementById('nav');
-    if (nav) {
-        window.addEventListener('scroll', function () {
-            nav.classList.toggle('scrolled', window.scrollY > 50);
-        }, { passive: true });
+    var floatingCta = document.getElementById('floatingCta');
+    var heroSection = document.getElementById('hero');
+    var ctaSection = document.getElementById('comprar');
+    var scrollTopBtn = document.getElementById('scrollTop');
+
+    function onScroll() {
+        var scrollY = window.scrollY;
+
+        // Nav background
+        if (nav) {
+            nav.classList.toggle('scrolled', scrollY > 50);
+        }
+
+        // Floating CTA visibility
+        if (floatingCta) {
+            var heroBottom = heroSection ? heroSection.offsetTop + heroSection.offsetHeight : 600;
+            var ctaTop = ctaSection ? ctaSection.offsetTop - window.innerHeight : Infinity;
+            floatingCta.classList.toggle('show', scrollY > heroBottom && scrollY < ctaTop);
+        }
+
+        // Scroll to top button
+        if (scrollTopBtn) {
+            scrollTopBtn.classList.toggle('show', scrollY > 800);
+        }
+    }
+
+    window.addEventListener('scroll', throttle(onScroll, 100), { passive: true });
+
+    // === Scroll to top button ===
+    if (scrollTopBtn) {
+        scrollTopBtn.addEventListener('click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     }
 
     // === Mobile menu toggle ===
@@ -17,32 +67,35 @@ document.addEventListener('DOMContentLoaded', function () {
     var links = document.getElementById('navLinks');
     if (toggle && links) {
         toggle.addEventListener('click', function () {
-            links.classList.toggle('open');
-            // Animate hamburger
+            var isOpen = links.classList.toggle('open');
             toggle.classList.toggle('active');
+            toggle.setAttribute('aria-expanded', isOpen);
         });
         links.querySelectorAll('a').forEach(function (link) {
             link.addEventListener('click', function () {
                 links.classList.remove('open');
                 toggle.classList.remove('active');
+                toggle.setAttribute('aria-expanded', 'false');
             });
         });
     }
 
-    // === FAQ accordion ===
+    // === FAQ accordion (CSS-only arrow rotation, no text change) ===
     document.querySelectorAll('.faq-question').forEach(function (btn) {
         btn.addEventListener('click', function () {
             var item = this.closest('.faq-item');
-            var arrow = this.querySelector('.faq-arrow');
             var wasOpen = item.classList.contains('open');
-            document.querySelectorAll('.faq-item').forEach(function (i) {
+
+            // Close all
+            document.querySelectorAll('.faq-item.open').forEach(function (i) {
                 i.classList.remove('open');
-                var a = i.querySelector('.faq-arrow');
-                if (a) a.textContent = '+';
+                i.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
             });
+
+            // Toggle current
             if (!wasOpen) {
                 item.classList.add('open');
-                if (arrow) arrow.textContent = '\u2212';
+                this.setAttribute('aria-expanded', 'true');
             }
         });
     });
@@ -71,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     fadeObserver.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
 
         document.querySelectorAll('.section, .program-item, .testimonial-item, .bonus-item, .method-pillar, .price-card').forEach(function (el) {
             el.classList.add('fade-up');
@@ -87,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // === Counter animation for results bar ===
+    // === Counter animation for proof bar ===
     var countersAnimated = false;
     var counterElements = document.querySelectorAll('.result-number[data-count]');
     if (counterElements.length > 0 && 'IntersectionObserver' in window) {
@@ -109,7 +162,6 @@ document.addEventListener('DOMContentLoaded', function () {
         counterElements.forEach(function (el) {
             var target = parseInt(el.getAttribute('data-count'), 10);
             var duration = 2000;
-            var start = 0;
             var startTime = null;
 
             function easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); }
@@ -117,8 +169,7 @@ document.addEventListener('DOMContentLoaded', function () {
             function step(timestamp) {
                 if (!startTime) startTime = timestamp;
                 var progress = Math.min((timestamp - startTime) / duration, 1);
-                var easedProgress = easeOutQuart(progress);
-                var current = Math.floor(easedProgress * target);
+                var current = Math.floor(easeOutQuart(progress) * target);
                 el.textContent = current.toLocaleString('pt-BR');
                 if (progress < 1) {
                     requestAnimationFrame(step);
@@ -130,30 +181,22 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // === Floating CTA visibility ===
-    var floatingCta = document.getElementById('floatingCta');
-    if (floatingCta) {
-        var heroSection = document.getElementById('hero');
-        var ctaSection = document.getElementById('comprar');
-
-        window.addEventListener('scroll', function () {
-            var scrollY = window.scrollY;
-            var heroBottom = heroSection ? heroSection.offsetTop + heroSection.offsetHeight : 600;
-            var ctaTop = ctaSection ? ctaSection.offsetTop - window.innerHeight : Infinity;
-
-            if (scrollY > heroBottom && scrollY < ctaTop) {
-                floatingCta.classList.add('show');
-            } else {
-                floatingCta.classList.remove('show');
-            }
-        }, { passive: true });
-    }
-
     // === Stagger children animation ===
     document.querySelectorAll('.program-grid, .testimonial-stack, .bonus-list, .method-pillars').forEach(function (grid) {
         var children = grid.children;
         for (var i = 0; i < children.length; i++) {
             children[i].style.transitionDelay = (i * 0.08) + 's';
         }
+    });
+
+    // === Button loading on form submit ===
+    document.querySelectorAll('form').forEach(function (form) {
+        form.addEventListener('submit', function () {
+            var btn = form.querySelector('[type="submit"], .btn');
+            if (btn && !btn.classList.contains('is-loading')) {
+                btn.classList.add('is-loading');
+                setTimeout(function () { btn.classList.remove('is-loading'); }, 8000);
+            }
+        });
     });
 });

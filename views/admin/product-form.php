@@ -1,12 +1,12 @@
-<a href="<?= url('admin/products') ?>" style="color:var(--text-muted);font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:20px;">
-    ← Voltar para produtos
+<a href="<?= url('admin/products') ?>" class="admin-back-link admin-back-link-lg">
+    &#8592; Voltar para produtos
 </a>
 
 <?php if (!empty($error)): ?>
     <div class="alert alert-error"><?= e($error) ?></div>
 <?php endif; ?>
 
-<div style="background:var(--bg-card);border-radius:20px;padding:36px;border:1px solid var(--border-subtle);max-width:700px;">
+<div class="admin-form-wide">
     <form method="POST" action="<?= url($product ? 'admin/products/edit/' . $product['id'] : 'admin/products/create') ?>" enctype="multipart/form-data">
         <?= CSRF::field() ?>
 
@@ -24,10 +24,10 @@
 
         <div class="form-group">
             <label for="description">Descrição Completa</label>
-            <textarea id="description" name="description" class="form-control" style="min-height:150px;"><?= e($product['description'] ?? '') ?></textarea>
+            <textarea id="description" name="description" class="form-control"><?= e($product['description'] ?? '') ?></textarea>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="admin-grid-2-sm">
             <div class="form-group">
                 <label for="price">Preço (R$)</label>
                 <input type="number" id="price" name="price" class="form-control" step="0.01" min="0"
@@ -48,14 +48,14 @@
             <?php endif; ?>
         </div>
 
-        <div class="form-group" style="margin-top:8px;">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <div class="form-group mt-1">
+            <label class="admin-checkbox-label">
                 <input type="checkbox" name="is_active" value="1" <?= (!$product || $product['is_active']) ? 'checked' : '' ?>>
                 Produto ativo (visível)
             </label>
         </div>
 
-        <div style="display:flex;gap:12px;margin-top:24px;">
+        <div class="admin-actions-inline">
             <button type="submit" class="btn btn-primary"><?= $product ? 'Salvar Alterações' : 'Criar Produto' ?></button>
             <?php if ($product): ?>
                 <a href="<?= url('admin/products/' . $product['id'] . '/content') ?>" class="btn btn-outline">Gerenciar Conteúdo</a>

@@ -1,5 +1,5 @@
-<a href="<?= url('admin/products') ?>" style="color:var(--text-muted);font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:8px;">
-    ← Voltar para produtos
+<a href="<?= url('admin/products') ?>" class="admin-back-link">
+    &#8592; Voltar para produtos
 </a>
 
 <p class="text-muted mb-3"><?= e($product['title']) ?></p>
@@ -11,10 +11,10 @@
     <div class="alert alert-success"><?= e($success) ?></div>
 <?php endif; ?>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px;">
+<div class="admin-grid-2">
     <!-- Add Module -->
-    <div style="background:var(--bg-card);border-radius:16px;padding:24px;border:1px solid var(--border-subtle);">
-        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;">Adicionar Módulo</h3>
+    <div class="admin-form-card">
+        <h3>Adicionar Módulo</h3>
         <form method="POST" action="<?= url('admin/modules/save') ?>">
             <?= CSRF::field() ?>
             <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
@@ -29,8 +29,8 @@
     </div>
 
     <!-- Add Lesson -->
-    <div style="background:var(--bg-card);border-radius:16px;padding:24px;border:1px solid var(--border-subtle);">
-        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;">Adicionar Aula</h3>
+    <div class="admin-form-card">
+        <h3>Adicionar Aula</h3>
         <form method="POST" action="<?= url('admin/lessons/save') ?>">
             <?= CSRF::field() ?>
             <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
@@ -57,9 +57,9 @@
                 <input type="url" name="content_url" class="form-control" placeholder="URL do conteúdo (YouTube embed, Vimeo, PDF...)">
             </div>
             <div class="form-group">
-                <textarea name="content_body" class="form-control" placeholder="Conteúdo em texto (opcional)" style="min-height:80px;"></textarea>
+                <textarea name="content_body" class="form-control" placeholder="Conteúdo em texto (opcional)"></textarea>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="admin-grid-2-xs">
                 <div class="form-group">
                     <input type="number" name="duration_minutes" class="form-control" placeholder="Duração (min)" min="0" value="0">
                 </div>
@@ -73,17 +73,17 @@
 </div>
 
 <!-- Existing Content -->
-<h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Conteúdo Atual</h3>
+<h3 class="admin-content-title">Conteúdo Atual</h3>
 
 <?php if (empty($modules)): ?>
     <p class="text-muted">Nenhum módulo criado ainda. Comece adicionando um módulo acima.</p>
 <?php else: ?>
     <?php foreach ($modules as $module): ?>
-        <div style="background:var(--bg-card);border-radius:16px;padding:24px;margin-bottom:16px;border:1px solid var(--border-subtle);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-                <h4 style="font-size:16px;font-weight:700;color:#fff;">
-                    📁 <?= e($module['title']) ?>
-                    <span class="text-muted text-xs" style="font-weight:400;margin-left:8px;">(Ordem: <?= $module['sort_order'] ?>)</span>
+        <div class="admin-module-card">
+            <div class="admin-module-header">
+                <h4 class="admin-module-title">
+                    &#128193; <?= e($module['title']) ?>
+                    <span class="text-muted text-xs admin-module-order">(Ordem: <?= $module['sort_order'] ?>)</span>
                 </h4>
             </div>
 
@@ -91,15 +91,15 @@
                 <p class="text-muted text-sm">Nenhuma aula neste módulo.</p>
             <?php else: ?>
                 <?php foreach ($module['lessons'] as $lesson): ?>
-                    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;background:var(--bg-surface);margin-bottom:6px;">
+                    <div class="admin-lesson-row">
                         <span class="badge badge-gray"><?= e($lesson['content_type']) ?></span>
-                        <span style="flex:1;font-size:14px;font-weight:500;"><?= e($lesson['title']) ?></span>
+                        <span class="admin-lesson-name"><?= e($lesson['title']) ?></span>
                         <?php if ($lesson['duration_minutes'] > 0): ?>
                             <span class="text-muted text-xs"><?= $lesson['duration_minutes'] ?> min</span>
                         <?php endif; ?>
-                        <form method="POST" action="<?= url('admin/lessons/delete/' . $lesson['id']) ?>" style="display:inline;" onsubmit="return confirm('Excluir esta aula?')">
+                        <form method="POST" action="<?= url('admin/lessons/delete/' . $lesson['id']) ?>" class="inline-form">
                             <?= CSRF::field() ?>
-                            <button type="submit" class="btn btn-sm btn-danger" style="padding:4px 10px;font-size:11px;">Excluir</button>
+                            <button type="submit" class="btn btn-sm btn-danger btn-xs" data-confirm="Excluir esta aula?">Excluir</button>
                         </form>
                     </div>
                 <?php endforeach; ?>

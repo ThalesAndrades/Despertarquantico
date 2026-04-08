@@ -30,12 +30,12 @@
                     <div class="community-avatar">
                         <?= e(mb_substr($post['anonymous_name'], 0, 1)) ?>
                     </div>
-                    <div style="flex:1;min-width:0;">
+                    <div class="community-post-content-wrap">
                         <div class="community-post-meta">
                             <span class="author"><?= e($post['anonymous_name']) ?></span>
-                            <span class="badge badge-gold" style="font-size:10px;"><?= e($post['category']) ?></span>
+                            <span class="badge badge-gold badge-xs"><?= e($post['category']) ?></span>
                             <?php if ($post['is_pinned']): ?>
-                                <span class="badge badge-gold" style="font-size:10px;">&#128204; Fixado</span>
+                                <span class="badge badge-gold badge-xs">&#128204; Fixado</span>
                             <?php endif; ?>
                             <span class="time"><?= timeAgo($post['created_at']) ?></span>
                         </div>
@@ -46,7 +46,7 @@
                             <?= e(mb_substr($post['body'], 0, 180)) ?>
                         </p>
                         <div class="community-actions">
-                            <form method="POST" action="<?= url('community/like') ?>" style="display:inline;">
+                            <form method="POST" action="<?= url('community/like') ?>" class="inline-form">
                                 <?= CSRF::field() ?>
                                 <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                                 <input type="hidden" name="redirect" value="community<?= $category ? '?category=' . e($category) : '' ?>">
