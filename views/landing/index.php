@@ -369,7 +369,7 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
         <p class="footer-links">
             <a href="<?= url('login') ?>">Área de Membros</a>
             <span>•</span>
-            <a href="mailto:contato@sunyannunes.com">Contato</a>
+            <a href="mailto:contato@mulherespiral.shop">Contato</a>
         </p>
         <p class="footer-copy">&copy; <?= date('Y') ?> Sunyan Nunes. Todos os direitos reservados.</p>
         <p class="footer-disclaimer">

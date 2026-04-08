@@ -4,7 +4,7 @@
  */
 
 define('APP_NAME', 'Sunyan Nunes');
-define('APP_URL', 'http://localhost'); // Change to your domain in production
+define('APP_URL', 'https://mulherespiral.shop');
 define('APP_ENV', 'development'); // Change to 'production' on deploy
 
 // Paths
