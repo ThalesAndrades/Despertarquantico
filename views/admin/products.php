@@ -27,7 +27,7 @@
                     <tr>
                         <td>
                             <div style="display:flex;align-items:center;gap:12px;">
-                                <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#6B21A8,#D4AF37);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0;">
+                                <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));display:flex;align-items:center;justify-content:center;color:#0A0A0A;font-weight:700;font-size:14px;flex-shrink:0;">
                                     <?= e(mb_substr($prod['title'], 0, 1)) ?>
                                 </div>
                                 <div>

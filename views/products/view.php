@@ -7,23 +7,21 @@
                     <iframe src="<?= e($currentLesson['content_url']) ?>" allowfullscreen allow="autoplay; encrypted-media" loading="lazy"></iframe>
                 </div>
             <?php elseif ($currentLesson['content_type'] === 'text' && $currentLesson['content_body']): ?>
-                <div class="text-content-area" style="background:var(--bg-card);border-radius:16px;padding:40px;border:1px solid var(--border-subtle);">
+                <div class="text-content-area">
                     <?= $currentLesson['content_body'] ?>
                 </div>
             <?php elseif ($currentLesson['content_type'] === 'pdf' && $currentLesson['content_url']): ?>
-                <div style="background:var(--bg-card);border-radius:16px;padding:40px;text-align:center;border:1px solid var(--border-subtle);">
-                    <p style="margin-bottom:16px;color:var(--text-secondary);">Material em PDF disponivel para download:</p>
+                <div class="pdf-content-area">
+                    <p>Material em PDF disponivel para download:</p>
                     <a href="<?= e($currentLesson['content_url']) ?>" target="_blank" class="btn btn-primary">Baixar PDF</a>
                 </div>
             <?php endif; ?>
 
             <!-- Lesson header -->
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;flex-wrap:wrap;gap:12px;">
+            <div class="lesson-header">
                 <div>
                     <span class="text-muted text-sm"><?= e($currentLesson['module_title'] ?? '') ?></span>
-                    <h2 style="font-family:var(--font-body);font-size:22px;font-weight:700;color:#fff;margin-top:4px;">
-                        <?= e($currentLesson['title']) ?>
-                    </h2>
+                    <h2 class="lesson-current-title"><?= e($currentLesson['title']) ?></h2>
                     <?php if ($currentLesson['duration_minutes'] > 0): ?>
                         <span class="text-muted text-sm">&#9202; <?= $currentLesson['duration_minutes'] ?> min</span>
                     <?php endif; ?>
@@ -42,9 +40,7 @@
 
     <!-- Module/Lesson List -->
     <div style="margin-top:32px;">
-        <h3 style="font-family:var(--font-body);font-size:16px;font-weight:700;color:#fff;margin-bottom:16px;">
-            Conteudo do curso
-        </h3>
+        <h3 class="course-content-title">Conteudo do curso</h3>
         <?php foreach ($modules as $module): ?>
             <div class="module-section">
                 <div class="module-header">
