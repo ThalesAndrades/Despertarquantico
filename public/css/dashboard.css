@@ -834,8 +834,8 @@
     border-radius: var(--radius-xl);
     background:
         radial-gradient(circle at top right, rgba(201, 168, 76, 0.12), transparent 30%),
-        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-    border: 1px solid rgba(201, 168, 76, 0.12);
+        linear-gradient(180deg, var(--glass-bg-strong), var(--glass-bg));
+    border: 1px solid var(--border-subtle);
     box-shadow: var(--shadow-lg);
     overflow: hidden;
 }
@@ -858,13 +858,13 @@
 }
 .auth-visual-copy h2 {
     font-family: var(--font-display);
-    color: #fff;
+    color: var(--text-primary);
     font-size: 34px;
     line-height: 1.08;
     margin-bottom: 12px;
 }
 .auth-visual-copy p {
-    color: rgba(255,255,255,0.72);
+    color: var(--text-secondary);
     line-height: 1.75;
 }
 .auth-visual-list {
@@ -876,7 +876,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    color: rgba(255,255,255,0.82);
+    color: var(--text-secondary);
     font-size: 14px;
 }
 .auth-visual-list li::before {
@@ -891,8 +891,12 @@
     width: 100%;
     display: block;
     border-radius: 24px;
-    border: 1px solid rgba(201,168,76,0.14);
-    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-subtle);
+    background: var(--glass-bg);
+}
+
+html[data-theme='light'] .auth-visual::after {
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.75));
 }
 .auth-card {
     background: var(--bg-card);

@@ -35,6 +35,14 @@
     --shadow-md: 0 4px 20px rgba(0,0,0,0.5);
     --shadow-lg: 0 12px 40px rgba(0,0,0,0.6);
     --shadow-gold: 0 4px 20px rgba(201, 168, 76, 0.15);
+    --glass-bg: rgba(255, 255, 255, 0.04);
+    --glass-bg-strong: rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-border-weak: rgba(255, 255, 255, 0.06);
+    --overlay-card-bg: rgba(17, 17, 17, 0.84);
+    --overlay-card-border: rgba(201, 168, 76, 0.16);
+    --overlay-card-text: #fff;
+    --overlay-card-text-secondary: rgba(255, 255, 255, 0.70);
     --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
     --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -64,6 +72,14 @@ html[data-theme='light'] {
     --shadow-md: 0 10px 30px rgba(61,42,16,0.10);
     --shadow-lg: 0 20px 50px rgba(61,42,16,0.12);
     --shadow-gold: 0 10px 30px rgba(184, 146, 47, 0.18);
+    --glass-bg: rgba(255, 255, 255, 0.78);
+    --glass-bg-strong: rgba(255, 255, 255, 0.86);
+    --glass-border: rgba(184, 146, 47, 0.14);
+    --glass-border-weak: rgba(184, 146, 47, 0.10);
+    --overlay-card-bg: rgba(255, 255, 255, 0.86);
+    --overlay-card-border: rgba(184, 146, 47, 0.20);
+    --overlay-card-text: var(--text-primary);
+    --overlay-card-text-secondary: var(--text-secondary);
     color-scheme: light;
 }
 
@@ -168,7 +184,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.2; color: var(
     padding: 10px 14px;
     border-radius: 999px;
     border: 1px solid var(--border-medium);
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--glass-bg);
     color: var(--text-secondary);
     cursor: pointer;
     transition: transform var(--transition), border-color var(--transition), background-color var(--transition), color var(--transition), box-shadow var(--transition);
@@ -177,7 +193,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.2; color: var(
 }
 
 html[data-theme='light'] .theme-toggle {
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--glass-bg-strong);
 }
 
 .theme-toggle:hover {
