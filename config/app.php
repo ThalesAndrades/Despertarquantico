@@ -5,7 +5,8 @@
 
 define('APP_NAME', 'Sunyan Nunes');
 define('APP_URL', 'https://mulherespiral.shop');
-define('APP_ENV', 'development'); // Change to 'production' on deploy
+define('APP_ENV', 'production');
+define('AUTO_MIGRATE', APP_ENV !== 'production');
 
 // Paths
 define('BASE_PATH', dirname(__DIR__));

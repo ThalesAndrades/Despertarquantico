@@ -37,6 +37,9 @@ class CheckoutController
             return;
         }
 
+        $userId = $_SESSION['user_id'] ?? null;
+        closeSession();
+
         require_once BASE_PATH . '/src/Stripe.php';
         $stripe = new StripeClient();
 
@@ -52,7 +55,7 @@ class CheckoutController
             $cancelUrl,
             [
                 'product_id' => $product['id'],
-                'user_id' => $_SESSION['user_id'] ?? '',
+                'user_id' => $userId ?? '',
             ]
         );
 
@@ -67,7 +70,7 @@ class CheckoutController
             "INSERT INTO orders (user_id, product_id, stripe_session_id, customer_email, amount, currency, status)
              VALUES (?, ?, ?, ?, ?, 'brl', 'pending')",
             [
-                $_SESSION['user_id'] ?? null,
+                $userId,
                 $product['id'],
                 $session['id'],
                 $email,

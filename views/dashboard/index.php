@@ -34,10 +34,10 @@
 <?php else: ?>
     <div class="products-grid">
         <?php foreach ($products as $prod): ?>
-            <a href="<?= url('products/' . e($prod['slug'])) ?>" class="product-card" style="text-decoration:none;">
+            <a href="<?= url('products/' . e($prod['slug'])) ?>" class="product-card product-card-link">
                 <div class="product-card-img">
                     <?php if ($prod['cover_image']): ?>
-                        <img src="<?= url('uploads/' . e($prod['cover_image'])) ?>" alt="<?= e($prod['title']) ?>">
+                        <img src="<?= url('uploads/' . e($prod['cover_image'])) ?>" alt="<?= e($prod['title']) ?>" loading="lazy" decoding="async">
                     <?php else: ?>
                         <?= e($prod['title']) ?>
                     <?php endif; ?>
@@ -64,11 +64,11 @@
         <h2>Comunidade</h2>
         <a href="<?= url('community') ?>" class="btn btn-sm btn-outline">Ver tudo</a>
     </div>
-    <div class="grid" style="gap: 10px;">
+    <div class="grid dashboard-community-list">
         <?php foreach ($recentPosts as $post): ?>
-            <a href="<?= url('community/topic/' . $post['id']) ?>" style="text-decoration:none;" class="lesson-item">
+            <a href="<?= url('community/topic/' . $post['id']) ?>" class="lesson-item community-link-reset">
                 <div>
-                    <span class="badge badge-gold" style="font-size:10px;"><?= e($post['category']) ?></span>
+                    <span class="badge badge-gold dashboard-category-badge"><?= e($post['category']) ?></span>
                 </div>
                 <div class="lesson-info">
                     <div class="lesson-title"><?= e($post['title']) ?></div>

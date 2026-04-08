@@ -3,10 +3,27 @@
  * Plataforma Sunyan Nunes - Front Controller
  */
 
-// Error reporting (disable display in production)
-error_reporting(E_ALL);
-ini_set('display_errors', '0');
+require_once __DIR__ . '/config/app.php';
+
+// Error reporting (lighter in production to reduce noisy I/O on shared hosting)
+error_reporting(APP_ENV === 'production' ? (E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT) : E_ALL);
+ini_set('display_errors', APP_ENV === 'production' ? '0' : '1');
 ini_set('log_errors', '1');
+
+$url = isset($_GET['url']) ? trim($_GET['url'], '/') : '';
+$method = $_SERVER['REQUEST_METHOD'];
+
+function routeRequiresSession(string $url): bool
+{
+    static $publicStatelessRoutes = [
+        '',
+        'checkout/success',
+        'checkout/cancel',
+        'webhook/stripe',
+    ];
+
+    return !in_array($url, $publicStatelessRoutes, true);
+}
 
 // Session configuration
 ini_set('session.cookie_httponly', '1');
@@ -16,7 +33,9 @@ ini_set('session.gc_maxlifetime', '7200');
 if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
     ini_set('session.cookie_secure', '1');
 }
-session_start();
+if (routeRequiresSession($url)) {
+    session_start();
+}
 
 // Security headers
 header('X-Content-Type-Options: nosniff');
@@ -25,7 +44,6 @@ header('X-XSS-Protection: 1; mode=block');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 
 // Load core files
-require_once __DIR__ . '/config/app.php';
 require_once __DIR__ . '/src/Database.php';
 require_once __DIR__ . '/src/Router.php';
 require_once __DIR__ . '/src/CSRF.php';
@@ -98,6 +116,4 @@ $router->get('admin/community', [AdminController::class, 'community']);
 $router->post('admin/community/toggle/{id}', [AdminController::class, 'togglePost']);
 
 // Dispatch
-$url = isset($_GET['url']) ? trim($_GET['url'], '/') : '';
-$method = $_SERVER['REQUEST_METHOD'];
 $router->dispatch($method, $url);

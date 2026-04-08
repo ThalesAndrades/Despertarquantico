@@ -59,7 +59,7 @@
     font-size: 14px;
     font-weight: 500;
     text-decoration: none;
-    transition: all 0.25s ease;
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
     border: 1px solid transparent;
 }
 .sidebar-link:hover {
@@ -127,8 +127,8 @@
     align-items: center;
     padding: 20px 40px;
     background: rgba(10, 10, 10, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid rgba(255,255,255,0.04);
     position: sticky;
     top: 0;
@@ -173,7 +173,7 @@
     border-radius: var(--radius-lg);
     padding: 24px;
     border: 1px solid var(--border-subtle);
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 .stat-card:hover {
     transform: translateY(-2px);
@@ -207,7 +207,7 @@
     border-radius: var(--radius-xl);
     overflow: hidden;
     border: 1px solid var(--border-subtle);
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .product-card:hover {
     transform: translateY(-4px);
@@ -302,7 +302,7 @@
     background: var(--bg-card);
     border-radius: var(--radius-md);
     margin-bottom: 6px;
-    transition: all 0.25s ease;
+    transition: background-color 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
     text-decoration: none;
     color: var(--text-primary);
     border: 1px solid transparent;
@@ -402,7 +402,7 @@
     inset: 0;
     background: rgba(0,0,0,0.7);
     z-index: 99;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(4px);
 }
 .sidebar-overlay.show { display: block; }
 
@@ -438,7 +438,7 @@
     text-decoration: none;
     color: #fff;
     border: 1px solid var(--border-subtle);
-    transition: all 0.25s ease;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 .quick-link:hover {
     transform: translateY(-2px);
@@ -467,7 +467,7 @@
     border-radius: var(--radius-lg);
     padding: 24px;
     border: 1px solid var(--border-subtle);
-    transition: all 0.25s ease;
+    transition: transform 0.25s ease, border-color 0.25s ease;
 }
 .community-post-card:hover {
     border-color: var(--border-medium);
@@ -516,6 +516,19 @@
 .community-post-meta .time {
     font-size: 12px;
     color: var(--text-muted);
+}
+
+.product-card-link,
+.community-link-reset {
+    text-decoration: none;
+}
+
+.dashboard-community-list {
+    gap: 10px;
+}
+
+.dashboard-category-badge {
+    font-size: 10px;
 }
 .community-post-title {
     font-family: var(--font-body);

@@ -55,7 +55,8 @@ CREATE TABLE modules (
     product_id INT NOT NULL,
     title VARCHAR(200) NOT NULL,
     sort_order INT DEFAULT 0,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    INDEX idx_product_sort (product_id, sort_order)
 ) ENGINE=InnoDB;
 
 -- =============================================
@@ -70,7 +71,8 @@ CREATE TABLE lessons (
     content_body TEXT DEFAULT NULL,
     duration_minutes INT DEFAULT 0,
     sort_order INT DEFAULT 0,
-    FOREIGN KEY (module_id) REFERENCES modules(id) ON DELETE CASCADE
+    FOREIGN KEY (module_id) REFERENCES modules(id) ON DELETE CASCADE,
+    INDEX idx_module_sort (module_id, sort_order)
 ) ENGINE=InnoDB;
 
 -- =============================================
@@ -82,6 +84,7 @@ CREATE TABLE user_products (
     product_id INT NOT NULL,
     granted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uq_user_product (user_id, product_id),
+    INDEX idx_product_user (product_id, user_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -96,6 +99,7 @@ CREATE TABLE lesson_progress (
     completed TINYINT(1) DEFAULT 0,
     completed_at DATETIME DEFAULT NULL,
     UNIQUE KEY uq_user_lesson (user_id, lesson_id),
+    INDEX idx_user_completed_lesson (user_id, completed, lesson_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -118,7 +122,8 @@ CREATE TABLE orders (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     INDEX idx_session (stripe_session_id),
-    INDEX idx_status (status)
+    INDEX idx_status (status),
+    INDEX idx_customer_email (customer_email)
 ) ENGINE=InnoDB;
 
 -- =============================================
@@ -149,7 +154,8 @@ CREATE TABLE community_comments (
     is_visible TINYINT(1) DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_post_visible_created (post_id, is_visible, created_at)
 ) ENGINE=InnoDB;
 
 -- =============================================
@@ -163,7 +169,9 @@ CREATE TABLE community_likes (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uq_post_like (user_id, post_id),
     UNIQUE KEY uq_comment_like (user_id, comment_id),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_post_lookup (post_id, user_id),
+    INDEX idx_comment_lookup (comment_id, user_id)
 ) ENGINE=InnoDB;
 
 -- =============================================

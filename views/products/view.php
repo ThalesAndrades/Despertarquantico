@@ -49,22 +49,24 @@
                 </div>
                 <ul class="lesson-list">
                     <?php foreach ($module['lessons'] as $i => $les): ?>
-                        <a href="<?= url('products/' . e($product['slug']) . '/lesson/' . $les['id']) ?>"
-                           class="lesson-item <?= ($currentLesson && $les['id'] == $currentLesson['id']) ? 'active' : '' ?> <?= $les['is_completed'] ? 'completed' : '' ?>">
-                            <div class="lesson-number"><?= $i + 1 ?></div>
-                            <div class="lesson-info">
-                                <div class="lesson-title"><?= e($les['title']) ?></div>
-                                <div class="lesson-meta">
-                                    <?= ucfirst($les['content_type']) ?>
-                                    <?php if ($les['duration_minutes'] > 0): ?>
-                                        &#183; <?= $les['duration_minutes'] ?> min
-                                    <?php endif; ?>
+                        <li>
+                            <a href="<?= url('products/' . e($product['slug']) . '/lesson/' . $les['id']) ?>"
+                               class="lesson-item <?= ($currentLesson && $les['id'] == $currentLesson['id']) ? 'active' : '' ?> <?= $les['is_completed'] ? 'completed' : '' ?>">
+                                <div class="lesson-number"><?= $i + 1 ?></div>
+                                <div class="lesson-info">
+                                    <div class="lesson-title"><?= e($les['title']) ?></div>
+                                    <div class="lesson-meta">
+                                        <?= ucfirst($les['content_type']) ?>
+                                        <?php if ($les['duration_minutes'] > 0): ?>
+                                            &#183; <?= $les['duration_minutes'] ?> min
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="lesson-check">
-                                <?= $les['is_completed'] ? '&#10003;' : '&#9675;' ?>
-                            </div>
-                        </a>
+                                <div class="lesson-check">
+                                    <?= $les['is_completed'] ? '&#10003;' : '&#9675;' ?>
+                                </div>
+                            </a>
+                        </li>
                     <?php endforeach; ?>
                 </ul>
             </div>

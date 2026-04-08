@@ -15,7 +15,7 @@ class Database
             $dsn = "mysql:host={$config['host']};dbname={$config['dbname']};charset={$config['charset']}";
             self::$instance = new PDO($dsn, $config['username'], $config['password'], $config['options']);
 
-            if (!self::$migrated) {
+            if (AUTO_MIGRATE && !self::$migrated) {
                 self::autoMigrate();
                 self::$migrated = true;
             }

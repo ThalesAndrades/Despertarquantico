@@ -35,7 +35,7 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
                 Acessar
             </a>
         </div>
-        <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <button class="nav-toggle" id="navToggle" aria-label="Abrir menu" aria-controls="navLinks" aria-expanded="false">
             <span></span><span></span><span></span>
         </button>
     </div>
@@ -354,6 +354,6 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
     <a href="<?= e($checkoutUrl) ?>" class="btn btn-gold btn-block">Comecar minha jornada</a>
 </div>
 
-<script src="<?= asset('js/landing.js') ?>"></script>
+<script src="<?= asset('js/landing.js') ?>" defer></script>
 </body>
 </html>

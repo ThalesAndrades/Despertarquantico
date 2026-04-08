@@ -7,35 +7,45 @@ document.addEventListener('DOMContentLoaded', function () {
     // === Sidebar toggle (mobile) ===
     var sidebar = document.getElementById('sidebar');
     var toggle = document.getElementById('sidebarToggle');
+    if (!sidebar || !toggle) {
+        return;
+    }
+
     var overlay = document.createElement('div');
     overlay.className = 'sidebar-overlay';
     document.body.appendChild(overlay);
 
     function openSidebar() {
-        if (sidebar) {
-            sidebar.classList.add('open');
-            overlay.classList.add('show');
-        }
+        sidebar.classList.add('open');
+        overlay.classList.add('show');
+        toggle.setAttribute('aria-expanded', 'true');
+        toggle.setAttribute('aria-label', 'Fechar menu');
+        document.body.classList.add('sidebar-open');
     }
 
     function closeSidebar() {
-        if (sidebar) {
-            sidebar.classList.remove('open');
-            overlay.classList.remove('show');
-        }
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'Abrir menu');
+        document.body.classList.remove('sidebar-open');
     }
 
-    if (toggle) {
-        toggle.addEventListener('click', function () {
-            if (sidebar && sidebar.classList.contains('open')) {
-                closeSidebar();
-            } else {
-                openSidebar();
-            }
-        });
-    }
+    toggle.addEventListener('click', function () {
+        if (sidebar.classList.contains('open')) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    });
 
     overlay.addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && sidebar.classList.contains('open')) {
+            closeSidebar();
+            toggle.focus();
+        }
+    });
 
     // === Auto-dismiss alerts after 5s ===
     document.querySelectorAll('.alert').forEach(function (alert) {

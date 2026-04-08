@@ -26,11 +26,26 @@ class CommunityController
 
         $posts = Database::fetchAll(
             "SELECT cp.*, u.anonymous_name,
-                    (SELECT COUNT(*) FROM community_comments cc WHERE cc.post_id = cp.id AND cc.is_visible = 1) as comment_count,
-                    (SELECT COUNT(*) FROM community_likes cl WHERE cl.post_id = cp.id) as like_count,
-                    (SELECT COUNT(*) FROM community_likes cl WHERE cl.post_id = cp.id AND cl.user_id = ?) as user_liked
+                    COALESCE(comment_stats.comment_count, 0) AS comment_count,
+                    COALESCE(like_stats.like_count, 0) AS like_count,
+                    CASE WHEN user_like.id IS NULL THEN 0 ELSE 1 END AS user_liked
              FROM community_posts cp
              JOIN users u ON cp.user_id = u.id
+             LEFT JOIN (
+                SELECT post_id, COUNT(*) AS comment_count
+                FROM community_comments
+                WHERE is_visible = 1
+                GROUP BY post_id
+             ) comment_stats ON comment_stats.post_id = cp.id
+             LEFT JOIN (
+                SELECT post_id, COUNT(*) AS like_count
+                FROM community_likes
+                WHERE post_id IS NOT NULL
+                GROUP BY post_id
+             ) like_stats ON like_stats.post_id = cp.id
+             LEFT JOIN community_likes user_like
+                ON user_like.post_id = cp.id
+               AND user_like.user_id = ?
              $where
              ORDER BY cp.is_pinned DESC, cp.created_at DESC
              LIMIT ? OFFSET ?",
@@ -102,10 +117,19 @@ class CommunityController
 
         $post = Database::fetch(
             "SELECT cp.*, u.anonymous_name,
-                    (SELECT COUNT(*) FROM community_likes cl WHERE cl.post_id = cp.id) as like_count,
-                    (SELECT COUNT(*) FROM community_likes cl WHERE cl.post_id = cp.id AND cl.user_id = ?) as user_liked
+                    COALESCE(like_stats.like_count, 0) AS like_count,
+                    CASE WHEN user_like.id IS NULL THEN 0 ELSE 1 END AS user_liked
              FROM community_posts cp
              JOIN users u ON cp.user_id = u.id
+             LEFT JOIN (
+                SELECT post_id, COUNT(*) AS like_count
+                FROM community_likes
+                WHERE post_id IS NOT NULL
+                GROUP BY post_id
+             ) like_stats ON like_stats.post_id = cp.id
+             LEFT JOIN community_likes user_like
+                ON user_like.post_id = cp.id
+               AND user_like.user_id = ?
              WHERE cp.id = ? AND cp.is_visible = 1",
             [$_SESSION['user_id'], $postId]
         );
@@ -118,10 +142,19 @@ class CommunityController
 
         $comments = Database::fetchAll(
             "SELECT cc.*, u.anonymous_name,
-                    (SELECT COUNT(*) FROM community_likes cl WHERE cl.comment_id = cc.id) as like_count,
-                    (SELECT COUNT(*) FROM community_likes cl WHERE cl.comment_id = cc.id AND cl.user_id = ?) as user_liked
+                    COALESCE(like_stats.like_count, 0) AS like_count,
+                    CASE WHEN user_like.id IS NULL THEN 0 ELSE 1 END AS user_liked
              FROM community_comments cc
              JOIN users u ON cc.user_id = u.id
+             LEFT JOIN (
+                SELECT comment_id, COUNT(*) AS like_count
+                FROM community_likes
+                WHERE comment_id IS NOT NULL
+                GROUP BY comment_id
+             ) like_stats ON like_stats.comment_id = cc.id
+             LEFT JOIN community_likes user_like
+                ON user_like.comment_id = cc.id
+               AND user_like.user_id = ?
              WHERE cc.post_id = ? AND cc.is_visible = 1
              ORDER BY cc.created_at ASC",
             [$_SESSION['user_id'], $postId]
