@@ -1,12 +1,12 @@
 <!-- Search -->
-<form method="GET" action="<?= url('admin/users') ?>" style="margin-bottom:24px;display:flex;gap:10px;max-width:400px;">
-    <input type="text" name="search" class="form-control" placeholder="Buscar por nome, e-mail..." value="<?= e($search) ?>" style="flex:1;">
+<form method="GET" action="<?= url('admin/users') ?>" class="admin-search-form">
+    <input type="text" name="search" class="form-control" placeholder="Buscar por nome, e-mail..." value="<?= e($search) ?>">
     <button type="submit" class="btn btn-primary btn-sm">Buscar</button>
 </form>
 
 <p class="text-muted text-sm mb-2"><?= $totalUsers ?> usuários encontrados</p>
 
-<div class="table-responsive" style="background:var(--bg-card);border-radius:16px;overflow:hidden;border:1px solid var(--border-subtle);">
+<div class="table-responsive table-card">
     <table>
         <thead>
             <tr>
@@ -21,7 +21,7 @@
         <tbody>
             <?php foreach ($users as $u): ?>
                 <tr>
-                    <td style="font-weight:600;"><?= e($u['name']) ?></td>
+                    <td class="fw-semibold"><?= e($u['name']) ?></td>
                     <td><?= e($u['email']) ?></td>
                     <td class="text-muted"><?= e($u['anonymous_name'] ?? '-') ?></td>
                     <td>
@@ -34,9 +34,9 @@
                     </td>
                     <td class="text-muted text-sm"><?= date('d/m/Y', strtotime($u['created_at'])) ?></td>
                     <td>
-                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <div class="admin-actions-row">
                             <?php if ($u['role'] !== 'admin'): ?>
-                                <form method="POST" action="<?= url('admin/users/toggle') ?>" style="display:inline;">
+                                <form method="POST" action="<?= url('admin/users/toggle') ?>" class="inline-form">
                                     <?= CSRF::field() ?>
                                     <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                                     <button type="submit" class="btn btn-sm <?= $u['is_active'] ? 'btn-danger' : 'btn-primary' ?>">
@@ -44,10 +44,10 @@
                                     </button>
                                 </form>
                                 <!-- Grant Access -->
-                                <form method="POST" action="<?= url('admin/users/grant-access') ?>" style="display:inline-flex;gap:4px;align-items:center;">
+                                <form method="POST" action="<?= url('admin/users/grant-access') ?>" class="admin-grant-form">
                                     <?= CSRF::field() ?>
                                     <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                                    <select name="product_id" class="form-control" style="padding:6px 10px;font-size:12px;width:auto;min-width:120px;">
+                                    <select name="product_id" class="form-control admin-grant-select">
                                         <?php foreach ($products as $prod): ?>
                                             <option value="<?= $prod['id'] ?>"><?= e($prod['title']) ?></option>
                                         <?php endforeach; ?>

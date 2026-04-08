@@ -1,35 +1,5 @@
 <?php $user = currentUser(); ?>
 
-<?php
-$featuredProduct = $products[0] ?? null;
-$featuredProgress = $featuredProduct['progress'] ?? 0;
-$featuredAction = $featuredProgress <= 0 ? 'Comecar minha jornada' : ($featuredProgress >= 100 ? 'Revisar conteudo' : 'Continuar de onde parei');
-$featuredSupport = $featuredProgress <= 0
-    ? 'Seu proximo passo esta pronto: entrar no primeiro modulo e avancar com seguranca.'
-    : ($featuredProgress >= 100
-        ? 'Voce ja concluiu este conteudo. Agora pode revisar os pontos-chave e aprofundar sua integracao.'
-        : 'Seu progresso esta salvo. Continue exatamente do ponto em que voce parou.');
-?>
-
-<?php if ($featuredProduct): ?>
-    <section class="dashboard-next-step">
-        <div class="dashboard-next-step-label">
-            <span>&#10022;</span>
-            <span>Proxima melhor acao</span>
-        </div>
-        <h2><?= e($featuredAction) ?></h2>
-        <p><?= e($featuredSupport) ?></p>
-        <div class="dashboard-next-step-actions">
-            <a href="<?= url('products/' . e($featuredProduct['slug'])) ?>" class="btn btn-gold"><?= e($featuredAction) ?></a>
-            <a href="<?= url('community') ?>" class="btn btn-outline">Entrar na comunidade</a>
-        </div>
-        <div class="dashboard-next-step-meta">
-            <span><?= $featuredProduct['progress'] ?>% concluido</span>
-            <span><?= $featuredProduct['completed_lessons'] ?>/<?= $featuredProduct['total_lessons'] ?> aulas liberadas no seu ritmo</span>
-        </div>
-    </section>
-<?php endif; ?>
-
 <!-- Quick Links -->
 <div class="quick-links">
     <a href="<?= url('products') ?>" class="quick-link">
@@ -64,10 +34,10 @@ $featuredSupport = $featuredProgress <= 0
 <?php else: ?>
     <div class="products-grid">
         <?php foreach ($products as $prod): ?>
-            <a href="<?= url('products/' . e($prod['slug'])) ?>" class="product-card product-card-link">
+            <a href="<?= url('products/' . e($prod['slug'])) ?>" class="product-card no-decoration">
                 <div class="product-card-img">
                     <?php if ($prod['cover_image']): ?>
-                        <img src="<?= url('uploads/' . e($prod['cover_image'])) ?>" alt="<?= e($prod['title']) ?>" loading="lazy" decoding="async">
+                        <img src="<?= url('uploads/' . e($prod['cover_image'])) ?>" alt="<?= e($prod['title']) ?>">
                     <?php else: ?>
                         <?= e($prod['title']) ?>
                     <?php endif; ?>
@@ -82,11 +52,6 @@ $featuredSupport = $featuredProgress <= 0
                         <span class="progress-text"><?= $prod['progress'] ?>% concluido</span>
                         <span class="progress-text"><?= $prod['completed_lessons'] ?>/<?= $prod['total_lessons'] ?> aulas</span>
                     </div>
-                    <div class="mt-2">
-                        <span class="btn btn-sm btn-outline">
-                            <?= $prod['progress'] <= 0 ? 'Comecar' : ($prod['progress'] >= 100 ? 'Revisar' : 'Continuar') ?>
-                        </span>
-                    </div>
                 </div>
             </a>
         <?php endforeach; ?>
@@ -99,11 +64,11 @@ $featuredSupport = $featuredProgress <= 0
         <h2>Comunidade</h2>
         <a href="<?= url('community') ?>" class="btn btn-sm btn-outline">Ver tudo</a>
     </div>
-    <div class="grid dashboard-community-list">
+    <div class="grid community-grid-tight">
         <?php foreach ($recentPosts as $post): ?>
-            <a href="<?= url('community/topic/' . $post['id']) ?>" class="lesson-item community-link-reset">
+            <a href="<?= url('community/topic/' . $post['id']) ?>" class="lesson-item no-decoration">
                 <div>
-                    <span class="badge badge-gold dashboard-category-badge"><?= e($post['category']) ?></span>
+                    <span class="badge badge-gold badge-xs"><?= e($post['category']) ?></span>
                 </div>
                 <div class="lesson-info">
                     <div class="lesson-title"><?= e($post['title']) ?></div>

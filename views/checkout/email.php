@@ -27,7 +27,7 @@
 
             <form method="POST" action="<?= url('checkout/' . e($product['slug'])) ?>">
                 <?= CSRF::field() ?>
-                <div class="form-group" style="text-align:left;">
+                <div class="form-group text-left">
                     <label for="email">Seu e-mail para receber o acesso</label>
                     <input type="email" id="email" name="email" class="form-control" placeholder="seu@email.com" required>
                 </div>
@@ -42,7 +42,7 @@
                 <span>Sem mensalidade</span>
             </div>
             <p class="checkout-secure">&#128274; Pagamento seguro via Stripe. Seus dados estao protegidos.</p>
-            <p style="margin-top:20px;"><a href="<?= url('') ?>" style="color:var(--gold);font-size:13px;">&#8592; Voltar</a></p>
+            <p class="mt-2"><a href="<?= url('') ?>" class="text-sm text-gold">&#8592; Voltar</a></p>
         </div>
     </div>
     <?= themeScriptTag() ?>

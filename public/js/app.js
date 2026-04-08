@@ -7,54 +7,85 @@ document.addEventListener('DOMContentLoaded', function () {
     // === Sidebar toggle (mobile) ===
     var sidebar = document.getElementById('sidebar');
     var toggle = document.getElementById('sidebarToggle');
-    if (!sidebar || !toggle) {
-        return;
-    }
-
     var overlay = document.createElement('div');
     overlay.className = 'sidebar-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
     document.body.appendChild(overlay);
 
     function openSidebar() {
-        sidebar.classList.add('open');
-        overlay.classList.add('show');
-        toggle.setAttribute('aria-expanded', 'true');
-        toggle.setAttribute('aria-label', 'Fechar menu');
-        document.body.classList.add('sidebar-open');
+        if (sidebar) {
+            sidebar.classList.add('open');
+            overlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
     }
 
     function closeSidebar() {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('show');
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.setAttribute('aria-label', 'Abrir menu');
-        document.body.classList.remove('sidebar-open');
+        if (sidebar) {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
     }
 
-    toggle.addEventListener('click', function () {
-        if (sidebar.classList.contains('open')) {
-            closeSidebar();
-        } else {
-            openSidebar();
-        }
-    });
+    if (toggle) {
+        toggle.addEventListener('click', function () {
+            if (sidebar && sidebar.classList.contains('open')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        });
+    }
 
     overlay.addEventListener('click', closeSidebar);
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape' && sidebar.classList.contains('open')) {
+
+    // Close sidebar on Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && sidebar && sidebar.classList.contains('open')) {
             closeSidebar();
-            toggle.focus();
         }
     });
 
-    // === Auto-dismiss alerts after 5s ===
+    // === Alert close buttons & auto-dismiss ===
     document.querySelectorAll('.alert').forEach(function (alert) {
+        // Add close button
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'alert-close';
+        closeBtn.innerHTML = '&times;';
+        closeBtn.setAttribute('aria-label', 'Fechar');
+        closeBtn.addEventListener('click', function () {
+            dismissAlert(alert);
+        });
+        alert.appendChild(closeBtn);
+
+        // Auto-dismiss after 6s
         setTimeout(function () {
-            alert.style.transition = 'opacity 0.5s, transform 0.5s';
-            alert.style.opacity = '0';
-            alert.style.transform = 'translateY(-10px)';
-            setTimeout(function () { alert.remove(); }, 500);
-        }, 5000);
+            dismissAlert(alert);
+        }, 6000);
+    });
+
+    function dismissAlert(el) {
+        if (!el || el.dataset.dismissed) return;
+        el.dataset.dismissed = 'true';
+        el.style.transition = 'opacity 0.4s, transform 0.4s';
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-8px)';
+        setTimeout(function () { el.remove(); }, 400);
+    }
+
+    // === Button loading state on form submit ===
+    document.querySelectorAll('form').forEach(function (form) {
+        form.addEventListener('submit', function () {
+            var btn = form.querySelector('[type="submit"]');
+            if (btn && !btn.classList.contains('is-loading')) {
+                btn.classList.add('is-loading');
+                // Safety: remove loading after 8s in case of slow response
+                setTimeout(function () {
+                    btn.classList.remove('is-loading');
+                }, 8000);
+            }
+        });
     });
 
     // === Confirm dialogs for destructive actions ===
@@ -65,4 +96,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    // === Content appear animation ===
+    var mainInner = document.querySelector('.main-inner');
+    if (mainInner) {
+        mainInner.classList.add('content-appear');
+    }
 });

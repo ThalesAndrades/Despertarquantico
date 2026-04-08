@@ -5,13 +5,13 @@
 
 <?php if (empty($products)): ?>
     <div class="empty-state">
-        <div class="empty-icon">📦</div>
+        <div class="empty-icon">&#10022;</div>
         <h3 class="empty-title">Nenhum produto</h3>
         <p class="empty-text">Crie seu primeiro produto digital.</p>
         <a href="<?= url('admin/products/create') ?>" class="btn btn-primary">Criar Produto</a>
     </div>
 <?php else: ?>
-    <div class="table-responsive" style="background:var(--bg-card);border-radius:16px;overflow:hidden;border:1px solid var(--border-subtle);">
+    <div class="table-responsive table-card">
         <table>
             <thead>
                 <tr>
@@ -26,17 +26,17 @@
                 <?php foreach ($products as $prod): ?>
                     <tr>
                         <td>
-                            <div style="display:flex;align-items:center;gap:12px;">
-                                <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));display:flex;align-items:center;justify-content:center;color:#0A0A0A;font-weight:700;font-size:14px;flex-shrink:0;">
+                            <div class="admin-product-cell">
+                                <div class="admin-product-thumb">
                                     <?= e(mb_substr($prod['title'], 0, 1)) ?>
                                 </div>
                                 <div>
-                                    <div style="font-weight:600;"><?= e($prod['title']) ?></div>
+                                    <div class="fw-semibold"><?= e($prod['title']) ?></div>
                                     <div class="text-muted text-xs">/<?= e($prod['slug']) ?></div>
                                 </div>
                             </div>
                         </td>
-                        <td style="font-weight:600;">R$ <?= number_format($prod['price'], 2, ',', '.') ?></td>
+                        <td class="fw-semibold">R$ <?= number_format($prod['price'], 2, ',', '.') ?></td>
                         <td><?= $prod['student_count'] ?></td>
                         <td>
                             <span class="badge <?= $prod['is_active'] ? 'badge-green' : 'badge-red' ?>">
@@ -44,12 +44,12 @@
                             </span>
                         </td>
                         <td>
-                            <div style="display:flex;gap:6px;">
+                            <div class="admin-actions-row">
                                 <a href="<?= url('admin/products/edit/' . $prod['id']) ?>" class="btn btn-sm btn-outline">Editar</a>
                                 <a href="<?= url('admin/products/' . $prod['id'] . '/content') ?>" class="btn btn-sm btn-primary">Conteúdo</a>
-                                <form method="POST" action="<?= url('admin/products/delete/' . $prod['id']) ?>" style="display:inline;" onsubmit="return confirm('Tem certeza? Isso excluirá o produto e todo seu conteúdo.')">
+                                <form method="POST" action="<?= url('admin/products/delete/' . $prod['id']) ?>" class="inline-form">
                                     <?= CSRF::field() ?>
-                                    <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                                    <button type="submit" class="btn btn-sm btn-danger" data-confirm="Tem certeza? Isso excluirá o produto e todo seu conteúdo.">Excluir</button>
                                 </form>
                             </div>
                         </td>

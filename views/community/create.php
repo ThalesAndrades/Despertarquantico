@@ -2,7 +2,7 @@
     <div class="alert alert-error"><?= e($error) ?></div>
 <?php endif; ?>
 
-<div style="max-width:700px;">
+<div class="container-sm">
     <a href="<?= url('community') ?>" class="community-back-link">
         &#8592; Voltar para a comunidade
     </a>
@@ -29,7 +29,7 @@
 
             <div class="form-group">
                 <label for="body">Mensagem</label>
-                <textarea id="body" name="body" class="form-control" placeholder="Compartilhe seus pensamentos, duvidas ou conquistas..." required style="min-height:180px;"><?= old('body') ?></textarea>
+                <textarea id="body" name="body" class="form-control" placeholder="Compartilhe seus pensamentos, duvidas ou conquistas..." required><?= old('body') ?></textarea>
                 <p class="create-topic-hint">Sua publicacao aparecera com seu pseudonimo: <strong><?= e(currentUser()['anonymous_name'] ?? '') ?></strong></p>
             </div>
 

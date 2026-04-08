@@ -5,8 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> - <?= APP_NAME ?></title>
-    <meta name="theme-color" content="#0A0A0A" id="themeColorMeta">
-    <?= themeInitScript() ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -16,21 +14,10 @@
 <body>
     <div class="auth-page">
         <div class="auth-card auth-card-wide">
-            <div class="auth-card-toolbar">
-                <?= themeToggleButton('theme-toggle theme-toggle-card', 'Modo claro') ?>
-            </div>
             <div class="auth-logo">
                 <h1>MULHER ESPIRAL</h1>
-                <p>Crie sua conta para acessar os modulos, salvar seu progresso e entrar na comunidade com seguranca.</p>
+                <p>Crie sua conta e faca parte da comunidade</p>
                 <div class="gold-line"></div>
-            </div>
-
-            <div class="auth-benefits">
-                <span>Acesso imediato</span>
-                <span class="trust-dot"></span>
-                <span>Nome anonimo</span>
-                <span class="trust-dot"></span>
-                <span>Jornada organizada</span>
             </div>
 
             <?php if (!empty($error)): ?>
@@ -52,8 +39,8 @@
 
                 <div class="form-group">
                     <label for="anonymous_name">Seu nome na comunidade</label>
-                    <input type="text" id="anonymous_name" name="anonymous_name" class="form-control" value="<?= old('anonymous_name') ?>" placeholder="Ex: Lua Dourada, Estrela Cosmica..." required minlength="3" maxlength="50">
-                    <p class="text-xs text-muted mt-1" style="line-height:1.5;">Este sera seu pseudonimo na comunidade. Ninguem vera seu nome real.</p>
+                    <input type="text" id="anonymous_name" name="anonymous_name" class="form-control" value="<?= old('anonymousName') ?>" placeholder="Ex: Lua Dourada, Estrela Cosmica..." required minlength="3" maxlength="50">
+                    <p class="text-xs text-muted mt-1">Este sera seu pseudonimo na comunidade. Ninguem vera seu nome real.</p>
                 </div>
 
                 <div class="form-row">
@@ -67,17 +54,14 @@
                     </div>
                 </div>
 
-                <button type="submit" class="auth-submit">Criar conta e continuar</button>
+                <button type="submit" class="auth-submit">Criar minha conta</button>
             </form>
-
-            <p class="auth-action-note">Depois do cadastro, voce entra direto na sua area de membros.</p>
 
             <div class="auth-links">
                 <p>Ja tem uma conta? <a href="<?= url('login') ?>">Entrar</a></p>
-                <p style="margin-top:18px;"><a href="<?= url('') ?>" class="back-link">&#8592; Voltar ao site</a></p>
+                <p class="mt-2"><a href="<?= url('') ?>" class="back-link">&#8592; Voltar ao site</a></p>
             </div>
         </div>
     </div>
-    <?= themeScriptTag() ?>
 </body>
 </html>

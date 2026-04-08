@@ -1,11 +1,11 @@
 <?php if (empty($orders)): ?>
     <div class="empty-state">
-        <div class="empty-icon">💳</div>
+        <div class="empty-icon">&#10022;</div>
         <h3 class="empty-title">Nenhum pedido ainda</h3>
         <p class="empty-text">Os pedidos aparecerão aqui quando clientes realizarem compras.</p>
     </div>
 <?php else: ?>
-    <div class="table-responsive" style="background:var(--bg-card);border-radius:16px;overflow:hidden;border:1px solid var(--border-subtle);">
+    <div class="table-responsive table-card">
         <table>
             <thead>
                 <tr>
@@ -22,10 +22,10 @@
                 <?php foreach ($orders as $order): ?>
                     <tr>
                         <td class="text-muted">#<?= $order['id'] ?></td>
-                        <td style="font-weight:600;"><?= e($order['product_title']) ?></td>
+                        <td class="fw-semibold"><?= e($order['product_title']) ?></td>
                         <td><?= e($order['user_name'] ?? '-') ?></td>
                         <td class="text-muted"><?= e($order['customer_email']) ?></td>
-                        <td style="font-weight:600;">R$ <?= number_format($order['amount'], 2, ',', '.') ?></td>
+                        <td class="fw-semibold">R$ <?= number_format($order['amount'], 2, ',', '.') ?></td>
                         <td>
                             <span class="badge <?= match($order['status']) { 'paid' => 'badge-green', 'pending' => 'badge-gold', 'refunded' => 'badge-purple', default => 'badge-red' } ?>">
                                 <?= e(ucfirst($order['status'])) ?>

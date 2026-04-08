@@ -39,7 +39,7 @@
     <?php endif; ?>
 
     <!-- Module/Lesson List -->
-    <div style="margin-top:32px;">
+    <div class="course-content-section">
         <h3 class="course-content-title">Conteudo do curso</h3>
         <?php foreach ($modules as $module): ?>
             <div class="module-section">
