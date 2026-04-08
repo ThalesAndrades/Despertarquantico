@@ -12,8 +12,12 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
     <meta name="theme-color" content="#0A0A0A" id="themeColorMeta">
     <?= themeInitScript() ?>
     <meta property="og:title" content="Mulher Espiral - Sunyan Nunes">
-    <meta property="og:description" content="Desperte a mulher espiral que existe em voce. Programa completo de transformacao feminina.">
+    <meta property="og:description" content="Metodo Mulher Espiral: uma jornada simplificada e transformadora para mulheres que desejam mapear o caminho da cura e viver com mais leveza, seguranca e liberdade.">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="<?= e(APP_URL) ?>">
+    <meta property="og:image" content="<?= asset('images/landing/hero-essencia.svg') ?>">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="<?= e(APP_URL) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -104,54 +108,63 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
                     <div class="tablet-frame tablet-frame-hero">
                         <div class="tablet-notch" aria-hidden="true"></div>
                         <div class="tablet-screen">
-                            <img
-                                src="<?= asset('images/landing/hero-essencia.svg') ?>"
-                                alt="Visual da plataforma em formato tablet"
-                                class="tablet-screen-image"
-                                fetchpriority="high"
-                                decoding="async"
-                            >
-                            <div class="tablet-tool" data-frequency-tool>
-                                <div class="tablet-tool-top">
-                                    <div class="tablet-tool-title">Scanner de Frequencia</div>
-                                    <div class="tablet-tool-hz" data-ft-value>432 Hz</div>
-                                </div>
-                                <div class="tablet-tool-dots" aria-hidden="true">
-                                    <span class="tablet-dot is-active" data-ft-dot></span>
-                                    <span class="tablet-dot" data-ft-dot></span>
-                                    <span class="tablet-dot" data-ft-dot></span>
-                                </div>
-                                <div class="tablet-tool-step" data-ft-step>
-                                    <div class="tablet-tool-step-label">Passo 1/3 • Pessoal</div>
-                                    <div class="tablet-tool-step-help">Escreva 1 a 3 palavras que vem a cabeca.</div>
-                                    <input class="tablet-tool-input" type="text" placeholder="ex: cansaco, coragem, paz" data-ft-input="personal">
-                                </div>
-                                <div class="tablet-tool-step" data-ft-step style="display:none">
-                                    <div class="tablet-tool-step-label">Passo 2/3 • Familiar</div>
-                                    <div class="tablet-tool-step-help">Primeiras palavras sobre seu contexto familiar.</div>
-                                    <input class="tablet-tool-input" type="text" placeholder="ex: apoio, pressao, distancia" data-ft-input="family">
-                                </div>
-                                <div class="tablet-tool-step" data-ft-step style="display:none">
-                                    <div class="tablet-tool-step-label">Passo 3/3 • Profissional</div>
-                                    <div class="tablet-tool-step-help">Primeiras palavras sobre trabalho e rotina.</div>
-                                    <input class="tablet-tool-input" type="text" placeholder="ex: foco, sobrecarga, direcao" data-ft-input="professional">
-                                    <div class="tablet-tool-meter">
-                                        <div class="tablet-tool-meter-fill" data-ft-meter style="width:29%"></div>
+                            <div class="tablet-app" data-frequency-tool>
+                                <img
+                                    src="<?= asset('images/landing/hero-essencia.svg') ?>"
+                                    alt=""
+                                    class="tablet-app-bg"
+                                    fetchpriority="high"
+                                    decoding="async"
+                                    aria-hidden="true"
+                                >
+                                <div class="tablet-app-overlay" aria-hidden="true"></div>
+                                <div class="tablet-app-content">
+                                    <div class="tablet-app-header">
+                                        <div>
+                                            <div class="tablet-tool-title">Scanner de Frequencia</div>
+                                            <div class="tablet-app-sub">3 passos • Resposta instantanea</div>
+                                        </div>
+                                        <div class="tablet-tool-hz" data-ft-value>432 Hz</div>
                                     </div>
-                                    <div class="tablet-tool-band">
-                                        <strong data-ft-band-title>Clareza</strong>
-                                        <span data-ft-band-desc>Sua energia esta organizando o caminho.</span>
+                                    <div class="tablet-tool-dots" aria-hidden="true">
+                                        <span class="tablet-dot is-active" data-ft-dot></span>
+                                        <span class="tablet-dot" data-ft-dot></span>
+                                        <span class="tablet-dot" data-ft-dot></span>
                                     </div>
-                                    <div class="tablet-tool-fine">
-                                        <button type="button" class="tablet-tool-btn" data-ft-minus aria-label="Diminuir 1 Hz">−</button>
-                                        <input type="range" min="200" max="1000" step="1" value="432" class="tablet-tool-range" data-ft-range aria-label="Ajustar Hz">
-                                        <button type="button" class="tablet-tool-btn" data-ft-plus aria-label="Aumentar 1 Hz">+</button>
+                                    <div class="tablet-tool">
+                                        <div class="tablet-tool-step" data-ft-step>
+                                            <div class="tablet-tool-step-label">Passo 1/3 • Pessoal</div>
+                                            <div class="tablet-tool-step-help">Primeiras palavras sobre voce hoje.</div>
+                                            <input class="tablet-tool-input" type="text" placeholder="ex: cansaco, coragem, paz" data-ft-input="personal">
+                                        </div>
+                                        <div class="tablet-tool-step" data-ft-step style="display:none">
+                                            <div class="tablet-tool-step-label">Passo 2/3 • Familiar</div>
+                                            <div class="tablet-tool-step-help">Primeiras palavras sobre seu contexto familiar.</div>
+                                            <input class="tablet-tool-input" type="text" placeholder="ex: apoio, pressao, distancia" data-ft-input="family">
+                                        </div>
+                                        <div class="tablet-tool-step" data-ft-step style="display:none">
+                                            <div class="tablet-tool-step-label">Passo 3/3 • Profissional</div>
+                                            <div class="tablet-tool-step-help">Primeiras palavras sobre trabalho e rotina.</div>
+                                            <input class="tablet-tool-input" type="text" placeholder="ex: foco, sobrecarga, direcao" data-ft-input="professional">
+                                            <div class="tablet-tool-meter">
+                                                <div class="tablet-tool-meter-fill" data-ft-meter style="width:29%"></div>
+                                            </div>
+                                            <div class="tablet-tool-band">
+                                                <strong data-ft-band-title>Clareza</strong>
+                                                <span data-ft-band-desc>Sua energia esta organizando o caminho.</span>
+                                            </div>
+                                            <div class="tablet-tool-fine">
+                                                <button type="button" class="tablet-tool-btn" data-ft-minus aria-label="Diminuir 1 Hz">−</button>
+                                                <input type="range" min="200" max="1000" step="1" value="432" class="tablet-tool-range" data-ft-range aria-label="Ajustar Hz">
+                                                <button type="button" class="tablet-tool-btn" data-ft-plus aria-label="Aumentar 1 Hz">+</button>
+                                            </div>
+                                        </div>
+                                        <div class="tablet-tool-actions">
+                                            <button type="button" class="tablet-tool-ghost" data-ft-back>Voltar</button>
+                                            <button type="button" class="tablet-tool-primary" data-ft-next>Continuar</button>
+                                            <button type="button" class="tablet-tool-primary" data-ft-apply style="display:none">Aplicar ao fundo</button>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="tablet-tool-actions">
-                                    <button type="button" class="tablet-tool-ghost" data-ft-back>Voltar</button>
-                                    <button type="button" class="tablet-tool-primary" data-ft-next>Continuar</button>
-                                    <button type="button" class="tablet-tool-primary" data-ft-apply style="display:none">Aplicar ao fundo</button>
                                 </div>
                             </div>
                         </div>

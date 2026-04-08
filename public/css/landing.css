@@ -80,11 +80,12 @@ h1, h2, h3 { font-family: var(--font-display); }
 .hero {
     position: relative;
     min-height: 100vh;
+    min-height: 100svh;
     display: flex; align-items: center; justify-content: center;
     background: #050505;
     overflow: hidden;
     text-align: center;
-    padding: 140px 20px 80px;
+    padding: 116px 20px 72px;
 }
 .hero-bg-effects {
     position: absolute; inset: 0;
@@ -168,10 +169,43 @@ h1, h2, h3 { font-family: var(--font-display); }
     background: #000;
     border: 1px solid rgba(201,168,76,0.14);
 }
-.tablet-screen-image {
+.tablet-app {
+    position: relative;
+    min-height: 560px;
+}
+.tablet-app-bg {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    display: block;
-    filter: saturate(1.05) contrast(1.02);
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.55;
+    filter: saturate(1.05) contrast(1.05);
+}
+.tablet-app-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.84));
+}
+.tablet-app-content {
+    position: relative;
+    z-index: 1;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    min-height: 560px;
+    gap: 12px;
+}
+.tablet-app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+.tablet-app-sub {
+    font-size: 12px;
+    color: var(--overlay-card-text-secondary);
+    margin-top: 6px;
 }
 .tablet-shadow {
     position: absolute;
@@ -185,10 +219,7 @@ h1, h2, h3 { font-family: var(--font-display); }
 }
 
 .tablet-tool {
-    position: absolute;
-    right: 16px;
-    bottom: 16px;
-    width: min(300px, calc(100% - 32px));
+    width: 100%;
     border-radius: 18px;
     padding: 14px;
     background: var(--overlay-card-bg);
@@ -196,6 +227,7 @@ h1, h2, h3 { font-family: var(--font-display); }
     backdrop-filter: blur(14px);
     box-shadow: 0 18px 44px rgba(0,0,0,0.30);
     color: var(--overlay-card-text);
+    margin-top: auto;
 }
 .tablet-tool-top {
     display: flex;
@@ -325,6 +357,7 @@ h1, h2, h3 { font-family: var(--font-display); }
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+    margin-top: auto;
 }
 .tablet-tool-ghost {
     height: 38px;
@@ -523,12 +556,17 @@ html[data-theme='light'] .tablet-tool-ghost {
     .tablet-screen {
         border-radius: 22px;
     }
-    .tablet-tool {
-        left: 14px;
-        right: 14px;
-        bottom: 14px;
-        width: auto;
+    .tablet-app {
+        min-height: 520px;
     }
+    .tablet-app-content {
+        min-height: 520px;
+        padding: 18px;
+    }
+}
+
+.section {
+    scroll-margin-top: 96px;
 }
 
 @media (max-width: 980px) {

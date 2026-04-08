@@ -87,6 +87,13 @@
         var intensityRange = createEl('input', { type: 'range', className: 'frequency-range', min: '0', max: '100', step: '1', value: String(state.intensity), 'aria-label': 'Intensidade do ruído' });
         controls.appendChild(intensityRange);
 
+        var rowAudio = createEl('div', { className: 'frequency-controls-row' });
+        var audioLabel = createEl('div', { className: 'frequency-controls-label', text: 'Som' });
+        var audioButton = createEl('button', { type: 'button', className: 'frequency-audio-btn', 'aria-label': 'Ativar som', 'aria-pressed': 'false', text: 'Mudo' });
+        rowAudio.appendChild(audioLabel);
+        rowAudio.appendChild(audioButton);
+        controls.appendChild(rowAudio);
+
         var footer = createEl('div', { className: 'frequency-controls-footer', text: '200–1000 Hz • Ajuste em tempo real' });
         controls.appendChild(footer);
 
@@ -97,6 +104,99 @@
         var rafId = 0;
         var lastT = 0;
         var dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+
+        var audio = {
+            enabled: false,
+            context: null,
+            oscillator: null,
+            noiseSource: null,
+            noiseFilter: null,
+            gain: null,
+        };
+
+        function audioGainFromIntensity(intensityPercent) {
+            var x = clamp(intensityPercent, 0, 100) / 100;
+            return 0.0001 + (x * x) * 0.08;
+        }
+
+        function ensureAudio() {
+            if (audio.context) return true;
+            var AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return false;
+
+            try {
+                audio.context = new AudioContext();
+                audio.gain = audio.context.createGain();
+                audio.gain.gain.value = audioGainFromIntensity(state.intensity);
+                audio.gain.connect(audio.context.destination);
+
+                audio.oscillator = audio.context.createOscillator();
+                audio.oscillator.type = 'sine';
+                audio.oscillator.frequency.value = state.hz;
+
+                var bufferSize = audio.context.sampleRate * 2;
+                var noiseBuffer = audio.context.createBuffer(1, bufferSize, audio.context.sampleRate);
+                var data = noiseBuffer.getChannelData(0);
+                for (var i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                audio.noiseSource = audio.context.createBufferSource();
+                audio.noiseSource.buffer = noiseBuffer;
+                audio.noiseSource.loop = true;
+
+                audio.noiseFilter = audio.context.createBiquadFilter();
+                audio.noiseFilter.type = 'bandpass';
+                audio.noiseFilter.frequency.value = state.hz;
+                audio.noiseFilter.Q.value = 14;
+
+                var noiseGain = audio.context.createGain();
+                noiseGain.gain.value = 0.25;
+
+                audio.oscillator.connect(audio.gain);
+                audio.noiseSource.connect(audio.noiseFilter);
+                audio.noiseFilter.connect(noiseGain);
+                noiseGain.connect(audio.gain);
+
+                audio.oscillator.start();
+                audio.noiseSource.start();
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function stopAudio() {
+            audio.enabled = false;
+            if (audio.oscillator) {
+                try { audio.oscillator.stop(); } catch (error) {}
+            }
+            if (audio.noiseSource) {
+                try { audio.noiseSource.stop(); } catch (error) {}
+            }
+            if (audio.context) {
+                try { audio.context.close(); } catch (error) {}
+            }
+            audio.context = null;
+            audio.oscillator = null;
+            audio.noiseSource = null;
+            audio.noiseFilter = null;
+            audio.gain = null;
+        }
+
+        function setAudioEnabled(enabled) {
+            audio.enabled = !!enabled;
+            if (audio.enabled) {
+                var ok = ensureAudio();
+                if (ok && audio.context && audio.context.state === 'suspended') {
+                    audio.context.resume().catch(function () {});
+                }
+            } else {
+                stopAudio();
+            }
+            audioButton.textContent = audio.enabled ? 'Ativo' : 'Mudo';
+            audioButton.setAttribute('aria-pressed', audio.enabled ? 'true' : 'false');
+            audioButton.setAttribute('aria-label', audio.enabled ? 'Desativar som' : 'Ativar som');
+        }
 
         function resize() {
             var w = window.innerWidth;
@@ -192,6 +292,12 @@
             hzValue.textContent = state.hz + ' Hz';
             saveState(state);
             draw(performance.now());
+            if (audio.enabled && audio.oscillator) {
+                try { audio.oscillator.frequency.setTargetAtTime(state.hz, audio.context.currentTime, 0.015); } catch (error) {}
+            }
+            if (audio.enabled && audio.noiseFilter) {
+                try { audio.noiseFilter.frequency.setTargetAtTime(state.hz, audio.context.currentTime, 0.02); } catch (error) {}
+            }
         }
 
         function updateIntensity(value) {
@@ -200,6 +306,9 @@
             intensityValue.textContent = state.intensity + '%';
             saveState(state);
             draw(performance.now());
+            if (audio.enabled && audio.gain) {
+                try { audio.gain.gain.setTargetAtTime(audioGainFromIntensity(state.intensity), audio.context.currentTime, 0.03); } catch (error) {}
+            }
         }
 
         hzRange.addEventListener('input', function () {
@@ -218,7 +327,12 @@
             updateHz(state.hz + 1);
         });
 
+        audioButton.addEventListener('click', function () {
+            setAudioEnabled(!audio.enabled);
+        });
+
         window.addEventListener('resize', resize, { passive: true });
+        window.addEventListener('pagehide', stopAudio, { passive: true });
 
         resize();
 
@@ -228,7 +342,13 @@
             getState: function () {
                 return { hz: state.hz, intensity: state.intensity };
             },
+            setAudioEnabled: setAudioEnabled,
+            isAudioEnabled: function () {
+                return audio.enabled;
+            },
         };
+
+        setAudioEnabled(false);
 
         if (!prefersReducedMotion()) {
             rafId = requestAnimationFrame(loop);
