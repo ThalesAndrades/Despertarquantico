@@ -14,14 +14,14 @@
 // ============================================
 // PREENCHA ESTAS CREDENCIAIS
 // ============================================
-$DB_HOST     = 'localhost';      // Geralmente localhost na Hostinger
-$DB_NAME     = '';               // Nome do banco criado no painel
-$DB_USER     = '';               // Usuário do banco
-$DB_PASS     = '';               // Senha do banco
+$DB_HOST     = 'localhost';
+$DB_NAME     = 'u525832347_Mulherespiral';
+$DB_USER     = 'u525832347_Mulherespiral';
+$DB_PASS     = '@Telemed123';
 
 $ADMIN_NAME  = 'Sunyan Nunes';
-$ADMIN_EMAIL = 'sunyan@mulherespiral.shop';  // Email da admin
-$ADMIN_PASS  = '';               // Senha que a Sunyan vai usar
+$ADMIN_EMAIL = 'sunyan@mulherespiral.shop';
+$ADMIN_PASS  = '@Telemed123';
 // ============================================
 
 $errors = [];
