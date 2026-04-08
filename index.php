@@ -17,12 +17,21 @@ function routeRequiresSession(string $url): bool
 {
     static $publicStatelessRoutes = [
         '',
+        'marketplace',
         'checkout/success',
         'checkout/cancel',
         'webhook/stripe',
     ];
 
-    return !in_array($url, $publicStatelessRoutes, true);
+    if (in_array($url, $publicStatelessRoutes, true)) {
+        return false;
+    }
+
+    if (strpos($url, 'marketplace/') === 0) {
+        return false;
+    }
+
+    return true;
 }
 
 // Session configuration
@@ -64,6 +73,8 @@ $router = new Router();
 
 // Public routes
 $router->get('', [HomeController::class, 'index']);
+$router->get('marketplace', [HomeController::class, 'marketplace']);
+$router->get('marketplace/{slug}', [HomeController::class, 'marketplaceProduct']);
 $router->get('login', [AuthController::class, 'loginForm']);
 $router->post('login', [AuthController::class, 'login']);
 $router->get('register', [AuthController::class, 'registerForm']);

@@ -14,54 +14,72 @@
     <link rel="stylesheet" href="<?= asset('css/dashboard.css') ?>">
 </head>
 <body>
-    <div class="auth-page">
-        <div class="auth-card">
-            <div class="auth-card-toolbar">
-                <?= themeToggleButton('theme-toggle theme-toggle-card', 'Modo claro') ?>
-            </div>
-            <div class="auth-logo">
-                <h1>MULHER ESPIRAL</h1>
-                <p>Entre para continuar sua jornada com clareza e acesso imediato.</p>
-                <div class="gold-line"></div>
-            </div>
-
-            <div class="auth-benefits">
-                <span>Acesso aos cursos</span>
-                <span class="trust-dot"></span>
-                <span>Comunidade privada</span>
-                <span class="trust-dot"></span>
-                <span>Progresso salvo</span>
-            </div>
-
-            <?php if (!empty($error)): ?>
-                <div class="alert alert-error"><?= e($error) ?></div>
-            <?php endif; ?>
-            <?php if (!empty($success)): ?>
-                <div class="alert alert-success"><?= e($success) ?></div>
-            <?php endif; ?>
-
-            <form method="POST" action="<?= url('login') ?>">
-                <?= CSRF::field() ?>
-
-                <div class="form-group">
-                    <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" class="form-control" value="<?= old('email') ?>" placeholder="seu@email.com" required>
+    <div class="auth-page auth-page-login">
+        <div class="auth-shell">
+            <aside class="auth-visual">
+                <div class="auth-visual-copy">
+                    <span class="section-label">ACESSO PREMIUM</span>
+                    <h2>Entre em uma experiencia mais clara, elegante e guiada.</h2>
+                    <p>Aqui voce acessa seus cursos, acompanha sua evolucao e continua sua jornada com a Sunyan em um ambiente acolhedor e de alto nivel.</p>
+                </div>
+                <ul class="auth-visual-list">
+                    <li>Seus infoprodutos organizados em um so lugar</li>
+                    <li>Comunidade privada com continuidade da jornada</li>
+                    <li>Estrutura pronta para receber novas imagens e midias da Sunyan</li>
+                </ul>
+                <div class="auth-visual-media">
+                    <img src="<?= asset('images/landing/about-sunyan.svg') ?>" alt="Painel visual editorial da plataforma Mulher Espiral" loading="lazy" decoding="async">
+                </div>
+            </aside>
+            <div class="auth-card">
+                <div class="auth-card-toolbar">
+                    <?= themeToggleButton('theme-toggle theme-toggle-card', 'Modo claro') ?>
+                </div>
+                <div class="auth-logo">
+                    <h1>MULHER ESPIRAL</h1>
+                    <p>Entre para continuar sua jornada com clareza e acesso imediato.</p>
+                    <div class="gold-line"></div>
                 </div>
 
-                <div class="form-group">
-                    <label for="password">Senha</label>
-                    <input type="password" id="password" name="password" class="form-control" placeholder="Sua senha" required>
+                <div class="auth-benefits">
+                    <span>Acesso aos cursos</span>
+                    <span class="trust-dot"></span>
+                    <span>Comunidade privada</span>
+                    <span class="trust-dot"></span>
+                    <span>Progresso salvo</span>
                 </div>
 
-                <button type="submit" class="auth-submit">Entrar na minha area</button>
-            </form>
+                <?php if (!empty($error)): ?>
+                    <div class="alert alert-error"><?= e($error) ?></div>
+                <?php endif; ?>
+                <?php if (!empty($success)): ?>
+                    <div class="alert alert-success"><?= e($success) ?></div>
+                <?php endif; ?>
 
-            <p class="auth-action-note">Use o e-mail da sua compra para acessar tudo em um so lugar.</p>
+                <form method="POST" action="<?= url('login') ?>">
+                    <?= CSRF::field() ?>
 
-            <div class="auth-links">
-                <p><a href="<?= url('forgot-password') ?>">Esqueceu sua senha?</a></p>
-                <p>Ainda nao tem conta? <a href="<?= url('register') ?>">Criar conta</a></p>
-                <p style="margin-top:18px;"><a href="<?= url('') ?>" class="back-link">&#8592; Voltar ao site</a></p>
+                    <div class="form-group">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" name="email" class="form-control" value="<?= old('email') ?>" placeholder="seu@email.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Senha</label>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Sua senha" required>
+                    </div>
+
+                    <button type="submit" class="auth-submit">Entrar na minha area</button>
+                </form>
+
+                <p class="auth-action-note">Use o e-mail da sua compra para acessar tudo em um so lugar.</p>
+
+                <div class="auth-links">
+                    <p><a href="<?= url('forgot-password') ?>">Esqueceu sua senha?</a></p>
+                    <p>Ainda nao tem conta? <a href="<?= url('register') ?>">Criar conta</a></p>
+                    <p>Quer explorar os produtos antes? <a href="<?= url('marketplace') ?>">Abrir marketplace</a></p>
+                    <p style="margin-top:18px;"><a href="<?= url('') ?>" class="back-link">&#8592; Voltar ao site</a></p>
+                </div>
             </div>
         </div>
     </div>

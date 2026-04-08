@@ -30,6 +30,7 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
             <a href="#metodo">Metodo</a>
             <a href="#sobre">Sunyan</a>
             <a href="#programa">Programa</a>
+            <a href="<?= url('marketplace') ?>">Marketplace</a>
             <a href="#depoimentos">Resultados</a>
             <?= themeToggleButton('theme-toggle theme-toggle-nav', 'Modo claro') ?>
             <a href="<?= url('login') ?>" class="nav-cta-btn">

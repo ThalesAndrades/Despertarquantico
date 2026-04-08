@@ -1,0 +1,456 @@
+.marketplace-page .landing-nav {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.marketplace-hero,
+.marketplace-product-hero {
+    padding: 160px 0 80px;
+    position: relative;
+    overflow: hidden;
+}
+
+.marketplace-hero::before,
+.marketplace-product-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at top right, rgba(201, 168, 76, 0.12), transparent 26%),
+        radial-gradient(circle at bottom left, rgba(201, 168, 76, 0.08), transparent 22%);
+    pointer-events: none;
+}
+
+.marketplace-hero-grid,
+.marketplace-product-grid,
+.marketplace-detail-grid,
+.marketplace-heading {
+    position: relative;
+    z-index: 1;
+}
+
+.marketplace-hero-grid,
+.marketplace-product-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+    gap: 48px;
+    align-items: center;
+}
+
+.marketplace-title {
+    font-family: var(--font-display);
+    font-size: clamp(38px, 5vw, 64px);
+    line-height: 1.05;
+    letter-spacing: -1.4px;
+    color: #fff;
+    margin: 18px 0 18px;
+    text-wrap: balance;
+}
+
+.marketplace-subtitle,
+.marketplace-heading-copy,
+.marketplace-helper,
+.marketplace-richtext p {
+    color: rgba(255,255,255,0.66);
+    font-size: 16px;
+    line-height: 1.85;
+}
+
+.marketplace-hero-actions,
+.marketplace-product-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 28px;
+}
+
+.marketplace-hero-meta,
+.marketplace-product-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+    color: rgba(255,255,255,0.48);
+    font-size: 13px;
+}
+
+.marketplace-hero-visual,
+.marketplace-product-media {
+    position: relative;
+}
+
+.marketplace-hero-card,
+.marketplace-product-media img {
+    border-radius: 32px;
+    overflow: hidden;
+    border: 1px solid rgba(201, 168, 76, 0.14);
+    background: rgba(255,255,255,0.03);
+    box-shadow: 0 30px 70px rgba(0,0,0,0.28);
+}
+
+.marketplace-hero-card img,
+.marketplace-product-media img {
+    width: 100%;
+    display: block;
+}
+
+.marketplace-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(280px, 0.8fr);
+    gap: 36px;
+    align-items: end;
+    margin-bottom: 38px;
+}
+
+.marketplace-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.marketplace-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    border-radius: 28px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 18px 46px rgba(0,0,0,0.18);
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.marketplace-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(201, 168, 76, 0.18);
+    box-shadow: 0 24px 56px rgba(0,0,0,0.24);
+}
+
+.marketplace-card-media {
+    display: block;
+    aspect-ratio: 1.15 / 1;
+    overflow: hidden;
+}
+
+.marketplace-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.marketplace-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 24px;
+    flex: 1;
+}
+
+.marketplace-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.marketplace-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(201, 168, 76, 0.08);
+    border: 1px solid rgba(201, 168, 76, 0.14);
+    color: var(--gold-light);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.marketplace-price,
+.marketplace-product-price {
+    color: var(--gold);
+    font-family: var(--font-display);
+    font-weight: 700;
+}
+
+.marketplace-price {
+    font-size: 22px;
+}
+
+.marketplace-card h3 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: #fff;
+    line-height: 1.15;
+}
+
+.marketplace-card p {
+    color: rgba(255,255,255,0.60);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.marketplace-card-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    color: rgba(255,255,255,0.46);
+    font-size: 12px;
+}
+
+.marketplace-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.marketplace-empty,
+.marketplace-sidebar-card {
+    padding: 28px;
+    border-radius: 24px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+.marketplace-empty h3,
+.marketplace-sidebar-card h3 {
+    font-family: var(--font-display);
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.marketplace-empty p,
+.marketplace-summary-list li,
+.marketplace-module-item span,
+.marketplace-richtext,
+.marketplace-richtext li {
+    color: rgba(255,255,255,0.62);
+    line-height: 1.75;
+}
+
+.marketplace-product-price {
+    font-size: 52px;
+    margin-top: 24px;
+}
+
+.marketplace-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 36px;
+}
+
+.marketplace-richtext {
+    display: grid;
+    gap: 16px;
+}
+
+.marketplace-richtext h2,
+.marketplace-richtext h3,
+.marketplace-richtext h4 {
+    font-family: var(--font-display);
+    color: #fff;
+}
+
+.marketplace-summary-list,
+.marketplace-module-list {
+    display: grid;
+    gap: 12px;
+}
+
+.marketplace-summary-list {
+    list-style: none;
+}
+
+.marketplace-summary-list li,
+.marketplace-module-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.marketplace-summary-list li:last-child,
+.marketplace-module-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.marketplace-module-item strong {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.auth-page-login {
+    padding: 32px;
+}
+
+.auth-shell {
+    display: grid;
+    grid-template-columns: minmax(320px, 420px) minmax(300px, 420px);
+    gap: 22px;
+    align-items: stretch;
+}
+
+.auth-visual {
+    position: relative;
+    padding: 34px;
+    border-radius: var(--radius-xl);
+    background:
+        radial-gradient(circle at top right, rgba(201, 168, 76, 0.12), transparent 30%),
+        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    border: 1px solid rgba(201, 168, 76, 0.12);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.auth-visual::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 160px;
+    background: linear-gradient(180deg, transparent, rgba(10,10,10,0.35));
+    pointer-events: none;
+}
+
+.auth-visual-copy {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 24px;
+}
+
+.auth-visual-copy h2 {
+    font-family: var(--font-display);
+    color: #fff;
+    font-size: 34px;
+    line-height: 1.08;
+    margin-bottom: 12px;
+}
+
+.auth-visual-copy p {
+    color: rgba(255,255,255,0.72);
+    line-height: 1.75;
+}
+
+.auth-visual-list {
+    display: grid;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.auth-visual-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255,255,255,0.82);
+    font-size: 14px;
+}
+
+.auth-visual-list li::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 0 6px rgba(201,168,76,0.12);
+}
+
+.auth-visual-media {
+    margin-top: 24px;
+    position: relative;
+    z-index: 1;
+}
+
+.auth-visual-media img {
+    width: 100%;
+    display: block;
+    border-radius: 24px;
+    border: 1px solid rgba(201,168,76,0.14);
+    background: rgba(255,255,255,0.04);
+}
+
+@media (max-width: 980px) {
+    .marketplace-hero-grid,
+    .marketplace-product-grid,
+    .marketplace-detail-grid,
+    .marketplace-heading,
+    .auth-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .marketplace-title {
+        font-size: clamp(34px, 8vw, 48px);
+    }
+
+    .marketplace-product-price {
+        font-size: 42px;
+    }
+
+    .auth-page-login {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 640px) {
+    .marketplace-hero,
+    .marketplace-product-hero {
+        padding: 132px 0 64px;
+    }
+
+    .marketplace-card-actions,
+    .marketplace-hero-actions,
+    .marketplace-product-actions {
+        flex-direction: column;
+    }
+
+    .marketplace-card-actions .btn,
+    .marketplace-hero-actions .btn,
+    .marketplace-product-actions .btn {
+        width: 100%;
+    }
+}
+
+html[data-theme='light'] .marketplace-title,
+html[data-theme='light'] .marketplace-card h3,
+html[data-theme='light'] .marketplace-empty h3,
+html[data-theme='light'] .marketplace-sidebar-card h3,
+html[data-theme='light'] .marketplace-richtext h2,
+html[data-theme='light'] .marketplace-richtext h3,
+html[data-theme='light'] .marketplace-richtext h4,
+html[data-theme='light'] .marketplace-module-item strong,
+html[data-theme='light'] .auth-visual-copy h2 {
+    color: var(--text-primary);
+}
+
+html[data-theme='light'] .marketplace-subtitle,
+html[data-theme='light'] .marketplace-heading-copy,
+html[data-theme='light'] .marketplace-helper,
+html[data-theme='light'] .marketplace-richtext p,
+html[data-theme='light'] .marketplace-card p,
+html[data-theme='light'] .marketplace-empty p,
+html[data-theme='light'] .marketplace-summary-list li,
+html[data-theme='light'] .marketplace-module-item span,
+html[data-theme='light'] .marketplace-richtext,
+html[data-theme='light'] .auth-visual-copy p,
+html[data-theme='light'] .auth-visual-list li {
+    color: var(--text-secondary);
+}
+
+html[data-theme='light'] .marketplace-card,
+html[data-theme='light'] .marketplace-empty,
+html[data-theme='light'] .marketplace-sidebar-card,
+html[data-theme='light'] .auth-visual {
+    background: rgba(255,255,255,0.78);
+    border-color: rgba(184, 146, 47, 0.14);
+}
+
+html[data-theme='light'] .marketplace-card-stats,
+html[data-theme='light'] .marketplace-hero-meta,
+html[data-theme='light'] .marketplace-product-meta {
+    color: var(--text-muted);
+}
