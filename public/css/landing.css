@@ -638,8 +638,6 @@ html[data-theme='light'] .tablet-tool-ghost {
 /* ========== SECTIONS ========== */
 .section {
     padding: 100px 0;
-    content-visibility: auto;
-    contain-intrinsic-size: 1px 900px;
 }
 .section-dark {
     background: var(--bg-secondary);
@@ -1423,9 +1421,6 @@ html[data-theme='light'] .tablet-tool-ghost {
         opacity: 1 !important;
     }
 
-    .section {
-        content-visibility: visible;
-    }
 }
 
 html[data-theme='light'] .landing-nav.scrolled,
