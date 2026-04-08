@@ -2,6 +2,12 @@
 
 class CheckoutController
 {
+    public function createPost(string $slug): void
+    {
+        CSRF::check();
+        $this->create($slug);
+    }
+
     public function create(string $slug): void
     {
         $product = Database::fetch("SELECT * FROM products WHERE slug = ? AND is_active = 1", [$slug]);
@@ -18,12 +24,13 @@ class CheckoutController
         }
 
         // If no email provided, show email form
-        if (empty($email) && empty($_GET['email'])) {
+        $submittedEmail = trim($_POST['email'] ?? $_GET['email'] ?? '');
+        if (empty($email) && empty($submittedEmail)) {
             view('checkout/email', compact('product'));
             return;
         }
 
-        $email = $email ?: trim($_GET['email']);
+        $email = $email ?: $submittedEmail;
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             flash('error', 'E-mail inválido.');
             redirect('checkout/' . $slug);

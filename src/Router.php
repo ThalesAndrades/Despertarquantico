@@ -31,8 +31,7 @@ class Router
         }
 
         http_response_code(404);
-        require VIEWS_PATH . '/layouts/landing.php';
-        echo '<div style="text-align:center;padding:100px 20px;"><h1>404</h1><p>Página não encontrada</p><a href="' . APP_URL . '">Voltar ao início</a></div>';
+        require VIEWS_PATH . '/errors/404.php';
     }
 
     private function match(string $pattern, string $url): array|false

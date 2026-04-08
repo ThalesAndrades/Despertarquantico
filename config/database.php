@@ -1,14 +1,13 @@
 <?php
 /**
- * Database Configuration
- * Update these values for your Hostinger MySQL database
+ * Database Configuration - Hostinger Production
  */
 
 return [
     'host' => 'localhost',
-    'dbname' => 'sunyan_platform',
-    'username' => 'root',
-    'password' => '',
+    'dbname' => 'u525832347_Mulherespiral',
+    'username' => 'u525832347_Mulherespiral',
+    'password' => '@Telemed123',
     'charset' => 'utf8mb4',
     'options' => [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

@@ -34,7 +34,8 @@
                 <div class="checkout-price">R$ <?= number_format($product['price'], 2, ',', '.') ?></div>
             </div>
 
-            <form method="GET" action="<?= url('checkout/' . e($product['slug'])) ?>">
+            <form method="POST" action="<?= url('checkout/' . e($product['slug'])) ?>">
+                <?= CSRF::field() ?>
                 <div class="form-group">
                     <label for="email">Seu e-mail para receber o acesso</label>
                     <input type="email" id="email" name="email" placeholder="seu@email.com" required>

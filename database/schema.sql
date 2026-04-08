@@ -3,11 +3,11 @@
 -- Execute via phpMyAdmin na Hostinger
 -- =============================================
 
-CREATE DATABASE IF NOT EXISTS sunyan_platform
+CREATE DATABASE IF NOT EXISTS `u525832347_Mulherespiral`
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
-USE sunyan_platform;
+USE `u525832347_Mulherespiral`;
 
 -- =============================================
 -- Users
@@ -171,5 +171,5 @@ CREATE TABLE community_likes (
 -- Password: admin123 (CHANGE THIS!)
 -- Generate with: php -r "echo password_hash('sua_senha', PASSWORD_DEFAULT);"
 -- =============================================
-INSERT INTO users (name, email, password_hash, anonymous_name, role)
-VALUES ('Sunyan Nunes', 'sunyan@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Sunyan', 'admin');
+-- Admin user is auto-created by Database.php on first run
+-- Email: sunyan@mulherespiral.shop | Password: @Telemed123

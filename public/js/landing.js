@@ -33,11 +33,17 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.faq-question').forEach(function (btn) {
         btn.addEventListener('click', function () {
             var item = this.closest('.faq-item');
+            var arrow = this.querySelector('.faq-arrow');
             var wasOpen = item.classList.contains('open');
             document.querySelectorAll('.faq-item').forEach(function (i) {
                 i.classList.remove('open');
+                var a = i.querySelector('.faq-arrow');
+                if (a) a.textContent = '+';
             });
-            if (!wasOpen) item.classList.add('open');
+            if (!wasOpen) {
+                item.classList.add('open');
+                if (arrow) arrow.textContent = '\u2212';
+            }
         });
     });
 
@@ -67,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-        document.querySelectorAll('.section, .pain-card, .module-card, .testimonial-card, .bonus-card, .result-item').forEach(function (el) {
+        document.querySelectorAll('.section, .program-item, .testimonial-item, .bonus-item, .method-pillar, .price-card').forEach(function (el) {
             el.classList.add('fade-up');
             fadeObserver.observe(el);
         });
@@ -144,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // === Stagger children animation ===
-    document.querySelectorAll('.pain-grid, .modules-grid, .testimonials-grid, .bonus-grid').forEach(function (grid) {
+    document.querySelectorAll('.program-grid, .testimonial-stack, .bonus-list, .method-pillars').forEach(function (grid) {
         var children = grid.children;
         for (var i = 0; i < children.length; i++) {
             children[i].style.transitionDelay = (i * 0.08) + 's';

@@ -10,7 +10,12 @@ ini_set('log_errors', '1');
 
 // Session configuration
 ini_set('session.cookie_httponly', '1');
+ini_set('session.cookie_samesite', 'Lax');
 ini_set('session.use_strict_mode', '1');
+ini_set('session.gc_maxlifetime', '7200');
+if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+    ini_set('session.cookie_secure', '1');
+}
 session_start();
 
 // Security headers
@@ -53,6 +58,7 @@ $router->post('reset-password', [AuthController::class, 'resetPassword']);
 
 // Checkout routes
 $router->get('checkout/{slug}', [CheckoutController::class, 'create']);
+$router->post('checkout/{slug}', [CheckoutController::class, 'createPost']);
 $router->get('checkout/success', [CheckoutController::class, 'success']);
 $router->get('checkout/cancel', [CheckoutController::class, 'cancel']);
 $router->post('webhook/stripe', [CheckoutController::class, 'webhook']);

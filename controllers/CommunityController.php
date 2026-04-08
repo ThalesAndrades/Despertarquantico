@@ -168,6 +168,11 @@ class CommunityController
         $commentId = !empty($_POST['comment_id']) ? (int) $_POST['comment_id'] : null;
         $userId = $_SESSION['user_id'];
         $redirect = $_POST['redirect'] ?? 'community';
+        // Prevent open redirect - only allow internal paths
+        $redirect = ltrim($redirect, '/');
+        if (preg_match('/^https?:\/\//i', $redirect) || str_contains($redirect, '..')) {
+            $redirect = 'community';
+        }
 
         if ($postId) {
             $existing = Database::fetch(
