@@ -3,15 +3,15 @@
 <!-- Quick Links -->
 <div class="quick-links">
     <a href="<?= url('products') ?>" class="quick-link">
-        <div class="quick-link-icon purple">📚</div>
+        <div class="quick-link-icon purple">&#10022;</div>
         <span class="quick-link-text">Meus Produtos</span>
     </a>
     <a href="<?= url('community') ?>" class="quick-link">
-        <div class="quick-link-icon gold">💬</div>
+        <div class="quick-link-icon gold">&#10023;</div>
         <span class="quick-link-text">Comunidade</span>
     </a>
     <a href="<?= url('') ?>" class="quick-link">
-        <div class="quick-link-icon green">🌟</div>
+        <div class="quick-link-icon green">&#10025;</div>
         <span class="quick-link-text">Ver Novos Produtos</span>
     </a>
 </div>
@@ -26,9 +26,9 @@
 
 <?php if (empty($products)): ?>
     <div class="empty-state">
-        <div class="empty-icon">📦</div>
+        <div class="empty-icon">&#10022;</div>
         <h3 class="empty-title">Nenhum produto ainda</h3>
-        <p class="empty-text">Você ainda não adquiriu nenhum produto. Explore nosso catálogo!</p>
+        <p class="empty-text">Voce ainda nao adquiriu nenhum produto. Explore nosso catalogo!</p>
         <a href="<?= url('') ?>" class="btn btn-primary">Explorar Produtos</a>
     </div>
 <?php else: ?>
@@ -49,7 +49,7 @@
                         <div class="progress-fill" style="width: <?= $prod['progress'] ?>%"></div>
                     </div>
                     <div class="product-card-footer">
-                        <span class="progress-text"><?= $prod['progress'] ?>% concluído</span>
+                        <span class="progress-text"><?= $prod['progress'] ?>% concluido</span>
                         <span class="progress-text"><?= $prod['completed_lessons'] ?>/<?= $prod['total_lessons'] ?> aulas</span>
                     </div>
                 </div>
@@ -64,15 +64,15 @@
         <h2>Comunidade</h2>
         <a href="<?= url('community') ?>" class="btn btn-sm btn-outline">Ver tudo</a>
     </div>
-    <div class="grid" style="gap: 12px;">
+    <div class="grid" style="gap: 10px;">
         <?php foreach ($recentPosts as $post): ?>
             <a href="<?= url('community/topic/' . $post['id']) ?>" style="text-decoration:none;" class="lesson-item">
                 <div>
-                    <span class="badge badge-purple" style="font-size:10px;"><?= e($post['category']) ?></span>
+                    <span class="badge badge-gold" style="font-size:10px;"><?= e($post['category']) ?></span>
                 </div>
                 <div class="lesson-info">
                     <div class="lesson-title"><?= e($post['title']) ?></div>
-                    <div class="lesson-meta"><?= e($post['anonymous_name']) ?> · <?= timeAgo($post['created_at']) ?> · <?= $post['comment_count'] ?> comentários</div>
+                    <div class="lesson-meta"><?= e($post['anonymous_name']) ?> &#183; <?= timeAgo($post['created_at']) ?> &#183; <?= $post['comment_count'] ?> comentarios</div>
                 </div>
             </a>
         <?php endforeach; ?>

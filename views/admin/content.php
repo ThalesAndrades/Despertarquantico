@@ -1,4 +1,4 @@
-<a href="<?= url('admin/products') ?>" style="color:#86868B;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:8px;">
+<a href="<?= url('admin/products') ?>" style="color:var(--text-muted);font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:8px;">
     ← Voltar para produtos
 </a>
 
@@ -13,7 +13,7 @@
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px;">
     <!-- Add Module -->
-    <div style="background:#fff;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+    <div style="background:var(--bg-card);border-radius:16px;padding:24px;border:1px solid var(--border-subtle);">
         <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;">Adicionar Módulo</h3>
         <form method="POST" action="<?= url('admin/modules/save') ?>">
             <?= CSRF::field() ?>
@@ -29,7 +29,7 @@
     </div>
 
     <!-- Add Lesson -->
-    <div style="background:#fff;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+    <div style="background:var(--bg-card);border-radius:16px;padding:24px;border:1px solid var(--border-subtle);">
         <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;">Adicionar Aula</h3>
         <form method="POST" action="<?= url('admin/lessons/save') ?>">
             <?= CSRF::field() ?>
@@ -79,9 +79,9 @@
     <p class="text-muted">Nenhum módulo criado ainda. Comece adicionando um módulo acima.</p>
 <?php else: ?>
     <?php foreach ($modules as $module): ?>
-        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+        <div style="background:var(--bg-card);border-radius:16px;padding:24px;margin-bottom:16px;border:1px solid var(--border-subtle);">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-                <h4 style="font-size:16px;font-weight:700;color:#1D1D1F;">
+                <h4 style="font-size:16px;font-weight:700;color:#fff;">
                     📁 <?= e($module['title']) ?>
                     <span class="text-muted text-xs" style="font-weight:400;margin-left:8px;">(Ordem: <?= $module['sort_order'] ?>)</span>
                 </h4>
@@ -91,7 +91,7 @@
                 <p class="text-muted text-sm">Nenhuma aula neste módulo.</p>
             <?php else: ?>
                 <?php foreach ($module['lessons'] as $lesson): ?>
-                    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;background:#F5F5F7;margin-bottom:6px;">
+                    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;background:var(--bg-surface);margin-bottom:6px;">
                         <span class="badge badge-gray"><?= e($lesson['content_type']) ?></span>
                         <span style="flex:1;font-size:14px;font-weight:500;"><?= e($lesson['title']) ?></span>
                         <?php if ($lesson['duration_minutes'] > 0): ?>

@@ -1,8 +1,8 @@
 <?php if (empty($products)): ?>
     <div class="empty-state">
-        <div class="empty-icon">📚</div>
-        <h3 class="empty-title">Nenhum produto disponível</h3>
-        <p class="empty-text">Você ainda não tem acesso a nenhum produto. Explore nosso catálogo!</p>
+        <div class="empty-icon">&#10022;</div>
+        <h3 class="empty-title">Nenhum produto disponivel</h3>
+        <p class="empty-text">Voce ainda nao tem acesso a nenhum produto. Explore nosso catalogo!</p>
         <a href="<?= url('') ?>" class="btn btn-primary">Explorar Produtos</a>
     </div>
 <?php else: ?>
@@ -23,7 +23,7 @@
                         <div class="progress-fill" style="width: <?= $prod['progress'] ?>%"></div>
                     </div>
                     <div class="product-card-footer">
-                        <span class="progress-text"><?= $prod['progress'] ?>% concluído</span>
+                        <span class="progress-text"><?= $prod['progress'] ?>% concluido</span>
                         <span class="progress-text"><?= $prod['completed_lessons'] ?>/<?= $prod['total_lessons'] ?> aulas</span>
                     </div>
                 </div>

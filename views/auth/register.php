@@ -5,25 +5,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> - <?= APP_NAME ?></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
     <style>
-        .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #1a0533 100%); padding: 20px; }
-        .auth-card { background: #fff; border-radius: 16px; padding: 40px; max-width: 480px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .auth-logo { text-align: center; margin-bottom: 30px; }
-        .auth-logo h1 { font-family: 'Georgia', serif; color: #6B21A8; font-size: 28px; margin: 0; }
-        .auth-logo p { color: #888; font-size: 14px; margin-top: 5px; }
+        .auth-page {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: #0A0A0A; padding: 20px;
+            position: relative; overflow: hidden;
+        }
+        .auth-page::before {
+            content: '';
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 500px 400px at 30% 20%, rgba(201, 168, 76, 0.04) 0%, transparent 70%),
+                radial-gradient(ellipse 400px 300px at 70% 80%, rgba(201, 168, 76, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .auth-card {
+            background: #161616; border-radius: 20px; padding: 44px;
+            max-width: 500px; width: 100%;
+            border: 1px solid rgba(201, 168, 76, 0.12);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .auth-logo { text-align: center; margin-bottom: 36px; }
+        .auth-logo h1 {
+            font-family: 'Playfair Display', serif; color: #C9A84C;
+            font-size: 26px; margin: 0; letter-spacing: 1px;
+        }
+        .auth-logo p { color: rgba(255,255,255,0.35); font-size: 13px; margin-top: 8px; letter-spacing: 0.5px; }
+        .auth-logo .gold-line { width: 40px; height: 1px; background: linear-gradient(90deg, transparent, #C9A84C, transparent); margin: 14px auto 0; }
         .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; font-weight: 600; color: #333; margin-bottom: 6px; font-size: 14px; }
-        .form-group input { width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: border-color 0.3s; box-sizing: border-box; }
-        .form-group input:focus { outline: none; border-color: #6B21A8; }
-        .form-group .hint { font-size: 12px; color: #888; margin-top: 4px; }
-        .btn-primary { width: 100%; padding: 14px; background: linear-gradient(135deg, #6B21A8, #9333EA); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(107,33,168,0.4); }
-        .alert { padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; }
-        .alert-error { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
-        .auth-links { text-align: center; margin-top: 20px; font-size: 14px; }
-        .auth-links a { color: #6B21A8; text-decoration: none; font-weight: 600; }
-        .auth-links a:hover { text-decoration: underline; }
+        .form-group label { display: block; font-weight: 500; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; }
+        .form-group input {
+            width: 100%; padding: 13px 16px;
+            border: 1.5px solid rgba(255,255,255,0.08); border-radius: 12px;
+            font-size: 15px; transition: all 0.3s;
+            box-sizing: border-box; background: #1A1A1A; color: #fff;
+            font-family: 'Inter', sans-serif;
+        }
+        .form-group input::placeholder { color: rgba(255,255,255,0.25); }
+        .form-group input:focus { outline: none; border-color: #C9A84C; box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15); background: #1E1E1E; }
+        .form-group .hint { font-size: 11px; color: rgba(255,255,255,0.30); margin-top: 6px; line-height: 1.5; }
+        .btn-submit {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #C9A84C, #DFC06A); color: #0A0A0A;
+            border: none; border-radius: 12px; font-size: 15px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; font-family: 'Inter', sans-serif;
+            letter-spacing: 0.3px;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(201, 168, 76, 0.25); }
+        .alert { padding: 12px 16px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; }
+        .alert-error { background: rgba(255, 69, 58, 0.10); color: #FF6B63; border: 1px solid rgba(255, 69, 58, 0.20); }
+        .auth-links { text-align: center; margin-top: 24px; font-size: 13px; }
+        .auth-links a { color: #C9A84C; text-decoration: none; font-weight: 500; transition: color 0.3s; }
+        .auth-links a:hover { color: #DFC06A; }
+        .auth-links p { color: rgba(255,255,255,0.35); }
+        .auth-links .back-link { color: rgba(255,255,255,0.25); font-size: 12px; }
+        .auth-links .back-link:hover { color: rgba(255,255,255,0.5); }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
     </style>
@@ -32,8 +73,9 @@
     <div class="auth-page">
         <div class="auth-card">
             <div class="auth-logo">
-                <h1>✦ Sunyan Nunes</h1>
-                <p>Crie sua conta e faça parte da comunidade</p>
+                <h1>MULHER ESPIRAL</h1>
+                <p>Crie sua conta e faca parte da comunidade</p>
+                <div class="gold-line"></div>
             </div>
 
             <?php if (!empty($error)): ?>
@@ -55,14 +97,14 @@
 
                 <div class="form-group">
                     <label for="anonymous_name">Seu nome na comunidade</label>
-                    <input type="text" id="anonymous_name" name="anonymous_name" value="<?= old('anonymousName') ?>" placeholder="Ex: Lua Dourada, Estrela Cósmica..." required minlength="3" maxlength="50">
-                    <p class="hint">Este será seu pseudônimo na comunidade. Ninguém verá seu nome real.</p>
+                    <input type="text" id="anonymous_name" name="anonymous_name" value="<?= old('anonymousName') ?>" placeholder="Ex: Lua Dourada, Estrela Cosmica..." required minlength="3" maxlength="50">
+                    <p class="hint">Este sera seu pseudonimo na comunidade. Ninguem vera seu nome real.</p>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="password">Senha</label>
-                        <input type="password" id="password" name="password" placeholder="Mínimo 6 caracteres" required minlength="6">
+                        <input type="password" id="password" name="password" placeholder="Minimo 6 caracteres" required minlength="6">
                     </div>
                     <div class="form-group">
                         <label for="password_confirm">Confirmar senha</label>
@@ -70,12 +112,12 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-primary">Criar minha conta</button>
+                <button type="submit" class="btn-submit">Criar minha conta</button>
             </form>
 
             <div class="auth-links">
-                <p>Já tem uma conta? <a href="<?= url('login') ?>">Entrar</a></p>
-                <p style="margin-top:15px;"><a href="<?= url('') ?>" style="color:#888;">← Voltar ao site</a></p>
+                <p>Ja tem uma conta? <a href="<?= url('login') ?>">Entrar</a></p>
+                <p style="margin-top:18px;"><a href="<?= url('') ?>" class="back-link">&#8592; Voltar ao site</a></p>
             </div>
         </div>
     </div>

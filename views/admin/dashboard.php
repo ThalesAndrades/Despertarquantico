@@ -31,7 +31,7 @@
 <?php if (empty($recentOrders)): ?>
     <p class="text-muted">Nenhum pedido ainda.</p>
 <?php else: ?>
-    <div class="table-responsive" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+    <div class="table-responsive" style="background:var(--bg-card);border-radius:16px;overflow:hidden;border:1px solid var(--border-subtle);">
         <table>
             <thead>
                 <tr>
@@ -67,7 +67,7 @@
     <a href="<?= url('admin/users') ?>" class="btn btn-sm btn-outline">Ver todos</a>
 </div>
 
-<div class="table-responsive" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+<div class="table-responsive" style="background:var(--bg-card);border-radius:16px;overflow:hidden;border:1px solid var(--border-subtle);">
     <table>
         <thead>
             <tr><th>Nome</th><th>E-mail</th><th>Pseudônimo</th><th>Cadastro</th></tr>

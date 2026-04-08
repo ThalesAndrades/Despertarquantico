@@ -1,4 +1,4 @@
-<a href="<?= url('admin/products') ?>" style="color:#86868B;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:20px;">
+<a href="<?= url('admin/products') ?>" style="color:var(--text-muted);font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:20px;">
     ← Voltar para produtos
 </a>
 
@@ -6,7 +6,7 @@
     <div class="alert alert-error"><?= e($error) ?></div>
 <?php endif; ?>
 
-<div style="background:#fff;border-radius:20px;padding:36px;box-shadow:0 1px 3px rgba(0,0,0,0.04);max-width:700px;">
+<div style="background:var(--bg-card);border-radius:20px;padding:36px;border:1px solid var(--border-subtle);max-width:700px;">
     <form method="POST" action="<?= url($product ? 'admin/products/edit/' . $product['id'] : 'admin/products/create') ?>" enctype="multipart/form-data">
         <?= CSRF::field() ?>
 

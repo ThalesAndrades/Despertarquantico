@@ -7,12 +7,12 @@
                     <iframe src="<?= e($currentLesson['content_url']) ?>" allowfullscreen allow="autoplay; encrypted-media" loading="lazy"></iframe>
                 </div>
             <?php elseif ($currentLesson['content_type'] === 'text' && $currentLesson['content_body']): ?>
-                <div class="text-content-area" style="background:#fff;border-radius:16px;padding:40px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                <div class="text-content-area" style="background:var(--bg-card);border-radius:16px;padding:40px;border:1px solid var(--border-subtle);">
                     <?= $currentLesson['content_body'] ?>
                 </div>
             <?php elseif ($currentLesson['content_type'] === 'pdf' && $currentLesson['content_url']): ?>
-                <div style="background:#fff;border-radius:16px;padding:40px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
-                    <p style="margin-bottom:16px;">📄 Material em PDF disponível para download:</p>
+                <div style="background:var(--bg-card);border-radius:16px;padding:40px;text-align:center;border:1px solid var(--border-subtle);">
+                    <p style="margin-bottom:16px;color:var(--text-secondary);">Material em PDF disponivel para download:</p>
                     <a href="<?= e($currentLesson['content_url']) ?>" target="_blank" class="btn btn-primary">Baixar PDF</a>
                 </div>
             <?php endif; ?>
@@ -21,11 +21,11 @@
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;flex-wrap:wrap;gap:12px;">
                 <div>
                     <span class="text-muted text-sm"><?= e($currentLesson['module_title'] ?? '') ?></span>
-                    <h2 style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:#1D1D1F;margin-top:4px;">
+                    <h2 style="font-family:var(--font-body);font-size:22px;font-weight:700;color:#fff;margin-top:4px;">
                         <?= e($currentLesson['title']) ?>
                     </h2>
                     <?php if ($currentLesson['duration_minutes'] > 0): ?>
-                        <span class="text-muted text-sm">⏱ <?= $currentLesson['duration_minutes'] ?> min</span>
+                        <span class="text-muted text-sm">&#9202; <?= $currentLesson['duration_minutes'] ?> min</span>
                     <?php endif; ?>
                 </div>
                 <form method="POST" action="<?= url('products/progress') ?>">
@@ -33,7 +33,7 @@
                     <input type="hidden" name="lesson_id" value="<?= $currentLesson['id'] ?>">
                     <input type="hidden" name="product_slug" value="<?= e($product['slug']) ?>">
                     <button type="submit" class="btn <?= ($currentLesson['is_completed'] ?? false) ? 'btn-outline' : 'btn-primary' ?> btn-sm">
-                        <?= ($currentLesson['is_completed'] ?? false) ? '✓ Concluída' : 'Marcar como concluída' ?>
+                        <?= ($currentLesson['is_completed'] ?? false) ? '&#10003; Concluida' : 'Marcar como concluida' ?>
                     </button>
                 </form>
             </div>
@@ -42,8 +42,8 @@
 
     <!-- Module/Lesson List -->
     <div style="margin-top:32px;">
-        <h3 style="font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:#1D1D1F;margin-bottom:16px;">
-            Conteúdo do curso
+        <h3 style="font-family:var(--font-body);font-size:16px;font-weight:700;color:#fff;margin-bottom:16px;">
+            Conteudo do curso
         </h3>
         <?php foreach ($modules as $module): ?>
             <div class="module-section">
@@ -61,12 +61,12 @@
                                 <div class="lesson-meta">
                                     <?= ucfirst($les['content_type']) ?>
                                     <?php if ($les['duration_minutes'] > 0): ?>
-                                        · <?= $les['duration_minutes'] ?> min
+                                        &#183; <?= $les['duration_minutes'] ?> min
                                     <?php endif; ?>
                                 </div>
                             </div>
                             <div class="lesson-check">
-                                <?= $les['is_completed'] ? '✓' : '○' ?>
+                                <?= $les['is_completed'] ? '&#10003;' : '&#9675;' ?>
                             </div>
                         </a>
                     <?php endforeach; ?>

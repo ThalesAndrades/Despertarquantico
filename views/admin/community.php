@@ -5,7 +5,7 @@
         <p class="empty-text">As publicações da comunidade aparecerão aqui para moderação.</p>
     </div>
 <?php else: ?>
-    <div class="table-responsive" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+    <div class="table-responsive" style="background:var(--bg-card);border-radius:16px;overflow:hidden;border:1px solid var(--border-subtle);">
         <table>
             <thead>
                 <tr>

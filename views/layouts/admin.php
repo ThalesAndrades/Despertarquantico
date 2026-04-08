@@ -13,11 +13,11 @@
         .admin-nav { display:flex; gap:6px; margin-bottom:32px; flex-wrap:wrap; }
         .admin-nav a {
             padding:10px 18px; border-radius:10px; font-size:13px; font-weight:600;
-            text-decoration:none; color:#86868B; background:#fff;
-            box-shadow:0 1px 2px rgba(0,0,0,0.04); transition:all 0.2s;
+            text-decoration:none; color:var(--text-muted); background:var(--bg-card);
+            border:1px solid var(--border-subtle); transition:all 0.2s;
         }
-        .admin-nav a:hover { color:#1D1D1F; background:#F5F5F7; }
-        .admin-nav a.active { color:#fff; background:#6B21A8; }
+        .admin-nav a:hover { color:#fff; background:var(--bg-card-hover); border-color:var(--border-medium); }
+        .admin-nav a.active { color:#0A0A0A; background:var(--gold); border-color:var(--gold); }
     </style>
 </head>
 <body class="app-body">
