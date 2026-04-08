@@ -1,0 +1,23 @@
+# Uploads
+
+
+# Uploads
+uploads/products/*
+uploads/content/*
+!uploads/products/.gitkeep
+!uploads/content/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+error_log
+
+# Vendor (if using Composer later)
+/vendor/
