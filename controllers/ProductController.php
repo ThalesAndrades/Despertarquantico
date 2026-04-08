@@ -7,31 +7,7 @@ class ProductController
         requireAuth();
         $userId = $_SESSION['user_id'];
 
-        $products = Database::fetchAll(
-            "SELECT p.*, up.granted_at FROM user_products up
-             JOIN products p ON up.product_id = p.id
-             WHERE up.user_id = ? AND p.is_active = 1
-             ORDER BY p.sort_order ASC",
-            [$userId]
-        );
-
-        foreach ($products as &$product) {
-            $totalLessons = Database::count(
-                "SELECT COUNT(*) FROM lessons l JOIN modules m ON l.module_id = m.id WHERE m.product_id = ?",
-                [$product['id']]
-            );
-            $completedLessons = Database::count(
-                "SELECT COUNT(*) FROM lesson_progress lp
-                 JOIN lessons l ON lp.lesson_id = l.id
-                 JOIN modules m ON l.module_id = m.id
-                 WHERE m.product_id = ? AND lp.user_id = ? AND lp.completed = 1",
-                [$product['id'], $userId]
-            );
-            $product['total_lessons'] = $totalLessons;
-            $product['completed_lessons'] = $completedLessons;
-            $product['progress'] = $totalLessons > 0 ? round(($completedLessons / $totalLessons) * 100) : 0;
-        }
-        unset($product);
+        $products = $this->getUserProductsWithProgress($userId, 'p.sort_order ASC, up.granted_at DESC');
 
         $pageTitle = 'Meus Produtos';
         $activePage = 'products';
@@ -64,19 +40,7 @@ class ProductController
         }
 
         // Get modules with lessons
-        $modules = Database::fetchAll(
-            "SELECT * FROM modules WHERE product_id = ? ORDER BY sort_order ASC",
-            [$product['id']]
-        );
-        foreach ($modules as &$module) {
-            $module['lessons'] = Database::fetchAll(
-                "SELECT l.*,
-                        (SELECT completed FROM lesson_progress WHERE user_id = ? AND lesson_id = l.id) as is_completed
-                 FROM lessons l WHERE l.module_id = ? ORDER BY l.sort_order ASC",
-                [$userId, $module['id']]
-            );
-        }
-        unset($module);
+        $modules = $this->loadModulesWithLessons($product['id'], $userId);
 
         // Find first incomplete lesson
         $currentLesson = null;
@@ -110,21 +74,11 @@ class ProductController
         $hasAccess = Database::fetch("SELECT 1 FROM user_products WHERE user_id = ? AND product_id = ?", [$userId, $product['id']]);
         if (!$hasAccess) { redirect('products'); return; }
 
-        $lesson = Database::fetch("SELECT l.*, m.title as module_title FROM lessons l JOIN modules m ON l.module_id = m.id WHERE l.id = ? AND m.product_id = ?", [(int)$id, $product['id']]);
-        if (!$lesson) { redirect('products/' . $slug); return; }
+        $modules = $this->loadModulesWithLessons($product['id'], $userId);
+        $currentLesson = $this->findLessonById($modules, (int) $id);
+        if (!$currentLesson) { redirect('products/' . $slug); return; }
 
-        $modules = Database::fetchAll("SELECT * FROM modules WHERE product_id = ? ORDER BY sort_order ASC", [$product['id']]);
-        foreach ($modules as &$module) {
-            $module['lessons'] = Database::fetchAll(
-                "SELECT l.*, (SELECT completed FROM lesson_progress WHERE user_id = ? AND lesson_id = l.id) as is_completed FROM lessons l WHERE l.module_id = ? ORDER BY l.sort_order ASC",
-                [$userId, $module['id']]
-            );
-        }
-        unset($module);
-
-        $currentLesson = $lesson;
-
-        $pageTitle = $lesson['title'];
+        $pageTitle = $currentLesson['title'];
         $activePage = 'products';
         require VIEWS_PATH . '/layouts/app.php';
         require VIEWS_PATH . '/products/view.php';
@@ -141,24 +95,104 @@ class ProductController
         $slug = $_POST['product_slug'] ?? '';
 
         if ($lessonId > 0) {
-            $existing = Database::fetch(
-                "SELECT * FROM lesson_progress WHERE user_id = ? AND lesson_id = ?",
+            Database::query(
+                "INSERT INTO lesson_progress (user_id, lesson_id, completed, completed_at)
+                 VALUES (?, ?, 1, NOW())
+                 ON DUPLICATE KEY UPDATE
+                    completed = IF(completed = 1, 0, 1),
+                    completed_at = IF(completed = 1, NULL, NOW())",
                 [$userId, $lessonId]
             );
-            if ($existing) {
-                $newState = $existing['completed'] ? 0 : 1;
-                Database::query(
-                    "UPDATE lesson_progress SET completed = ?, completed_at = ? WHERE id = ?",
-                    [$newState, $newState ? date('Y-m-d H:i:s') : null, $existing['id']]
-                );
-            } else {
-                Database::insert(
-                    "INSERT INTO lesson_progress (user_id, lesson_id, completed, completed_at) VALUES (?, ?, 1, NOW())",
-                    [$userId, $lessonId]
-                );
-            }
         }
 
         redirect('products/' . $slug);
+    }
+
+    private function getUserProductsWithProgress(int $userId, string $orderBy): array
+    {
+        $products = Database::fetchAll(
+            "SELECT p.*, up.granted_at,
+                    COALESCE(progress.total_lessons, 0) AS total_lessons,
+                    COALESCE(progress.completed_lessons, 0) AS completed_lessons
+             FROM user_products up
+             JOIN products p ON up.product_id = p.id
+             LEFT JOIN (
+                SELECT m.product_id,
+                       COUNT(DISTINCT l.id) AS total_lessons,
+                       COUNT(DISTINCT lp.lesson_id) AS completed_lessons
+                FROM modules m
+                LEFT JOIN lessons l ON l.module_id = m.id
+                LEFT JOIN lesson_progress lp
+                    ON lp.lesson_id = l.id
+                   AND lp.user_id = ?
+                   AND lp.completed = 1
+                GROUP BY m.product_id
+             ) progress ON progress.product_id = p.id
+             WHERE up.user_id = ? AND p.is_active = 1
+             ORDER BY {$orderBy}",
+            [$userId, $userId]
+        );
+
+        foreach ($products as &$product) {
+            $product['total_lessons'] = (int) $product['total_lessons'];
+            $product['completed_lessons'] = (int) $product['completed_lessons'];
+            $product['progress'] = $product['total_lessons'] > 0
+                ? (int) round(($product['completed_lessons'] / $product['total_lessons']) * 100)
+                : 0;
+        }
+        unset($product);
+
+        return $products;
+    }
+
+    private function loadModulesWithLessons(int $productId, int $userId): array
+    {
+        $modules = Database::fetchAll(
+            "SELECT * FROM modules WHERE product_id = ? ORDER BY sort_order ASC, id ASC",
+            [$productId]
+        );
+
+        if (!$modules) {
+            return [];
+        }
+
+        $lessons = Database::fetchAll(
+            "SELECT l.*, m.title AS module_title, m.id AS module_id,
+                    COALESCE(lp.completed, 0) AS is_completed
+             FROM lessons l
+             JOIN modules m ON l.module_id = m.id
+             LEFT JOIN lesson_progress lp
+                ON lp.lesson_id = l.id
+               AND lp.user_id = ?
+             WHERE m.product_id = ?
+             ORDER BY m.sort_order ASC, m.id ASC, l.sort_order ASC, l.id ASC",
+            [$userId, $productId]
+        );
+
+        $lessonsByModule = [];
+        foreach ($lessons as $lesson) {
+            $lesson['is_completed'] = (int) $lesson['is_completed'];
+            $lessonsByModule[$lesson['module_id']][] = $lesson;
+        }
+
+        foreach ($modules as &$module) {
+            $module['lessons'] = $lessonsByModule[$module['id']] ?? [];
+        }
+        unset($module);
+
+        return $modules;
+    }
+
+    private function findLessonById(array $modules, int $lessonId): ?array
+    {
+        foreach ($modules as $module) {
+            foreach ($module['lessons'] as $lesson) {
+                if ((int) $lesson['id'] === $lessonId) {
+                    return $lesson;
+                }
+            }
+        }
+
+        return null;
     }
 }

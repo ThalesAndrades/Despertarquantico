@@ -14,6 +14,20 @@ function redirect(string $path): void
     exit;
 }
 
+function ensureSessionStarted(): void
+{
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+}
+
+function closeSession(): void
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
+}
+
 function url(string $path = ''): string
 {
     return APP_URL . '/' . ltrim($path, '/');
@@ -21,16 +35,23 @@ function url(string $path = ''): string
 
 function asset(string $path): string
 {
-    return APP_URL . '/public/' . ltrim($path, '/');
+    $relativePath = 'public/' . ltrim($path, '/');
+    $absolutePath = BASE_PATH . '/' . $relativePath;
+    $version = is_file($absolutePath) ? filemtime($absolutePath) : time();
+
+    return APP_URL . '/' . $relativePath . '?v=' . $version;
 }
 
 function old(string $key, string $default = ''): string
 {
+    ensureSessionStarted();
     return e($_SESSION['old_input'][$key] ?? $default);
 }
 
 function flash(string $key, ?string $value = null): ?string
 {
+    ensureSessionStarted();
+
     if ($value !== null) {
         $_SESSION['flash'][$key] = $value;
         return null;
@@ -42,6 +63,7 @@ function flash(string $key, ?string $value = null): ?string
 
 function isLoggedIn(): bool
 {
+    ensureSessionStarted();
     return isset($_SESSION['user_id']);
 }
 
@@ -64,6 +86,8 @@ function requireAdmin(): void
 
 function currentUser(): ?array
 {
+    ensureSessionStarted();
+
     if (!isLoggedIn()) {
         return null;
     }
@@ -142,5 +166,5 @@ function uploadImage(array $file, string $directory): ?string
 
 function closeLayout(): void
 {
-    echo '</div><script src="' . asset('js/app.js') . '"></script></main></body></html>';
+    echo '</div><script src="' . asset('js/app.js') . '" defer></script></main></body></html>';
 }

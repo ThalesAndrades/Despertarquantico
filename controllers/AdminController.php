@@ -82,7 +82,16 @@ class AdminController
     public function products(): void
     {
         requireAdmin();
-        $products = Database::fetchAll("SELECT p.*, (SELECT COUNT(*) FROM user_products WHERE product_id = p.id) as student_count FROM products p ORDER BY p.sort_order ASC, p.created_at DESC");
+        $products = Database::fetchAll(
+            "SELECT p.*, COALESCE(access_stats.student_count, 0) AS student_count
+             FROM products p
+             LEFT JOIN (
+                SELECT product_id, COUNT(*) AS student_count
+                FROM user_products
+                GROUP BY product_id
+             ) access_stats ON access_stats.product_id = p.id
+             ORDER BY p.sort_order ASC, p.created_at DESC"
+        );
 
         $pageTitle = 'Gerenciar Produtos';
         $adminPage = 'products';
@@ -169,11 +178,7 @@ class AdminController
         $product = Database::fetch("SELECT * FROM products WHERE id = ?", [(int) $id]);
         if (!$product) { redirect('admin/products'); return; }
 
-        $modules = Database::fetchAll("SELECT * FROM modules WHERE product_id = ? ORDER BY sort_order ASC", [$product['id']]);
-        foreach ($modules as &$module) {
-            $module['lessons'] = Database::fetchAll("SELECT * FROM lessons WHERE module_id = ? ORDER BY sort_order ASC", [$module['id']]);
-        }
-        unset($module);
+        $modules = $this->loadModulesWithLessons($product['id']);
 
         $error = flash('error');
         $success = flash('success');
@@ -282,9 +287,14 @@ class AdminController
         requireAdmin();
         $posts = Database::fetchAll(
             "SELECT cp.*, u.anonymous_name, u.name as real_name, u.email,
-                    (SELECT COUNT(*) FROM community_comments cc WHERE cc.post_id = cp.id) as comment_count
+                    COALESCE(comment_stats.comment_count, 0) AS comment_count
              FROM community_posts cp
              JOIN users u ON cp.user_id = u.id
+             LEFT JOIN (
+                SELECT post_id, COUNT(*) AS comment_count
+                FROM community_comments
+                GROUP BY post_id
+             ) comment_stats ON comment_stats.post_id = cp.id
              ORDER BY cp.created_at DESC
              LIMIT 100"
         );
@@ -303,5 +313,38 @@ class AdminController
         Database::query("UPDATE community_posts SET is_visible = NOT is_visible WHERE id = ?", [(int) $id]);
         flash('success', 'Visibilidade do post atualizada.');
         redirect('admin/community');
+    }
+
+    private function loadModulesWithLessons(int $productId): array
+    {
+        $modules = Database::fetchAll(
+            "SELECT * FROM modules WHERE product_id = ? ORDER BY sort_order ASC, id ASC",
+            [$productId]
+        );
+
+        if (!$modules) {
+            return [];
+        }
+
+        $lessons = Database::fetchAll(
+            "SELECT l.*
+             FROM lessons l
+             JOIN modules m ON l.module_id = m.id
+             WHERE m.product_id = ?
+             ORDER BY m.sort_order ASC, m.id ASC, l.sort_order ASC, l.id ASC",
+            [$productId]
+        );
+
+        $lessonsByModule = [];
+        foreach ($lessons as $lesson) {
+            $lessonsByModule[$lesson['module_id']][] = $lesson;
+        }
+
+        foreach ($modules as &$module) {
+            $module['lessons'] = $lessonsByModule[$module['id']] ?? [];
+        }
+        unset($module);
+
+        return $modules;
     }
 }

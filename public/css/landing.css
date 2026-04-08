@@ -10,12 +10,12 @@ h1, h2, h3 { font-family: var(--font-display); }
 .landing-nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
     padding: 18px 0;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .landing-nav.scrolled {
     background: rgba(10, 10, 10, 0.96);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     box-shadow: 0 1px 0 rgba(201, 168, 76, 0.06);
     padding: 12px 0;
 }
@@ -89,7 +89,7 @@ h1, h2, h3 { font-family: var(--font-display); }
 }
 .hero-orb {
     position: absolute; border-radius: 50%;
-    filter: blur(100px);
+    filter: blur(72px);
     animation: orbFloat 15s ease-in-out infinite;
 }
 .hero-orb-1 {
@@ -225,7 +225,11 @@ h1, h2, h3 { font-family: var(--font-display); }
 }
 
 /* ========== SECTIONS ========== */
-.section { padding: 100px 0; }
+.section {
+    padding: 100px 0;
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 900px;
+}
 .section-dark {
     background: var(--bg-secondary);
     border-top: 1px solid rgba(255,255,255,0.03);
@@ -813,8 +817,8 @@ h1, h2, h3 { font-family: var(--font-display); }
     padding: 12px 16px;
     padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     background: rgba(10, 10, 10, 0.96);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid rgba(201, 168, 76, 0.12);
     z-index: 999;
     transform: translateY(100%);
@@ -833,3 +837,25 @@ h1, h2, h3 { font-family: var(--font-display); }
     transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 768px) {
+    .hero-orb {
+        filter: blur(56px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-orb,
+    .spiral-ring,
+    .hero-badge-dot,
+    .fade-up {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+    }
+
+    .section {
+        content-visibility: visible;
+    }
+}

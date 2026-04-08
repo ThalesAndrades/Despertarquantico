@@ -3,6 +3,7 @@
  * Professional interactions & animations
  */
 document.addEventListener('DOMContentLoaded', function () {
+    var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // === Nav scroll effect ===
     var nav = document.getElementById('nav');
@@ -16,32 +17,64 @@ document.addEventListener('DOMContentLoaded', function () {
     var toggle = document.getElementById('navToggle');
     var links = document.getElementById('navLinks');
     if (toggle && links) {
+        function closeMenu() {
+            links.classList.remove('open');
+            toggle.classList.remove('active');
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.setAttribute('aria-label', 'Abrir menu');
+            document.body.classList.remove('sidebar-open');
+        }
+
         toggle.addEventListener('click', function () {
             links.classList.toggle('open');
-            // Animate hamburger
             toggle.classList.toggle('active');
+            var isOpen = links.classList.contains('open');
+            toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            toggle.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
+            document.body.classList.toggle('sidebar-open', isOpen);
         });
+
         links.querySelectorAll('a').forEach(function (link) {
             link.addEventListener('click', function () {
-                links.classList.remove('open');
-                toggle.classList.remove('active');
+                closeMenu();
             });
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && links.classList.contains('open')) {
+                closeMenu();
+                toggle.focus();
+            }
         });
     }
 
     // === FAQ accordion ===
     document.querySelectorAll('.faq-question').forEach(function (btn) {
+        var answer = btn.nextElementSibling;
+        if (answer && !answer.id) {
+            answer.id = 'faq-answer-' + Math.random().toString(36).slice(2, 8);
+        }
+        if (answer) {
+            btn.setAttribute('aria-controls', answer.id);
+            btn.setAttribute('aria-expanded', 'false');
+        }
+
         btn.addEventListener('click', function () {
             var item = this.closest('.faq-item');
             var arrow = this.querySelector('.faq-arrow');
             var wasOpen = item.classList.contains('open');
             document.querySelectorAll('.faq-item').forEach(function (i) {
                 i.classList.remove('open');
+                var trigger = i.querySelector('.faq-question');
+                if (trigger) {
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
                 var a = i.querySelector('.faq-arrow');
                 if (a) a.textContent = '+';
             });
             if (!wasOpen) {
                 item.classList.add('open');
+                this.setAttribute('aria-expanded', 'true');
                 if (arrow) arrow.textContent = '\u2212';
             }
         });
@@ -57,13 +90,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.preventDefault();
                 var offset = nav ? nav.offsetHeight + 20 : 20;
                 var top = target.getBoundingClientRect().top + window.pageYOffset - offset;
-                window.scrollTo({ top: top, behavior: 'smooth' });
+                window.scrollTo({ top: top, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
             }
         });
     });
 
     // === Fade-in on scroll (IntersectionObserver) ===
-    if ('IntersectionObserver' in window) {
+    if (!prefersReducedMotion && 'IntersectionObserver' in window) {
         var fadeObserver = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 if (entry.isIntersecting) {
@@ -90,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // === Counter animation for results bar ===
     var countersAnimated = false;
     var counterElements = document.querySelectorAll('.result-number[data-count]');
-    if (counterElements.length > 0 && 'IntersectionObserver' in window) {
+    if (!prefersReducedMotion && counterElements.length > 0 && 'IntersectionObserver' in window) {
         var counterObserver = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 if (entry.isIntersecting && !countersAnimated) {
@@ -150,10 +183,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // === Stagger children animation ===
-    document.querySelectorAll('.program-grid, .testimonial-stack, .bonus-list, .method-pillars').forEach(function (grid) {
-        var children = grid.children;
-        for (var i = 0; i < children.length; i++) {
-            children[i].style.transitionDelay = (i * 0.08) + 's';
-        }
-    });
+    if (!prefersReducedMotion) {
+        document.querySelectorAll('.program-grid, .testimonial-stack, .bonus-list, .method-pillars').forEach(function (grid) {
+            var children = grid.children;
+            for (var i = 0; i < children.length; i++) {
+                children[i].style.transitionDelay = (i * 0.08) + 's';
+            }
+        });
+    }
 });

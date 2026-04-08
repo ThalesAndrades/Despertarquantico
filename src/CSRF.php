@@ -6,6 +6,7 @@ class CSRF
 {
     public static function generate(): string
     {
+        ensureSessionStarted();
         if (empty($_SESSION['csrf_token'])) {
             $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         }
@@ -20,6 +21,7 @@ class CSRF
 
     public static function verify(): bool
     {
+        ensureSessionStarted();
         $token = $_POST['csrf_token'] ?? '';
         return !empty($token) && hash_equals($_SESSION['csrf_token'] ?? '', $token);
     }

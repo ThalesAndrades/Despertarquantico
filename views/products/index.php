@@ -8,10 +8,10 @@
 <?php else: ?>
     <div class="products-grid">
         <?php foreach ($products as $prod): ?>
-            <a href="<?= url('products/' . e($prod['slug'])) ?>" class="product-card" style="text-decoration:none;">
+            <a href="<?= url('products/' . e($prod['slug'])) ?>" class="product-card product-card-link">
                 <div class="product-card-img">
                     <?php if ($prod['cover_image']): ?>
-                        <img src="<?= url('uploads/' . e($prod['cover_image'])) ?>" alt="<?= e($prod['title']) ?>">
+                        <img src="<?= url('uploads/' . e($prod['cover_image'])) ?>" alt="<?= e($prod['title']) ?>" loading="lazy" decoding="async">
                     <?php else: ?>
                         <?= e($prod['title']) ?>
                     <?php endif; ?>

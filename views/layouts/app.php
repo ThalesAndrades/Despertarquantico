@@ -57,7 +57,7 @@
     <!-- Main Content -->
     <main class="main-content">
         <header class="topbar">
-            <button class="topbar-toggle" id="sidebarToggle" aria-label="Menu">
+            <button class="topbar-toggle" id="sidebarToggle" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
             <h1 class="topbar-title"><?= e($pageTitle ?? '') ?></h1>

@@ -9,69 +9,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
-    <style>
-        .auth-page {
-            min-height: 100vh; display: flex; align-items: center; justify-content: center;
-            background: #0A0A0A; padding: 20px;
-            position: relative; overflow: hidden;
-        }
-        .auth-page::before {
-            content: '';
-            position: absolute; inset: 0;
-            background:
-                radial-gradient(ellipse 500px 400px at 30% 20%, rgba(201, 168, 76, 0.04) 0%, transparent 70%),
-                radial-gradient(ellipse 400px 300px at 70% 80%, rgba(201, 168, 76, 0.03) 0%, transparent 70%);
-            pointer-events: none;
-        }
-        .auth-card {
-            background: #161616; border-radius: 20px; padding: 44px;
-            max-width: 500px; width: 100%;
-            border: 1px solid rgba(201, 168, 76, 0.12);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            position: relative;
-        }
-        .auth-logo { text-align: center; margin-bottom: 36px; }
-        .auth-logo h1 {
-            font-family: 'Playfair Display', serif; color: #C9A84C;
-            font-size: 26px; margin: 0; letter-spacing: 1px;
-        }
-        .auth-logo p { color: rgba(255,255,255,0.35); font-size: 13px; margin-top: 8px; letter-spacing: 0.5px; }
-        .auth-logo .gold-line { width: 40px; height: 1px; background: linear-gradient(90deg, transparent, #C9A84C, transparent); margin: 14px auto 0; }
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; font-weight: 500; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; }
-        .form-group input {
-            width: 100%; padding: 13px 16px;
-            border: 1.5px solid rgba(255,255,255,0.08); border-radius: 12px;
-            font-size: 15px; transition: all 0.3s;
-            box-sizing: border-box; background: #1A1A1A; color: #fff;
-            font-family: 'Inter', sans-serif;
-        }
-        .form-group input::placeholder { color: rgba(255,255,255,0.25); }
-        .form-group input:focus { outline: none; border-color: #C9A84C; box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15); background: #1E1E1E; }
-        .form-group .hint { font-size: 11px; color: rgba(255,255,255,0.30); margin-top: 6px; line-height: 1.5; }
-        .btn-submit {
-            width: 100%; padding: 14px;
-            background: linear-gradient(135deg, #C9A84C, #DFC06A); color: #0A0A0A;
-            border: none; border-radius: 12px; font-size: 15px; font-weight: 700;
-            cursor: pointer; transition: all 0.3s; font-family: 'Inter', sans-serif;
-            letter-spacing: 0.3px;
-        }
-        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(201, 168, 76, 0.25); }
-        .alert { padding: 12px 16px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; }
-        .alert-error { background: rgba(255, 69, 58, 0.10); color: #FF6B63; border: 1px solid rgba(255, 69, 58, 0.20); }
-        .auth-links { text-align: center; margin-top: 24px; font-size: 13px; }
-        .auth-links a { color: #C9A84C; text-decoration: none; font-weight: 500; transition: color 0.3s; }
-        .auth-links a:hover { color: #DFC06A; }
-        .auth-links p { color: rgba(255,255,255,0.35); }
-        .auth-links .back-link { color: rgba(255,255,255,0.25); font-size: 12px; }
-        .auth-links .back-link:hover { color: rgba(255,255,255,0.5); }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
-    </style>
+    <link rel="stylesheet" href="<?= asset('css/dashboard.css') ?>">
 </head>
 <body>
     <div class="auth-page">
-        <div class="auth-card">
+        <div class="auth-card auth-card-wide">
             <div class="auth-logo">
                 <h1>MULHER ESPIRAL</h1>
                 <p>Crie sua conta e faca parte da comunidade</p>
@@ -87,32 +29,32 @@
 
                 <div class="form-group">
                     <label for="name">Nome completo</label>
-                    <input type="text" id="name" name="name" value="<?= old('name') ?>" placeholder="Seu nome" required>
+                    <input type="text" id="name" name="name" class="form-control" value="<?= old('name') ?>" placeholder="Seu nome" required>
                 </div>
 
                 <div class="form-group">
                     <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" value="<?= old('email') ?>" placeholder="seu@email.com" required>
+                    <input type="email" id="email" name="email" class="form-control" value="<?= old('email') ?>" placeholder="seu@email.com" required>
                 </div>
 
                 <div class="form-group">
                     <label for="anonymous_name">Seu nome na comunidade</label>
-                    <input type="text" id="anonymous_name" name="anonymous_name" value="<?= old('anonymousName') ?>" placeholder="Ex: Lua Dourada, Estrela Cosmica..." required minlength="3" maxlength="50">
-                    <p class="hint">Este sera seu pseudonimo na comunidade. Ninguem vera seu nome real.</p>
+                    <input type="text" id="anonymous_name" name="anonymous_name" class="form-control" value="<?= old('anonymousName') ?>" placeholder="Ex: Lua Dourada, Estrela Cosmica..." required minlength="3" maxlength="50">
+                    <p class="text-xs text-muted mt-1" style="line-height:1.5;">Este sera seu pseudonimo na comunidade. Ninguem vera seu nome real.</p>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="password">Senha</label>
-                        <input type="password" id="password" name="password" placeholder="Minimo 6 caracteres" required minlength="6">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Minimo 6 caracteres" required minlength="6">
                     </div>
                     <div class="form-group">
                         <label for="password_confirm">Confirmar senha</label>
-                        <input type="password" id="password_confirm" name="password_confirm" placeholder="Repita a senha" required>
+                        <input type="password" id="password_confirm" name="password_confirm" class="form-control" placeholder="Repita a senha" required>
                     </div>
                 </div>
 
-                <button type="submit" class="btn-submit">Criar minha conta</button>
+                <button type="submit" class="auth-submit">Criar minha conta</button>
             </form>
 
             <div class="auth-links">
