@@ -2,13 +2,13 @@
 
 ## Visao Geral
 
-**Projeto:** Mulher Espiral - Plataforma de cursos online e comunidade
+**Projeto:** Despertar Espiral - Plataforma de cursos online e comunidade
 **Autora/Cliente:** Sunyan Nunes
-**Dominio:** mulherespiral.shop
+**Dominio:** despertarespiral.com
 **Hospedagem:** Hostinger (shared hosting)
 **Linguagem:** PHP 7.4+ (sem frameworks externos, sem Composer)
 
-Plataforma premium de cursos online para transformacao feminina baseada no metodo "Mulher Espiral". Inclui area de membros, comunidade anonima, checkout via Stripe e painel administrativo completo.
+Plataforma premium de cursos online para transformacao feminina baseada no metodo "Despertar Espiral". Inclui area de membros, comunidade anonima, checkout via Asaas (PIX + cartao + boleto), automacoes de ciclo de vida via Sequenzy e painel administrativo completo.
 
 ---
 
@@ -18,7 +18,8 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 - **Frontend:** HTML5, CSS3 puro (variaveis CSS), Vanilla JS
 - **Banco:** MySQL 5.7+ / MariaDB
 - **Servidor:** Apache (mod_rewrite)
-- **Pagamentos:** Stripe (via cURL, sem SDK)
+- **Pagamentos:** Asaas (via cURL, sem SDK) — PIX + cartao + boleto em checkout hospedado (`billingType: UNDEFINED`)
+- **Automacoes:** Sequenzy (webhook unidirecional, eventos de ciclo de vida)
 - **Email:** PHP mail() / SMTP Hostinger
 - **Fontes:** Playfair Display (display) + Inter (body)
 - **Tema:** Dark luxo (#0A0A0A preto + #C9A84C dourado)
@@ -32,15 +33,18 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 ├── index.php              # Front controller (entry point)
 ├── install.php            # Instalador automatico Hostinger
 ├── .htaccess              # HTTPS + rewrite para index.php
-├── config/                # Configuracoes (app, database, stripe, mail)
+├── config/                # Configuracoes (app, database, asaas, sequenzy, mail)
 ├── src/                   # Classes core do framework
+│   ├── Env.php            # Loader de .env (sem dependencias)
 │   ├── Router.php         # Roteamento URL com regex
-│   ├── Database.php       # PDO singleton + auto-migracao
+│   ├── Database.php       # PDO singleton + auto-migracao idempotente
 │   ├── Auth.php           # Autenticacao (session-based)
 │   ├── CSRF.php           # Protecao CSRF
 │   ├── Helpers.php        # Funcoes globais (e(), redirect(), view()...)
 │   ├── Mailer.php         # Envio de emails HTML
-│   └── Stripe.php         # Integracao Stripe via cURL
+│   ├── Asaas.php          # Cliente Asaas via cURL (PIX, cartao, boleto)
+│   ├── Sequenzy.php       # Cliente webhook Sequenzy
+│   └── EventDispatcher.php # Fachada de eventos do ciclo de vida
 ├── controllers/           # 7 controllers MVC
 │   ├── HomeController.php
 │   ├── AuthController.php
@@ -75,19 +79,20 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 | Tabela | Funcao |
 |--------|--------|
 | `users` | Contas (email unico, anonymous_name unico, role member/admin) |
-| `products` | Cursos (slug unico, preco, stripe_price_id) |
+| `products` | Cursos (slug unico, preco) |
 | `modules` | Secoes do curso (FK product_id, sort_order) |
 | `lessons` | Aulas (FK module_id, tipo: video/text/pdf/audio) |
 | `user_products` | Acesso usuario-produto (many-to-many) |
 | `lesson_progress` | Progresso por aula (completed boolean) |
-| `orders` | Pedidos Stripe (status: pending/paid/failed/refunded) |
+| `orders` | Pedidos Asaas (asaas_payment_id, payment_method pix/credit_card/boleto, status: pending/paid/failed/refunded) |
+| `login_attempts` | Rate limit de login por IP + email |
 | `community_posts` | Posts do forum (5 categorias, is_pinned, is_visible) |
 | `community_comments` | Comentarios em posts |
 | `community_likes` | Likes em posts e comentarios |
 
 **Categorias da comunidade:** geral, desabafo, duvidas, conquistas, dicas
 
-**Auto-migracao:** Database.php executa schema.sql automaticamente na primeira conexao e cria admin padrao (sunyan@mulherespiral.shop).
+**Auto-migracao:** Database.php executa schema.sql automaticamente na primeira conexao e cria admin padrao (sunyan@despertarespiral.com).
 
 ---
 
@@ -97,8 +102,8 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 - `GET /` - Landing page
 - `GET|POST /login, /register, /logout` - Autenticacao
 - `GET|POST /forgot-password, /reset-password` - Recuperacao de senha
-- `GET|POST /checkout/{slug}` - Checkout Stripe
-- `POST /webhook/stripe` - Webhook de pagamento
+- `GET|POST /checkout/{slug}` - Checkout Asaas (redireciona para invoiceUrl)
+- `POST /webhook/asaas` - Webhook de pagamento (header `asaas-access-token`)
 
 **Autenticadas (requireAuth):**
 - `GET /dashboard` - Dashboard do membro
@@ -122,10 +127,10 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 ## Convencoes de Codigo
 
 ### PHP
-- Classes: PascalCase (`ProductController`, `StripeClient`)
-- Metodos: camelCase (`markProgress()`, `createCheckoutSession()`)
+- Classes: PascalCase (`ProductController`, `AsaasClient`)
+- Metodos: camelCase (`markProgress()`, `createPayment()`)
 - Constantes: UPPER_SNAKE (`APP_NAME`, `SESSION_LIFETIME`)
-- Colunas DB: snake_case (`user_id`, `stripe_session_id`)
+- Colunas DB: snake_case (`user_id`, `asaas_payment_id`)
 - Helpers globais: snake_case (`e()`, `redirect()`, `view()`, `flash()`)
 
 ### CSS
@@ -150,7 +155,7 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 - **Sessao:** httpOnly, SameSite=Lax, Secure, gc_maxlifetime=7200
 - **Headers:** X-Content-Type-Options, X-Frame-Options, X-XSS-Protection
 - **HTTPS:** Forcado via .htaccess
-- **Stripe:** Verificacao HMAC-SHA256 no webhook (tolerancia 5min)
+- **Asaas:** Webhook autenticado por pre-shared token (header `asaas-access-token`, comparacao via `hash_equals`)
 - **Uploads:** Validacao MIME type (jpeg, png, webp), limite 10MB
 
 ---
@@ -160,11 +165,12 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 | Arquivo | Conteudo |
 |---------|----------|
 | `config/app.php` | APP_NAME, APP_URL, APP_ENV, SESSION_LIFETIME, limites upload |
-| `config/database.php` | Host, dbname, user, password (Hostinger) |
-| `config/stripe.php` | public_key, secret_key, webhook_secret, currency (brl) |
-| `config/mail.php` | SMTP host/port/user/pass, from_email |
+| `config/database.php` | Host, dbname, user, password (lidos de `.env`) |
+| `config/asaas.php` | api_key, env (sandbox/production), webhook_token, wallet_id |
+| `config/sequenzy.php` | webhook_url, enabled, timeout |
+| `config/mail.php` | SMTP host/port/user/pass, from_email (`noreply@despertarespiral.com`) |
 
-Arquivos `.example` disponiveis para database, stripe e mail.
+Segredos nunca vivem no repo: todas as chaves sao lidas do `.env` via `Env::get()` / helper `env()`. `.env.example` lista todas as chaves.
 
 ---
 

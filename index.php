@@ -1,7 +1,11 @@
 <?php
 /**
- * Plataforma Sunyan Nunes - Front Controller
+ * Despertar Espiral - Front Controller
  */
+
+// Load .env before any config so env() is available everywhere downstream.
+require_once __DIR__ . '/src/Env.php';
+Env::load(__DIR__ . '/.env');
 
 require_once __DIR__ . '/config/app.php';
 
@@ -9,6 +13,39 @@ require_once __DIR__ . '/config/app.php';
 error_reporting(APP_ENV === 'production' ? (E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT) : E_ALL);
 ini_set('display_errors', APP_ENV === 'production' ? '0' : '1');
 ini_set('log_errors', '1');
+if (!is_dir(__DIR__ . '/storage/logs')) {
+    @mkdir(__DIR__ . '/storage/logs', 0775, true);
+}
+ini_set('error_log', __DIR__ . '/storage/logs/error.log');
+
+// Global error/exception handler — renders views/errors/500.php in production
+// and logs the full context for debugging.
+set_exception_handler(function (Throwable $e): void {
+    error_log(sprintf(
+        "[UNCAUGHT] %s: %s in %s:%d\n%s",
+        get_class($e),
+        $e->getMessage(),
+        $e->getFile(),
+        $e->getLine(),
+        $e->getTraceAsString()
+    ));
+    if (!headers_sent()) {
+        http_response_code(500);
+    }
+    $errorPage = __DIR__ . '/views/errors/500.php';
+    if (is_file($errorPage)) {
+        require $errorPage;
+    } else {
+        echo '<h1>Erro interno do servidor</h1>';
+    }
+    exit;
+});
+set_error_handler(function (int $severity, string $message, string $file, int $line): bool {
+    if (!(error_reporting() & $severity)) {
+        return false;
+    }
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
 
 $url = isset($_GET['url']) ? trim($_GET['url'], '/') : '';
 $method = $_SERVER['REQUEST_METHOD'];
@@ -20,7 +57,7 @@ function routeRequiresSession(string $url): bool
         'marketplace',
         'checkout/success',
         'checkout/cancel',
-        'webhook/stripe',
+        'webhook/asaas',
     ];
 
     if (in_array($url, $publicStatelessRoutes, true)) {
@@ -58,6 +95,7 @@ require_once __DIR__ . '/src/Router.php';
 require_once __DIR__ . '/src/CSRF.php';
 require_once __DIR__ . '/src/Auth.php';
 require_once __DIR__ . '/src/Helpers.php';
+require_once __DIR__ . '/src/EventDispatcher.php';
 
 // Load controllers
 require_once __DIR__ . '/controllers/HomeController.php';
@@ -90,7 +128,7 @@ $router->get('checkout/{slug}', [CheckoutController::class, 'create']);
 $router->post('checkout/{slug}', [CheckoutController::class, 'createPost']);
 $router->get('checkout/success', [CheckoutController::class, 'success']);
 $router->get('checkout/cancel', [CheckoutController::class, 'cancel']);
-$router->post('webhook/stripe', [CheckoutController::class, 'webhook']);
+$router->post('webhook/asaas', [CheckoutController::class, 'webhook']);
 
 // Authenticated routes
 $router->get('dashboard', [DashboardController::class, 'index']);

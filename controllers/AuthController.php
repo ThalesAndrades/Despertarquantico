@@ -16,11 +16,18 @@ class AuthController
     {
         CSRF::check();
 
-        $email = trim($_POST['email'] ?? '');
+        $email = strtolower(trim($_POST['email'] ?? ''));
         $password = $_POST['password'] ?? '';
 
         if (empty($email) || empty($password)) {
             flash('error', 'Preencha todos os campos.');
+            redirect('login');
+        }
+
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        if (Auth::isRateLimited($ip, $email)) {
+            flash('error', 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.');
+            $_SESSION['old_input'] = ['email' => $email];
             redirect('login');
         }
 
@@ -90,6 +97,18 @@ class AuthController
         }
 
         unset($_SESSION['old_input']);
+
+        EventDispatcher::dispatch('user.registered', [
+            'email' => $email,
+            'attributes' => [
+                'name' => $name,
+                'anonymous_name' => $anonymousName,
+            ],
+            'properties' => [
+                'source' => 'landing',
+            ],
+        ]);
+
         flash('success', 'Conta criada com sucesso! Bem-vinda!');
         redirect('dashboard');
     }
@@ -120,6 +139,12 @@ class AuthController
         $token = Auth::createResetToken($email);
         if ($token) {
             Mailer::sendPasswordReset($email, $token);
+            EventDispatcher::dispatch('user.password_reset_requested', [
+                'email' => $email,
+                'properties' => [
+                    'reset_token_prefix' => substr($token, 0, 8),
+                ],
+            ]);
         }
 
         // Always show success to avoid email enumeration

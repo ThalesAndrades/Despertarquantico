@@ -1,14 +1,16 @@
 <?php
 /**
- * Database Configuration - Hostinger Production
+ * Database Configuration (Hostinger MySQL)
+ *
+ * Reads from .env — no hardcoded secrets.
  */
 
 return [
-    'host' => 'localhost',
-    'dbname' => 'u525832347_Mulherespiral',
-    'username' => 'u525832347_Mulherespiral',
-    'password' => '@Telemed123',
-    'charset' => 'utf8mb4',
+    'host' => Env::require('DB_HOST'),
+    'dbname' => Env::require('DB_NAME'),
+    'username' => Env::require('DB_USER'),
+    'password' => Env::require('DB_PASS'),
+    'charset' => Env::get('DB_CHARSET', 'utf8mb4'),
     'options' => [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

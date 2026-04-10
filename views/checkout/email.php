@@ -28,20 +28,28 @@
             <form method="POST" action="<?= url('checkout/' . e($product['slug'])) ?>">
                 <?= CSRF::field() ?>
                 <div class="form-group text-left">
+                    <label for="name">Seu nome completo</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="Como voce quer ser chamada" required>
+                </div>
+                <div class="form-group text-left">
                     <label for="email">Seu e-mail para receber o acesso</label>
                     <input type="email" id="email" name="email" class="form-control" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-group text-left">
+                    <label for="cpf_cnpj">CPF (opcional, ajuda na emissao do boleto/PIX)</label>
+                    <input type="text" id="cpf_cnpj" name="cpf_cnpj" class="form-control" placeholder="000.000.000-00" inputmode="numeric">
                 </div>
                 <button type="submit" class="checkout-submit">Ir para o pagamento seguro</button>
             </form>
 
             <div class="checkout-trust">
-                <span>Acesso imediato</span>
+                <span>PIX, cartao ou boleto</span>
                 <span class="trust-dot"></span>
-                <span>Checkout seguro</span>
+                <span>Acesso imediato</span>
                 <span class="trust-dot"></span>
                 <span>Sem mensalidade</span>
             </div>
-            <p class="checkout-secure">&#128274; Pagamento seguro via Stripe. Seus dados estao protegidos.</p>
+            <p class="checkout-secure">&#128274; Pagamento seguro processado pela Asaas. Seus dados estao protegidos.</p>
             <p class="mt-2"><a href="<?= url('') ?>" class="text-sm text-gold">&#8592; Voltar</a></p>
         </div>
     </div>

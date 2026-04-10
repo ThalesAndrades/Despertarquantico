@@ -1,11 +1,26 @@
-# Uploads
+# Secrets — never commit
+.env
+.env.*
+!.env.example
 
+# Database credentials are loaded from .env; the config file is git-ignored
+# to prevent accidental leakage via git pull on the server.
+config/database.php
+
+# Deploy artifacts
+*.zip
+mulherespiral-deploy.zip
 
 # Uploads
 uploads/products/*
 uploads/content/*
 !uploads/products/.gitkeep
 !uploads/content/.gitkeep
+
+# Logs
+storage/logs/*.log
+*.log
+error_log
 
 # IDE
 .idea/
@@ -14,10 +29,6 @@ uploads/content/*
 *.swo
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
-error_log
 
 # Vendor (if using Composer later)
 /vendor/

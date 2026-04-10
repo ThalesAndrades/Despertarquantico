@@ -1,27 +1,46 @@
 <?php
 /**
  * Authentication Handler
+ *
+ * Hardened with:
+ *  - case-insensitive email lookup (LOWER()) + normalized input
+ *  - login rate limit (5 attempts per IP or email in 15 min)
+ *  - session regeneration on login
  */
 class Auth
 {
+    public const MAX_LOGIN_ATTEMPTS = 5;
+    public const LOCKOUT_WINDOW_MIN = 15;
+
     public static function attempt(string $email, string $password): bool
     {
+        $email = self::normalizeEmail($email);
+        $ip = self::clientIp();
+
+        if (self::isRateLimited($ip, $email)) {
+            return false;
+        }
+
         $user = Database::fetch(
-            "SELECT * FROM users WHERE email = ? AND is_active = 1",
+            "SELECT * FROM users WHERE LOWER(email) = ? AND is_active = 1",
             [$email]
         );
 
         if (!$user || !password_verify($password, $user['password_hash'])) {
+            self::recordFailedAttempt($ip, $email);
             return false;
         }
 
+        self::clearAttempts($ip, $email);
         self::setSession($user);
         return true;
     }
 
     public static function register(string $name, string $email, string $password, string $anonymousName): ?string
     {
-        $existing = Database::fetch("SELECT id FROM users WHERE email = ?", [$email]);
+        $email = self::normalizeEmail($email);
+
+        $existing = Database::fetch("SELECT id FROM users WHERE LOWER(email) = ?", [$email]);
         if ($existing) {
             return 'Este e-mail já está cadastrado.';
         }
@@ -58,7 +77,11 @@ class Auth
 
     public static function createResetToken(string $email): ?string
     {
-        $user = Database::fetch("SELECT id FROM users WHERE email = ? AND is_active = 1", [$email]);
+        $email = self::normalizeEmail($email);
+        $user = Database::fetch(
+            "SELECT id FROM users WHERE LOWER(email) = ? AND is_active = 1",
+            [$email]
+        );
         if (!$user) {
             return null;
         }
@@ -91,6 +114,57 @@ class Auth
         );
 
         return true;
+    }
+
+    public static function isRateLimited(string $ip, string $email): bool
+    {
+        $window = self::LOCKOUT_WINDOW_MIN;
+        $count = Database::count(
+            "SELECT COUNT(*) FROM login_attempts
+             WHERE (ip_address = ? OR email = ?)
+               AND attempted_at > (NOW() - INTERVAL {$window} MINUTE)",
+            [$ip, $email]
+        );
+        return $count >= self::MAX_LOGIN_ATTEMPTS;
+    }
+
+    private static function recordFailedAttempt(string $ip, string $email): void
+    {
+        try {
+            Database::query(
+                "INSERT INTO login_attempts (ip_address, email) VALUES (?, ?)",
+                [$ip, $email]
+            );
+        } catch (Throwable $e) {
+            error_log('login_attempts insert failed: ' . $e->getMessage());
+        }
+    }
+
+    private static function clearAttempts(string $ip, string $email): void
+    {
+        try {
+            Database::query(
+                "DELETE FROM login_attempts WHERE ip_address = ? OR email = ?",
+                [$ip, $email]
+            );
+        } catch (Throwable $e) {
+            // Non-fatal — cleanup only.
+        }
+    }
+
+    private static function normalizeEmail(string $email): string
+    {
+        return strtolower(trim($email));
+    }
+
+    private static function clientIp(): string
+    {
+        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        // X-Forwarded-For can be a comma-separated list; take the left-most (originating client).
+        if (strpos($ip, ',') !== false) {
+            $ip = trim(explode(',', $ip)[0]);
+        }
+        return substr($ip, 0, 45);
     }
 
     private static function setSession(array $user): void

@@ -1,84 +1,99 @@
 <?php
 /**
- * Instalador da Plataforma Mulher Espiral
+ * Despertar Espiral — Installer (one-shot)
  *
- * Acesse este arquivo pelo navegador DEPOIS de:
- * 1. Fazer upload do ZIP via File Manager
- * 2. Extrair o ZIP na pasta public_html
- * 3. Criar o banco de dados MySQL no painel Hostinger
- * 4. Preencher as credenciais abaixo
+ * This script is a safety net for the very first boot on a fresh server.
+ * In normal operation, Database.php auto-bootstraps the schema on the
+ * first connection, so this file should only be touched if you need a
+ * visual status check.
  *
- * EXCLUA ESTE ARQUIVO após a instalação!
+ * PRODUCTION GUARD:
+ *  - Refuses to run if APP_ENV=production
+ *  - Refuses to run if the users table already exists
+ *  - Requires a .env file at the project root (with DB_* keys set)
+ *
+ * After the first successful boot, DELETE this file from the server.
  */
 
-// ============================================
-// PREENCHA ESTAS CREDENCIAIS
-// ============================================
-$DB_HOST     = 'localhost';
-$DB_NAME     = 'u525832347_Mulherespiral';
-$DB_USER     = 'u525832347_Mulherespiral';
-$DB_PASS     = '@Telemed123';
+require_once __DIR__ . '/src/Env.php';
+Env::load(__DIR__ . '/.env');
 
-$ADMIN_NAME  = 'Sunyan Nunes';
-$ADMIN_EMAIL = 'sunyan@mulherespiral.shop';
-$ADMIN_PASS  = '@Telemed123';
-// ============================================
+$appEnv = Env::get('APP_ENV', 'production');
 
-$errors = [];
-$success = [];
+header('Content-Type: text/html; charset=UTF-8');
+echo '<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8">';
+echo '<title>Instalador - Despertar Espiral</title>';
+echo '<style>body{font-family:Arial,sans-serif;max-width:720px;margin:40px auto;padding:20px;background:#0A0A0A;color:#eee}';
+echo 'h1{color:#C9A84C}h2{color:#C9A84C}.ok{color:#6ee7b7}.err{color:#fca5a5}';
+echo 'pre{background:#111;padding:16px;border-radius:8px;overflow-x:auto;border:1px solid #222}';
+echo 'code{background:#111;padding:2px 6px;border-radius:4px}</style></head><body>';
+echo '<h1>Instalador - Despertar Espiral</h1>';
 
-// Validar preenchimento
-if (empty($DB_NAME) || empty($DB_USER) || empty($ADMIN_EMAIL) || empty($ADMIN_PASS)) {
-    die('<h1>Instalador Mulher Espiral</h1>
-        <p style="color:red;">Abra este arquivo (install.php) e preencha as credenciais do banco de dados e da admin antes de acessar pelo navegador.</p>
-        <pre>
-$DB_HOST     = "localhost";
-$DB_NAME     = "seu_banco_aqui";
-$DB_USER     = "seu_usuario_aqui";
-$DB_PASS     = "sua_senha_aqui";
-$ADMIN_EMAIL = "email@admin.com";
-$ADMIN_PASS  = "senha_da_admin";
-        </pre>');
+// Production guard
+if (strtolower($appEnv) === 'production') {
+    http_response_code(403);
+    echo '<p class="err">Instalador desativado em producao. Defina APP_ENV=staging no .env para liberar, ou simplesmente rode a aplicacao — o schema e criado automaticamente no primeiro boot.</p>';
+    echo '</body></html>';
+    exit;
 }
 
-echo '<html><head><title>Instalador - Mulher Espiral</title>
-<style>body{font-family:Arial,sans-serif;max-width:700px;margin:50px auto;padding:20px;}
-h1{color:#6B21A8;} .ok{color:green;} .err{color:red;} pre{background:#f5f5f5;padding:16px;border-radius:8px;overflow-x:auto;}</style>
-</head><body>';
-echo '<h1>Instalador - Mulher Espiral</h1>';
+// Credentials must live in .env
+$dbHost = Env::get('DB_HOST', '');
+$dbName = Env::get('DB_NAME', '');
+$dbUser = Env::get('DB_USER', '');
+$dbPass = Env::get('DB_PASS', '');
 
-// 1. Testar conexão com banco
+if ($dbHost === '' || $dbName === '' || $dbUser === '') {
+    http_response_code(500);
+    echo '<p class="err">.env incompleto. Defina DB_HOST, DB_NAME, DB_USER e DB_PASS antes de rodar o instalador.</p>';
+    echo '<p>Consulte <code>.env.example</code> na raiz do projeto.</p>';
+    echo '</body></html>';
+    exit;
+}
+
+// 1. Connect
 try {
-    $dsn = "mysql:host=$DB_HOST;charset=utf8mb4";
-    $pdo = new PDO($dsn, $DB_USER, $DB_PASS, [
+    $dsn = "mysql:host={$dbHost};charset=utf8mb4";
+    $pdo = new PDO($dsn, $dbUser, $dbPass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
-    echo '<p class="ok">✓ Conexão com MySQL estabelecida</p>';
+    echo '<p class="ok">[OK] Conexao MySQL estabelecida</p>';
 } catch (PDOException $e) {
-    die('<p class="err">✗ Erro de conexão: ' . htmlspecialchars($e->getMessage()) . '</p></body></html>');
+    echo '<p class="err">[ERR] Conexao: ' . htmlspecialchars($e->getMessage()) . '</p></body></html>';
+    exit;
 }
 
-// 2. Criar banco se não existir
+// 2. Create database if missing
 try {
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS `$DB_NAME` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    $pdo->exec("USE `$DB_NAME`");
-    echo '<p class="ok">✓ Banco de dados "' . htmlspecialchars($DB_NAME) . '" pronto</p>';
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $pdo->exec("USE `{$dbName}`");
+    echo '<p class="ok">[OK] Banco "' . htmlspecialchars($dbName) . '" pronto</p>';
 } catch (PDOException $e) {
-    die('<p class="err">✗ Erro ao criar banco: ' . htmlspecialchars($e->getMessage()) . '</p></body></html>');
+    echo '<p class="err">[ERR] Banco: ' . htmlspecialchars($e->getMessage()) . '</p></body></html>';
+    exit;
 }
 
-// 3. Executar schema
+// 3. Guard against re-install
+$usersExists = $pdo->query("SHOW TABLES LIKE 'users'")->fetch();
+if ($usersExists) {
+    echo '<p class="err">[ABORT] A tabela <code>users</code> ja existe. O instalador nao roda em bancos populados.</p>';
+    echo '<p>Para atualizar o schema de um banco existente, basta acessar qualquer rota da aplicacao — as migracoes idempotentes em Database.php sao aplicadas automaticamente.</p>';
+    echo '<p class="err" style="margin-top:20px;font-weight:bold;">EXCLUA ESTE ARQUIVO (install.php) do servidor.</p>';
+    echo '</body></html>';
+    exit;
+}
+
+// 4. Run schema.sql
 $schemaFile = __DIR__ . '/database/schema.sql';
 if (!file_exists($schemaFile)) {
-    die('<p class="err">✗ Arquivo database/schema.sql não encontrado. Verifique se extraiu o ZIP corretamente.</p></body></html>');
+    echo '<p class="err">[ERR] database/schema.sql ausente. Verifique o deploy.</p></body></html>';
+    exit;
 }
 
 $schema = file_get_contents($schemaFile);
-// Remove CREATE DATABASE and USE statements (already handled above)
 $schema = preg_replace('/CREATE DATABASE.*?;/s', '', $schema);
 $schema = preg_replace('/USE .*?;/s', '', $schema);
-// Remove the default INSERT (we'll create our own admin)
 $schema = preg_replace('/INSERT INTO users.*?;/s', '', $schema);
 
 $statements = array_filter(array_map('trim', explode(';', $schema)));
@@ -91,93 +106,58 @@ foreach ($statements as $stmt) {
             $tableCount++;
         }
     } catch (PDOException $e) {
-        // Ignore "table already exists" errors
         if ($e->getCode() !== '42S01') {
-            echo '<p class="err">⚠ SQL Warning: ' . htmlspecialchars($e->getMessage()) . '</p>';
+            echo '<p class="err">[WARN] SQL: ' . htmlspecialchars($e->getMessage()) . '</p>';
         }
     }
 }
-echo "<p class='ok'>✓ Schema executado ($tableCount tabelas criadas)</p>";
+echo "<p class='ok'>[OK] Schema executado ({$tableCount} tabelas)</p>";
 
-// 4. Criar admin
-$hash = password_hash($ADMIN_PASS, PASSWORD_DEFAULT);
-try {
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-    $stmt->execute([$ADMIN_EMAIL]);
-    if ($stmt->fetch()) {
-        $pdo->prepare("UPDATE users SET name=?, password_hash=?, anonymous_name='Sunyan', role='admin' WHERE email=?")
-            ->execute([$ADMIN_NAME, $hash, $ADMIN_EMAIL]);
-        echo '<p class="ok">✓ Admin atualizada: ' . htmlspecialchars($ADMIN_EMAIL) . '</p>';
-    } else {
-        $pdo->prepare("INSERT INTO users (name, email, password_hash, anonymous_name, role) VALUES (?,?,?,?,?)")
-            ->execute([$ADMIN_NAME, $ADMIN_EMAIL, $hash, 'Sunyan', 'admin']);
-        echo '<p class="ok">✓ Admin criada: ' . htmlspecialchars($ADMIN_EMAIL) . '</p>';
-    }
-} catch (PDOException $e) {
-    echo '<p class="err">✗ Erro ao criar admin: ' . htmlspecialchars($e->getMessage()) . '</p>';
-}
+// 5. Seed admin from .env
+$adminEmail = strtolower(trim(Env::get('ADMIN_INIT_EMAIL', 'sunyan@despertarespiral.com')));
+$adminPass = Env::get('ADMIN_INIT_PASSWORD', '');
+$adminName = Env::get('ADMIN_INIT_NAME', 'Sunyan Nunes');
 
-// 5. Atualizar config/database.php
-$configDb = "<?php
-return [
-    'host' => '$DB_HOST',
-    'dbname' => '$DB_NAME',
-    'username' => '$DB_USER',
-    'password' => '$DB_PASS',
-    'charset' => 'utf8mb4',
-    'options' => [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ],
-];
-";
-if (file_put_contents(__DIR__ . '/config/database.php', $configDb)) {
-    echo '<p class="ok">✓ config/database.php atualizado com credenciais</p>';
+if ($adminPass === '') {
+    echo '<p class="err">[SKIP] ADMIN_INIT_PASSWORD nao definido em .env — admin nao criada. Defina a senha no .env e recarregue esta pagina para criar a conta admin.</p>';
 } else {
-    echo '<p class="err">✗ Não conseguiu escrever config/database.php (verifique permissões)</p>';
+    try {
+        $hash = password_hash($adminPass, PASSWORD_DEFAULT);
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE LOWER(email) = ?");
+        $stmt->execute([$adminEmail]);
+        if ($stmt->fetch()) {
+            echo '<p class="ok">[OK] Admin ja existente: ' . htmlspecialchars($adminEmail) . '</p>';
+        } else {
+            $pdo->prepare("INSERT INTO users (name, email, password_hash, anonymous_name, role) VALUES (?,?,?,?,?)")
+                ->execute([$adminName, $adminEmail, $hash, 'Sunyan', 'admin']);
+            echo '<p class="ok">[OK] Admin criada: ' . htmlspecialchars($adminEmail) . '</p>';
+        }
+    } catch (PDOException $e) {
+        echo '<p class="err">[ERR] Admin: ' . htmlspecialchars($e->getMessage()) . '</p>';
+    }
 }
 
-// 6. Verificar permissões de uploads
-foreach (['uploads/products', 'uploads/content'] as $dir) {
+// 6. Ensure upload/log directories
+foreach (['uploads/products', 'uploads/content', 'storage/logs'] as $dir) {
     $path = __DIR__ . '/' . $dir;
     if (!is_dir($path)) {
-        mkdir($path, 0755, true);
+        @mkdir($path, 0755, true);
     }
     if (is_writable($path)) {
-        echo '<p class="ok">✓ Pasta ' . $dir . ' com permissão de escrita</p>';
+        echo '<p class="ok">[OK] Pasta ' . htmlspecialchars($dir) . ' com permissao de escrita</p>';
     } else {
-        echo '<p class="err">✗ Pasta ' . $dir . ' sem permissão de escrita (chmod 755)</p>';
+        echo '<p class="err">[WARN] Pasta ' . htmlspecialchars($dir) . ' sem permissao de escrita (chmod 755)</p>';
     }
 }
 
-// 7. Verificar .htaccess
-if (file_exists(__DIR__ . '/.htaccess')) {
-    echo '<p class="ok">✓ .htaccess presente</p>';
-} else {
-    echo '<p class="err">✗ .htaccess não encontrado!</p>';
-}
-
-// 8. Verificar config/app.php
-if (file_exists(__DIR__ . '/config/app.php')) {
-    echo '<p class="ok">✓ config/app.php presente</p>';
-} else {
-    echo '<p class="err">✗ config/app.php não encontrado!</p>';
-}
-
-echo '<hr>';
-echo '<h2 style="color:#065F46;">Instalação concluída!</h2>';
-echo '<p><strong>Próximos passos:</strong></p>';
+echo '<hr style="border-color:#222;margin:30px 0">';
+echo '<h2>Instalacao concluida</h2>';
 echo '<ol>';
-echo '<li>Acesse <a href="/" target="_blank">mulherespiral.shop</a> para ver a landing page</li>';
-echo '<li>Acesse <a href="/login" target="_blank">mulherespiral.shop/login</a> para fazer login como admin</li>';
-echo '<li>Acesse <a href="/admin" target="_blank">mulherespiral.shop/admin</a> para configurar produtos</li>';
-echo '<li>Configure as chaves Stripe em <code>config/stripe.php</code></li>';
-echo '<li>Configure o SMTP em <code>config/mail.php</code></li>';
-echo '<li style="color:red;font-weight:bold;">EXCLUA ESTE ARQUIVO (install.php) por segurança!</li>';
+echo '<li>Acesse <a href="/" style="color:#C9A84C">despertarespiral.com</a> para conferir a landing</li>';
+echo '<li>Faca login em <code>/login</code> com a admin definida no .env</li>';
+echo '<li>Troque a senha da admin apos o primeiro login</li>';
+echo '<li>Configure o webhook Asaas apontando para <code>' . (Env::get('APP_URL', 'https://despertarespiral.com')) . '/webhook/asaas</code> com o mesmo <code>ASAAS_WEBHOOK_TOKEN</code> do .env</li>';
+echo '<li>Verifique no Sequenzy que eventos estao chegando na webhook URL configurada</li>';
+echo '<li class="err" style="font-weight:bold;margin-top:12px">EXCLUA ESTE ARQUIVO (install.php) do servidor por seguranca</li>';
 echo '</ol>';
-echo '<pre>';
-echo "Login admin: $ADMIN_EMAIL\n";
-echo "Senha: (a que você definiu acima)\n";
-echo '</pre>';
 echo '</body></html>';

@@ -22,10 +22,12 @@ CREATE TABLE users (
     is_active TINYINT(1) DEFAULT 1,
     reset_token VARCHAR(64) DEFAULT NULL,
     reset_expires DATETIME DEFAULT NULL,
+    asaas_customer_id VARCHAR(60) DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
-    INDEX idx_reset_token (reset_token)
+    INDEX idx_reset_token (reset_token),
+    INDEX idx_asaas_customer (asaas_customer_id)
 ) ENGINE=InnoDB;
 
 -- =============================================
@@ -39,7 +41,6 @@ CREATE TABLE products (
     short_description VARCHAR(500) DEFAULT NULL,
     cover_image VARCHAR(255) DEFAULT NULL,
     price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    stripe_price_id VARCHAR(100) DEFAULT NULL,
     is_active TINYINT(1) DEFAULT 1,
     sort_order INT DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -56,7 +57,8 @@ CREATE TABLE modules (
     title VARCHAR(200) NOT NULL,
     sort_order INT DEFAULT 0,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    INDEX idx_product_sort (product_id, sort_order)
+    INDEX idx_product_sort (product_id, sort_order),
+    INDEX idx_modules_product (product_id)
 ) ENGINE=InnoDB;
 
 -- =============================================
@@ -72,7 +74,8 @@ CREATE TABLE lessons (
     duration_minutes INT DEFAULT 0,
     sort_order INT DEFAULT 0,
     FOREIGN KEY (module_id) REFERENCES modules(id) ON DELETE CASCADE,
-    INDEX idx_module_sort (module_id, sort_order)
+    INDEX idx_module_sort (module_id, sort_order),
+    INDEX idx_lessons_module (module_id)
 ) ENGINE=InnoDB;
 
 -- =============================================
@@ -105,14 +108,16 @@ CREATE TABLE lesson_progress (
 ) ENGINE=InnoDB;
 
 -- =============================================
--- Orders (Stripe payments)
+-- Orders (Asaas payments: PIX, credit card, boleto)
 -- =============================================
 CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT DEFAULT NULL,
     product_id INT NOT NULL,
-    stripe_session_id VARCHAR(255) UNIQUE NOT NULL,
-    stripe_payment_intent VARCHAR(255) DEFAULT NULL,
+    asaas_payment_id VARCHAR(60) UNIQUE NOT NULL,
+    asaas_invoice_url VARCHAR(500) DEFAULT NULL,
+    asaas_event VARCHAR(50) DEFAULT NULL,
+    payment_method ENUM('pix', 'credit_card', 'boleto', 'undefined') DEFAULT 'undefined',
     customer_email VARCHAR(150) NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
     currency VARCHAR(3) DEFAULT 'brl',
@@ -121,9 +126,22 @@ CREATE TABLE orders (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    INDEX idx_session (stripe_session_id),
+    INDEX idx_asaas_payment (asaas_payment_id),
     INDEX idx_status (status),
-    INDEX idx_customer_email (customer_email)
+    INDEX idx_customer_email (customer_email),
+    INDEX idx_user_status (user_id, status)
+) ENGINE=InnoDB;
+
+-- =============================================
+-- Login rate limiting (see src/Auth.php)
+-- =============================================
+CREATE TABLE login_attempts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ip_address VARCHAR(45) NOT NULL,
+    email VARCHAR(150) DEFAULT NULL,
+    attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_ip_time (ip_address, attempted_at),
+    INDEX idx_email_time (email, attempted_at)
 ) ENGINE=InnoDB;
 
 -- =============================================
@@ -180,4 +198,4 @@ CREATE TABLE community_likes (
 -- Generate with: php -r "echo password_hash('sua_senha', PASSWORD_DEFAULT);"
 -- =============================================
 -- Admin user is auto-created by Database.php on first run
--- Email: sunyan@mulherespiral.shop | Password: @Telemed123
+-- Email: sunyan@despertarespiral.com | Password set via ADMIN_INIT_PASSWORD env var

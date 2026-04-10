@@ -339,7 +339,7 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
             </div>
             <div class="footer-links">
                 <a href="<?= url('login') ?>">Area de Membros</a>
-                <a href="mailto:contato@mulherespiral.shop">Contato</a>
+                <a href="mailto:contato@despertarespiral.com">Contato</a>
             </div>
         </div>
         <div class="footer-bottom">
