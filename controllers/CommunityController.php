@@ -106,6 +106,19 @@ class CommunityController
             [$_SESSION['user_id'], $category, $title, $body]
         );
 
+        $user = currentUser();
+        if ($user) {
+            EventDispatcher::dispatch('community.post.created', [
+                'email' => $user['email'],
+                'attributes' => ['anonymous_name' => $user['anonymous_name']],
+                'properties' => [
+                    'post_id' => (int) $id,
+                    'category' => $category,
+                    'title' => $title,
+                ],
+            ]);
+        }
+
         flash('success', 'Tópico criado com sucesso!');
         redirect('community/topic/' . $id);
     }
@@ -184,10 +197,22 @@ class CommunityController
             return;
         }
 
-        Database::insert(
+        $commentId = Database::insert(
             "INSERT INTO community_comments (post_id, user_id, body) VALUES (?, ?, ?)",
             [$postId, $_SESSION['user_id'], $body]
         );
+
+        $user = currentUser();
+        if ($user) {
+            EventDispatcher::dispatch('community.comment.created', [
+                'email' => $user['email'],
+                'attributes' => ['anonymous_name' => $user['anonymous_name']],
+                'properties' => [
+                    'post_id' => $postId,
+                    'comment_id' => (int) $commentId,
+                ],
+            ]);
+        }
 
         redirect('community/topic/' . $postId);
     }

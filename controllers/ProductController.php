@@ -103,9 +103,82 @@ class ProductController
                     completed_at = IF(completed = 1, NULL, NOW())",
                 [$userId, $lessonId]
             );
+
+            $this->dispatchProgressEvents($userId, $lessonId, $slug);
         }
 
         redirect('products/' . $slug);
+    }
+
+    /**
+     * Fires `lesson.completed` and, when the whole course hits 100%,
+     * `course.completed`. No-op if the lesson was toggled back to
+     * incomplete or if the user can't be resolved.
+     */
+    private function dispatchProgressEvents(int $userId, int $lessonId, string $slug): void
+    {
+        $completed = Database::fetch(
+            "SELECT completed FROM lesson_progress WHERE user_id = ? AND lesson_id = ?",
+            [$userId, $lessonId]
+        );
+        if (!$completed || (int) $completed['completed'] !== 1) {
+            return;
+        }
+
+        $user = Database::fetch(
+            "SELECT email, name FROM users WHERE id = ?",
+            [$userId]
+        );
+        if (!$user) {
+            return;
+        }
+
+        $lesson = Database::fetch(
+            "SELECT l.id, l.title, l.module_id, m.product_id, p.slug AS product_slug, p.title AS product_title
+             FROM lessons l
+             JOIN modules m ON l.module_id = m.id
+             JOIN products p ON m.product_id = p.id
+             WHERE l.id = ?",
+            [$lessonId]
+        );
+        if (!$lesson) {
+            return;
+        }
+
+        EventDispatcher::dispatch('lesson.completed', [
+            'email' => $user['email'],
+            'attributes' => ['name' => $user['name']],
+            'properties' => [
+                'lesson_id' => (int) $lesson['id'],
+                'lesson_title' => $lesson['title'],
+                'module_id' => (int) $lesson['module_id'],
+                'product_slug' => $lesson['product_slug'],
+            ],
+        ]);
+
+        $totals = Database::fetch(
+            "SELECT
+                COUNT(DISTINCT l.id) AS total_lessons,
+                COUNT(DISTINCT CASE WHEN lp.completed = 1 THEN lp.lesson_id END) AS done_lessons
+             FROM modules m
+             LEFT JOIN lessons l ON l.module_id = m.id
+             LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id AND lp.user_id = ?
+             WHERE m.product_id = ?",
+            [$userId, $lesson['product_id']]
+        );
+
+        if ($totals && (int) $totals['total_lessons'] > 0
+            && (int) $totals['done_lessons'] === (int) $totals['total_lessons']) {
+            EventDispatcher::dispatch('course.completed', [
+                'email' => $user['email'],
+                'attributes' => ['name' => $user['name']],
+                'properties' => [
+                    'product_slug' => $lesson['product_slug'],
+                    'product_title' => $lesson['product_title'],
+                    'total_lessons' => (int) $totals['total_lessons'],
+                ],
+            ]);
+        }
     }
 
     private function getUserProductsWithProgress(int $userId, string $orderBy): array
