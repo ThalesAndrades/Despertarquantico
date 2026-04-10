@@ -8,6 +8,30 @@ function e(string $value): string
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 
+function env(string $key, $default = null)
+{
+    return Env::get($key, $default);
+}
+
+function env_bool(string $key, bool $default = false): bool
+{
+    $value = Env::get($key, null);
+    if ($value === null) {
+        return $default;
+    }
+    $normalized = strtolower(trim((string) $value));
+    return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
+}
+
+function env_int(string $key, int $default = 0): int
+{
+    $value = Env::get($key, null);
+    if ($value === null || $value === '') {
+        return $default;
+    }
+    return (int) $value;
+}
+
 function redirect(string $path): void
 {
     header('Location: ' . APP_URL . '/' . ltrim($path, '/'));
