@@ -161,6 +161,75 @@ CREATE TABLE high_ticket_applications (
 ) ENGINE=InnoDB;
 
 -- =============================================
+-- Marketing CRM (Leads, Tags, Events)
+-- =============================================
+CREATE TABLE crm_leads (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(150) NOT NULL,
+    name VARCHAR(120) DEFAULT NULL,
+    whatsapp VARCHAR(40) DEFAULT NULL,
+    source VARCHAR(80) DEFAULT NULL,
+    pain_primary VARCHAR(80) DEFAULT NULL,
+    social_archetype VARCHAR(80) DEFAULT NULL,
+    stage VARCHAR(80) DEFAULT NULL,
+    utm_source VARCHAR(120) DEFAULT NULL,
+    utm_medium VARCHAR(120) DEFAULT NULL,
+    utm_campaign VARCHAR(120) DEFAULT NULL,
+    utm_content VARCHAR(120) DEFAULT NULL,
+    utm_term VARCHAR(120) DEFAULT NULL,
+    score INT DEFAULT 0,
+    last_event VARCHAR(120) DEFAULT NULL,
+    last_event_at DATETIME DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_email (email),
+    INDEX idx_score (score),
+    INDEX idx_last_event_at (last_event_at),
+    INDEX idx_pain_stage (pain_primary, stage),
+    INDEX idx_source (source)
+) ENGINE=InnoDB;
+
+CREATE TABLE crm_tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    slug VARCHAR(120) NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_slug (slug)
+) ENGINE=InnoDB;
+
+CREATE TABLE crm_lead_tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lead_id INT NOT NULL,
+    tag_id INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_lead_tag (lead_id, tag_id),
+    INDEX idx_tag (tag_id),
+    FOREIGN KEY (lead_id) REFERENCES crm_leads(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES crm_tags(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE crm_lead_events (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lead_id INT NOT NULL,
+    event_name VARCHAR(120) NOT NULL,
+    properties_json TEXT DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_lead_time (lead_id, created_at),
+    INDEX idx_event (event_name),
+    FOREIGN KEY (lead_id) REFERENCES crm_leads(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE crm_lead_notes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lead_id INT NOT NULL,
+    admin_user_id INT DEFAULT NULL,
+    note TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_lead_notes (lead_id, created_at),
+    FOREIGN KEY (lead_id) REFERENCES crm_leads(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =============================================
 -- Community Posts
 -- =============================================
 CREATE TABLE community_posts (

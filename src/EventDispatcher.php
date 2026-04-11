@@ -32,6 +32,13 @@ class EventDispatcher
         $properties = is_array($payload['properties'] ?? null) ? $payload['properties'] : [];
 
         try {
+            require_once BASE_PATH . '/src/MarketingCRM.php';
+            MarketingCRM::track($event, $email, $attributes, $properties);
+        } catch (Throwable $e) {
+            error_log('EventDispatcher: crm tracking failed: ' . $e->getMessage());
+        }
+
+        try {
             self::sequenzy()->send($event, $email, $attributes, $properties);
         } catch (Throwable $e) {
             error_log(sprintf(

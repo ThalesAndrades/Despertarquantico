@@ -248,6 +248,8 @@ class CheckoutController
                     'properties' => [
                         'order_id' => (int) $order['id'],
                         'product_slug' => $order['product_slug'],
+                        'invoice_url' => $order['asaas_invoice_url'] ?? null,
+                        'checkout_url' => APP_URL . '/checkout/' . $order['product_slug'],
                     ],
                 ]);
                 break;
@@ -269,6 +271,7 @@ class CheckoutController
                     'properties' => [
                         'order_id' => (int) $order['id'],
                         'product_slug' => $order['product_slug'],
+                        'invoice_url' => $order['asaas_invoice_url'] ?? null,
                     ],
                 ]);
                 break;

@@ -32,6 +32,17 @@ class AuthController
         }
 
         if (Auth::attempt($email, $password)) {
+            $user = currentUser();
+            EventDispatcher::dispatch('user.logged_in', [
+                'email' => $email,
+                'attributes' => [
+                    'name' => $user['name'] ?? null,
+                ],
+                'properties' => [
+                    'ip' => $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0',
+                    'user_id' => isset($user['id']) ? (int) $user['id'] : null,
+                ],
+            ]);
             redirect('dashboard');
         }
 
@@ -181,7 +192,20 @@ class AuthController
             redirect('reset-password?token=' . $token);
         }
 
+        $emailToNotify = Database::fetch(
+            "SELECT email FROM users WHERE reset_token = ? AND reset_expires > NOW()",
+            [$token]
+        );
+
         if (Auth::resetPassword($token, $password)) {
+            if ($emailToNotify && !empty($emailToNotify['email'])) {
+                EventDispatcher::dispatch('user.password_reset_completed', [
+                    'email' => $emailToNotify['email'],
+                    'properties' => [
+                        'ip' => $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0',
+                    ],
+                ]);
+            }
             flash('success', 'Senha redefinida com sucesso! Faça login.');
             redirect('login');
         }
