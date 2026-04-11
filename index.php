@@ -132,13 +132,6 @@ if ($method === 'GET' && $url === '_health') {
         ],
     ];
 
-    try {
-        Database::getInstance();
-        $checks['db']['ok'] = true;
-    } catch (Throwable $e) {
-        $checks['db']['error'] = get_class($e);
-    }
-
     $requiredOk = true;
     foreach ($checks['required_env'] as $ok) {
         if (!$ok) {
@@ -146,6 +139,18 @@ if ($method === 'GET' && $url === '_health') {
             break;
         }
     }
+
+    if (!empty($checks['required_env']['DB_HOST']) && !empty($checks['required_env']['DB_NAME']) && !empty($checks['required_env']['DB_USER'])) {
+        try {
+            Database::getInstance();
+            $checks['db']['ok'] = true;
+        } catch (Throwable $e) {
+            $checks['db']['error'] = get_class($e);
+        }
+    } else {
+        $checks['db']['error'] = 'missing_env';
+    }
+
     $ok = $requiredOk && !empty($checks['paths']['storage_logs_writable']) && !empty($checks['db']['ok']);
 
     if ($healthToken !== '') {
