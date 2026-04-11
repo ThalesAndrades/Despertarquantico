@@ -104,6 +104,7 @@ require_once __DIR__ . '/controllers/DashboardController.php';
 require_once __DIR__ . '/controllers/ProductController.php';
 require_once __DIR__ . '/controllers/CommunityController.php';
 require_once __DIR__ . '/controllers/CheckoutController.php';
+require_once __DIR__ . '/controllers/ApplyController.php';
 require_once __DIR__ . '/controllers/AdminController.php';
 
 // Initialize router
@@ -122,6 +123,8 @@ $router->get('forgot-password', [AuthController::class, 'forgotPasswordForm']);
 $router->post('forgot-password', [AuthController::class, 'forgotPassword']);
 $router->get('reset-password', [AuthController::class, 'resetPasswordForm']);
 $router->post('reset-password', [AuthController::class, 'resetPassword']);
+$router->get('aplicacao', [ApplyController::class, 'form']);
+$router->post('aplicacao', [ApplyController::class, 'submit']);
 
 // Checkout routes
 $router->get('checkout/{slug}', [CheckoutController::class, 'create']);
@@ -161,6 +164,7 @@ $router->post('admin/modules/save', [AdminController::class, 'moduleSave']);
 $router->post('admin/lessons/save', [AdminController::class, 'lessonSave']);
 $router->post('admin/lessons/delete/{id}', [AdminController::class, 'lessonDelete']);
 $router->get('admin/orders', [AdminController::class, 'orders']);
+$router->get('admin/applications', [AdminController::class, 'applications']);
 $router->get('admin/community', [AdminController::class, 'community']);
 $router->post('admin/community/toggle/{id}', [AdminController::class, 'togglePost']);
 

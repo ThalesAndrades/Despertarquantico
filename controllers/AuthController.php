@@ -138,10 +138,11 @@ class AuthController
 
         $token = Auth::createResetToken($email);
         if ($token) {
-            Mailer::sendPasswordReset($email, $token);
+            $resetUrl = APP_URL . '/reset-password?token=' . $token;
             EventDispatcher::dispatch('user.password_reset_requested', [
                 'email' => $email,
                 'properties' => [
+                    'reset_url' => $resetUrl,
                     'reset_token_prefix' => substr($token, 0, 8),
                 ],
             ]);

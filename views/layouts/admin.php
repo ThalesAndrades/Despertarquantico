@@ -36,6 +36,10 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                 <span>Pedidos</span>
             </a>
+            <a href="<?= url('admin/applications') ?>" class="sidebar-link <?= ($adminPage ?? '') === 'applications' ? 'active' : '' ?>">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/></svg>
+                <span>Aplicações</span>
+            </a>
             <a href="<?= url('admin/community') ?>" class="sidebar-link <?= ($adminPage ?? '') === 'community' ? 'active' : '' ?>">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <span>Comunidade</span>

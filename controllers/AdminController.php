@@ -282,6 +282,32 @@ class AdminController
         closeLayout();
     }
 
+    public function applications(): void
+    {
+        requireAdmin();
+        $status = trim($_GET['status'] ?? '');
+        $params = [];
+        $where = '';
+        if ($status !== '' && in_array($status, ['new', 'contacted', 'qualified', 'unqualified'], true)) {
+            $where = "WHERE status = ?";
+            $params[] = $status;
+        }
+
+        $applications = Database::fetchAll(
+            "SELECT * FROM high_ticket_applications
+             $where
+             ORDER BY created_at DESC
+             LIMIT 200",
+            $params
+        );
+
+        $pageTitle = 'Aplicações (High Ticket)';
+        $adminPage = 'applications';
+        require VIEWS_PATH . '/layouts/admin.php';
+        require VIEWS_PATH . '/admin/applications.php';
+        closeLayout();
+    }
+
     public function community(): void
     {
         requireAdmin();

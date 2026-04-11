@@ -131,6 +131,9 @@ class CheckoutController
                 'product_title' => $product['title'],
                 'amount' => (float) $product['price'],
                 'order_id' => (int) $orderId,
+                'checkout_url' => APP_URL . '/checkout/' . $product['slug'],
+                'invoice_url' => $payment['invoiceUrl'],
+                'asaas_payment_id' => $payment['id'],
             ],
         ]);
 
@@ -333,14 +336,6 @@ class CheckoutController
                 'payment_method' => $paymentMethod,
             ],
         ]);
-
-        require_once BASE_PATH . '/src/Mailer.php';
-        Mailer::sendOrderConfirmation(
-            $order['customer_email'],
-            (int) $order['id'],
-            $order['product_title'],
-            $paymentMethod
-        );
     }
 
     private function mapBillingTypeToMethod(string $billingType): string

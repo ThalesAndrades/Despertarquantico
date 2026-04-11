@@ -136,6 +136,21 @@ class Database
                 ) ENGINE=InnoDB
             ");
 
+            self::ensureTable('high_ticket_applications', "
+                CREATE TABLE high_ticket_applications (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(120) NOT NULL,
+                    email VARCHAR(150) NOT NULL,
+                    whatsapp VARCHAR(40) NOT NULL,
+                    moment TEXT NOT NULL,
+                    goal TEXT NOT NULL,
+                    status ENUM('new', 'contacted', 'qualified', 'unqualified') DEFAULT 'new',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_email_created (email, created_at),
+                    INDEX idx_status_created (status, created_at)
+                ) ENGINE=InnoDB
+            ");
+
             // orders: drop legacy idx_session if it points to the renamed column
             self::dropIndexIfExists('orders', 'idx_session');
         } catch (PDOException $e) {

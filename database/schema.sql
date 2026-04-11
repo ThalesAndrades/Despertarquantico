@@ -145,6 +145,22 @@ CREATE TABLE login_attempts (
 ) ENGINE=InnoDB;
 
 -- =============================================
+-- High Ticket Applications (mentoria premium)
+-- =============================================
+CREATE TABLE high_ticket_applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(120) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    whatsapp VARCHAR(40) NOT NULL,
+    moment TEXT NOT NULL,
+    goal TEXT NOT NULL,
+    status ENUM('new', 'contacted', 'qualified', 'unqualified') DEFAULT 'new',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_email_created (email, created_at),
+    INDEX idx_status_created (status, created_at)
+) ENGINE=InnoDB;
+
+-- =============================================
 -- Community Posts
 -- =============================================
 CREATE TABLE community_posts (
