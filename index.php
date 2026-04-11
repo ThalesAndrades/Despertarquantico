@@ -110,11 +110,6 @@ require_once __DIR__ . '/src/EventDispatcher.php';
 if ($method === 'GET' && $url === '_health') {
     $token = (string) ($_GET['token'] ?? '');
     $healthToken = (string) Env::get('HEALTHCHECK_TOKEN', '');
-    if ($healthToken === '' || !hash_equals($healthToken, $token)) {
-        http_response_code(404);
-        exit;
-    }
-
     $checks = [
         'php' => PHP_VERSION,
         'env_loaded' => Env::has('APP_ENV') || is_file(__DIR__ . '/.env'),
@@ -152,6 +147,16 @@ if ($method === 'GET' && $url === '_health') {
         }
     }
     $ok = $requiredOk && !empty($checks['paths']['storage_logs_writable']) && !empty($checks['db']['ok']);
+
+    if ($healthToken !== '') {
+        if (!hash_equals($healthToken, $token)) {
+            http_response_code(404);
+            exit;
+        }
+    } elseif ($ok) {
+        http_response_code(404);
+        exit;
+    }
 
     header('Content-Type: application/json; charset=UTF-8');
     echo json_encode(['ok' => $ok, 'checks' => $checks], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
