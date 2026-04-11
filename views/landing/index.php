@@ -65,6 +65,9 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
         <a href="<?= e($checkoutUrl) ?>" class="btn btn-gold btn-lg hero-cta-main">
             Comecar minha jornada
         </a>
+        <a href="<?= url('aplicacao') ?>" class="btn btn-outline btn-lg" style="margin-top:12px;">
+            Aplicar para mentoria premium
+        </a>
         <div class="hero-proof">
             <div class="hero-proof-item">
                 <strong>2.500+</strong>
