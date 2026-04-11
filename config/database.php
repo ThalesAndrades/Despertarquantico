@@ -1,16 +1,22 @@
 <?php
 /**
- * Database Configuration (Hostinger MySQL)
+ * Database Configuration
  *
- * Reads from .env — no hardcoded secrets.
+ * Reads credentials from /.env at runtime.
  */
-
++
+$host = Env::require('DB_HOST');
+$dbname = Env::require('DB_NAME');
+$username = Env::require('DB_USER');
+$password = (string) Env::get('DB_PASS', '');
+$charset = (string) Env::get('DB_CHARSET', 'utf8mb4');
++
 return [
-    'host' => Env::require('DB_HOST'),
-    'dbname' => Env::require('DB_NAME'),
-    'username' => Env::require('DB_USER'),
-    'password' => Env::require('DB_PASS'),
-    'charset' => Env::get('DB_CHARSET', 'utf8mb4'),
+    'host' => $host,
+    'dbname' => $dbname,
+    'username' => $username,
+    'password' => $password,
+    'charset' => $charset,
     'options' => [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

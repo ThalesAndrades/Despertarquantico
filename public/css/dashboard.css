@@ -64,6 +64,12 @@
     transition: all 0.25s ease;
     border: 1px solid transparent;
 }
+.sidebar-link-btn {
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
 .sidebar-link:hover {
     background: rgba(201, 168, 76, 0.06);
     color: rgba(255,255,255,0.85);

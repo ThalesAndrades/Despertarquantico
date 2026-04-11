@@ -39,13 +39,23 @@ $statuses = [
             </thead>
             <tbody>
             <?php foreach ($applications as $app): ?>
+                <?php
+                $badgeClass = 'badge-red';
+                if (($app['status'] ?? '') === 'new') {
+                    $badgeClass = 'badge-gold';
+                } elseif (($app['status'] ?? '') === 'contacted') {
+                    $badgeClass = 'badge-purple';
+                } elseif (($app['status'] ?? '') === 'qualified') {
+                    $badgeClass = 'badge-green';
+                }
+                ?>
                 <tr>
                     <td class="text-muted">#<?= (int) $app['id'] ?></td>
                     <td class="fw-semibold"><?= e($app['name']) ?></td>
                     <td class="text-muted"><?= e($app['email']) ?></td>
                     <td><?= e($app['whatsapp']) ?></td>
                     <td>
-                        <span class="badge <?= match($app['status']) { 'new' => 'badge-gold', 'contacted' => 'badge-purple', 'qualified' => 'badge-green', default => 'badge-red' } ?>">
+                        <span class="badge <?= e($badgeClass) ?>">
                             <?= e(ucfirst($app['status'])) ?>
                         </span>
                     </td>

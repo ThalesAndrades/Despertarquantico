@@ -228,7 +228,7 @@ class CommunityController
         $redirect = $_POST['redirect'] ?? 'community';
         // Prevent open redirect - only allow internal paths
         $redirect = ltrim($redirect, '/');
-        if (preg_match('/^https?:\/\//i', $redirect) || str_contains($redirect, '..')) {
+        if (preg_match('/^https?:\/\//i', $redirect) || strpos($redirect, '..') !== false) {
             $redirect = 'community';
         }
 

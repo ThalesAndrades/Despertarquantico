@@ -76,7 +76,11 @@ ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Lax');
 ini_set('session.use_strict_mode', '1');
 ini_set('session.gc_maxlifetime', '7200');
-if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+$isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
+if (!$isHttps && !empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+    $isHttps = strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https';
+}
+if ($isHttps) {
     ini_set('session.cookie_secure', '1');
 }
 if (routeRequiresSession($url)) {
@@ -88,6 +92,11 @@ header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');
 header('X-XSS-Protection: 1; mode=block');
 header('Referrer-Policy: strict-origin-when-cross-origin');
+if ($isHttps) {
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+}
+header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+header("Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; frame-src https:; media-src 'self' https:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
 
 // Load core files
 require_once __DIR__ . '/src/Database.php';
@@ -119,7 +128,7 @@ $router->get('login', [AuthController::class, 'loginForm']);
 $router->post('login', [AuthController::class, 'login']);
 $router->get('register', [AuthController::class, 'registerForm']);
 $router->post('register', [AuthController::class, 'register']);
-$router->get('logout', [AuthController::class, 'logout']);
+$router->post('logout', [AuthController::class, 'logout']);
 $router->get('forgot-password', [AuthController::class, 'forgotPasswordForm']);
 $router->post('forgot-password', [AuthController::class, 'forgotPassword']);
 $router->get('reset-password', [AuthController::class, 'resetPasswordForm']);

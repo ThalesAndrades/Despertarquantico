@@ -55,12 +55,14 @@ class Mailer
         string $paymentMethod
     ): bool {
         $dashboardUrl = APP_URL . '/dashboard';
-        $methodLabel = match ($paymentMethod) {
-            'pix' => 'PIX',
-            'credit_card' => 'Cartão de crédito',
-            'boleto' => 'Boleto bancário',
-            default => 'Pagamento online',
-        };
+        $methodLabel = 'Pagamento online';
+        if ($paymentMethod === 'pix') {
+            $methodLabel = 'PIX';
+        } elseif ($paymentMethod === 'credit_card') {
+            $methodLabel = 'Cartão de crédito';
+        } elseif ($paymentMethod === 'boleto') {
+            $methodLabel = 'Boleto bancário';
+        }
 
         $html = '
         <div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;color:#333;">

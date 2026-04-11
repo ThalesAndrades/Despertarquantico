@@ -126,6 +126,7 @@ class AuthController
 
     public function logout(): void
     {
+        CSRF::check();
         Auth::logout();
         redirect('login');
     }

@@ -34,7 +34,7 @@ class Router
         require VIEWS_PATH . '/errors/404.php';
     }
 
-    private function match(string $pattern, string $url): array|false
+    private function match(string $pattern, string $url)
     {
         $patternParts = explode('/', $pattern);
         $urlParts = explode('/', $url);

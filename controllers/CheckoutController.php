@@ -343,11 +343,15 @@ class CheckoutController
 
     private function mapBillingTypeToMethod(string $billingType): string
     {
-        return match ($billingType) {
-            'pix' => 'pix',
-            'credit_card' => 'credit_card',
-            'boleto' => 'boleto',
-            default => 'undefined',
-        };
+        if ($billingType === 'pix') {
+            return 'pix';
+        }
+        if ($billingType === 'credit_card') {
+            return 'credit_card';
+        }
+        if ($billingType === 'boleto') {
+            return 'boleto';
+        }
+        return 'undefined';
     }
 }

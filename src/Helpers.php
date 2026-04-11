@@ -204,12 +204,12 @@ function uploadImage(array $file, string $directory): ?string
         return null;
     }
 
-    $ext = match ($mime) {
-        'image/jpeg' => 'jpg',
-        'image/png' => 'png',
-        'image/webp' => 'webp',
-        default => 'jpg',
-    };
+    $ext = 'jpg';
+    if ($mime === 'image/png') {
+        $ext = 'png';
+    } elseif ($mime === 'image/webp') {
+        $ext = 'webp';
+    }
 
     $filename = bin2hex(random_bytes(16)) . '.' . $ext;
     $path = UPLOADS_PATH . '/' . $directory;
