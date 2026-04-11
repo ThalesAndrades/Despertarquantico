@@ -58,6 +58,7 @@ function routeRequiresSession(string $url): bool
         'checkout/success',
         'checkout/cancel',
         'webhook/asaas',
+        '_health',
     ];
 
     if (in_array($url, $publicStatelessRoutes, true)) {
@@ -105,6 +106,57 @@ require_once __DIR__ . '/src/CSRF.php';
 require_once __DIR__ . '/src/Auth.php';
 require_once __DIR__ . '/src/Helpers.php';
 require_once __DIR__ . '/src/EventDispatcher.php';
+
+if ($method === 'GET' && $url === '_health') {
+    $token = (string) ($_GET['token'] ?? '');
+    $healthToken = (string) Env::get('HEALTHCHECK_TOKEN', '');
+    if ($healthToken === '' || !hash_equals($healthToken, $token)) {
+        http_response_code(404);
+        exit;
+    }
+
+    $checks = [
+        'php' => PHP_VERSION,
+        'env_loaded' => Env::has('APP_ENV') || is_file(__DIR__ . '/.env'),
+        'required_env' => [
+            'DB_HOST' => Env::has('DB_HOST'),
+            'DB_NAME' => Env::has('DB_NAME'),
+            'DB_USER' => Env::has('DB_USER'),
+            'ASAAS_API_KEY' => Env::has('ASAAS_API_KEY'),
+            'ASAAS_WEBHOOK_TOKEN' => Env::has('ASAAS_WEBHOOK_TOKEN'),
+            'SEQUENZY_ENABLED' => Env::has('SEQUENZY_ENABLED'),
+            'SEQUENZY_API_KEY' => Env::has('SEQUENZY_API_KEY'),
+        ],
+        'paths' => [
+            'storage_logs_writable' => is_dir(__DIR__ . '/storage/logs') && is_writable(__DIR__ . '/storage/logs'),
+            'uploads_writable' => is_dir(__DIR__ . '/uploads') && is_writable(__DIR__ . '/uploads'),
+        ],
+        'db' => [
+            'ok' => false,
+            'error' => null,
+        ],
+    ];
+
+    try {
+        Database::getInstance();
+        $checks['db']['ok'] = true;
+    } catch (Throwable $e) {
+        $checks['db']['error'] = get_class($e);
+    }
+
+    $requiredOk = true;
+    foreach ($checks['required_env'] as $ok) {
+        if (!$ok) {
+            $requiredOk = false;
+            break;
+        }
+    }
+    $ok = $requiredOk && !empty($checks['paths']['storage_logs_writable']) && !empty($checks['db']['ok']);
+
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode(['ok' => $ok, 'checks' => $checks], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
 
 // Load controllers
 require_once __DIR__ . '/controllers/HomeController.php';
