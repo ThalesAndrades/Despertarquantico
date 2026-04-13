@@ -3,13 +3,14 @@
 .env.*
 !.env.example
 
-# Database credentials are loaded from .env; the config file is git-ignored
-# to prevent accidental leakage via git pull on the server.
-config/database.php
-
 # Deploy artifacts
+/build/
 *.zip
 mulherespiral-deploy.zip
+
+# Documents / archives (keep them out of the deploy branch)
+*.pdf
+*.rar
 
 # Uploads
 uploads/products/*

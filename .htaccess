@@ -11,7 +11,7 @@ RewriteRule .* - [F,L]
 
 # Block sensitive paths/files even if they exist on disk
 RewriteRule ^install\.php$ - [F,L]
-RewriteRule ^(src|controllers|views|config|database|storage)/ - [F,L]
+RewriteRule ^(src|controllers|views|config|database|storage|build)/ - [F,L]
 RewriteRule ^\. - [F,L]
 RewriteRule ^uploads/.*\.(php|phtml|phar|cgi|pl|asp|aspx)$ - [F,L]
 RewriteRule ^.*\.(env|sql|log|ini|bak|sh|yml|yaml|lock)$ - [F,L,NC]
