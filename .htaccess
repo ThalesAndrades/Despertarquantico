@@ -41,6 +41,10 @@ RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
     ExpiresByType image/png "access plus 6 months"
     ExpiresByType image/webp "access plus 6 months"
     ExpiresByType image/gif "access plus 6 months"
+    ExpiresByType image/svg+xml "access plus 6 months"
+    # 3D assets (mime support varies by host; headers below also cover by extension)
+    ExpiresByType model/gltf-binary "access plus 6 months"
+    ExpiresByType model/gltf+json "access plus 6 months"
     ExpiresByType font/woff2 "access plus 6 months"
     ExpiresByType font/woff "access plus 6 months"
 </IfModule>
@@ -54,7 +58,7 @@ RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
     Header unset X-Powered-By
 
-    <FilesMatch "\.(css|js|jpg|jpeg|png|gif|webp|woff|woff2)$">
+    <FilesMatch "\.(css|js|jpg|jpeg|png|gif|webp|svg|avif|woff|woff2|glb|gltf|bin|obj|mtl)$">
         Header set Cache-Control "public, max-age=2592000, immutable"
     </FilesMatch>
 </IfModule>

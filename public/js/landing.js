@@ -25,6 +25,19 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
 
+    // === requestAnimationFrame throttle (ideal for scroll) ===
+    function rafThrottle(fn) {
+        var ticking = false;
+        return function () {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(function () {
+                ticking = false;
+                fn();
+            });
+        };
+    }
+
     // === Nav scroll effect ===
     var nav = document.getElementById('nav');
     var floatingCta = document.getElementById('floatingCta');
@@ -33,58 +46,70 @@ document.addEventListener('DOMContentLoaded', function () {
     var scrollTopBtn = document.getElementById('scrollTop');
     var heroSpiral = document.getElementById('heroSpiral');
 
-    function onScroll() {
+    // Cache expensive layout reads; recompute on resize/orientation changes.
+    var heroBottomCached = 600;
+    var ctaTriggerTopCached = Infinity;
+    function recalcScrollAnchors() {
+        heroBottomCached = heroSection ? (heroSection.offsetTop + heroSection.offsetHeight) : 600;
+        ctaTriggerTopCached = ctaSection ? (ctaSection.offsetTop - window.innerHeight) : Infinity;
+    }
+    recalcScrollAnchors();
+    window.addEventListener('load', recalcScrollAnchors, { once: true });
+    window.addEventListener('resize', throttle(recalcScrollAnchors, 200));
+
+    var enableSpiralParallax = !!(heroSpiral && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches));
+    var spiralCard = null;
+    var spiralTicking = false;
+    if (enableSpiralParallax) {
+        spiralCard = heroSpiral.querySelector('.hero-spiral3d-card') || heroSpiral;
+    }
+
+    function clamp01(v) {
+        return Math.max(0, Math.min(1, v));
+    }
+
+    function updateSpiral() {
+        spiralTicking = false;
+        if (!enableSpiralParallax || !heroSection || !spiralCard) return;
+        var rect = heroSection.getBoundingClientRect();
+        var progress = clamp01((0 - rect.top) / (rect.height * 0.9));
+        var y = progress * 42;
+        var rz = -10 + (progress * 6);
+        var rx = 10 + (progress * 8);
+        var ry = -14 + (progress * 10);
+        var s = 1 + (progress * 0.05);
+        spiralCard.style.transform = 'translate3d(0,' + y.toFixed(2) + 'px,0) rotateZ(' + rz.toFixed(2) + 'deg) rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) scale(' + s.toFixed(4) + ')';
+    }
+
+    function onScrollRaf() {
         var scrollY = window.scrollY;
 
         // Nav background
-        if (nav) {
-            nav.classList.toggle('scrolled', scrollY > 50);
-        }
+        if (nav) nav.classList.toggle('scrolled', scrollY > 50);
 
-        // Floating CTA visibility
+        // Floating CTA visibility (uses cached anchors to avoid forced reflow per scroll)
         if (floatingCta) {
-            var heroBottom = heroSection ? heroSection.offsetTop + heroSection.offsetHeight : 600;
-            var ctaTop = ctaSection ? ctaSection.offsetTop - window.innerHeight : Infinity;
-            floatingCta.classList.toggle('show', scrollY > heroBottom && scrollY < ctaTop);
+            floatingCta.classList.toggle('show', scrollY > heroBottomCached && scrollY < ctaTriggerTopCached);
         }
 
         // Scroll to top button
-        if (scrollTopBtn) {
-            scrollTopBtn.classList.toggle('show', scrollY > 800);
-        }
-    }
+        if (scrollTopBtn) scrollTopBtn.classList.toggle('show', scrollY > 800);
 
-    window.addEventListener('scroll', throttle(onScroll, 100), { passive: true });
-
-    if (heroSpiral && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
-        var spiralTicking = false;
-        var spiralCard = heroSpiral.querySelector('.hero-spiral3d-card') || heroSpiral;
-
-        function clamp01(v) {
-            return Math.max(0, Math.min(1, v));
-        }
-
-        function updateSpiral() {
-            spiralTicking = false;
-            if (!heroSection) return;
-            var rect = heroSection.getBoundingClientRect();
-            var progress = clamp01((0 - rect.top) / (rect.height * 0.9));
-            var y = progress * 42;
-            var rz = -10 + (progress * 6);
-            var rx = 10 + (progress * 8);
-            var ry = -14 + (progress * 10);
-            var s = 1 + (progress * 0.05);
-            spiralCard.style.transform = 'translate3d(0,' + y.toFixed(2) + 'px,0) rotateZ(' + rz.toFixed(2) + 'deg) rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) scale(' + s.toFixed(4) + ')';
-        }
-
-        function onSpiralScroll() {
-            if (spiralTicking) return;
+        // Spiral parallax (rAF-based)
+        if (enableSpiralParallax && !spiralTicking) {
             spiralTicking = true;
             requestAnimationFrame(updateSpiral);
         }
+    }
 
-        window.addEventListener('scroll', onSpiralScroll, { passive: true });
-        window.addEventListener('resize', onSpiralScroll);
+    window.addEventListener('scroll', rafThrottle(onScrollRaf), { passive: true });
+    onScrollRaf();
+
+    if (enableSpiralParallax) {
+        window.addEventListener('resize', function () {
+            spiralTicking = false;
+            requestAnimationFrame(updateSpiral);
+        });
         requestAnimationFrame(updateSpiral);
     }
 
@@ -99,17 +124,39 @@ document.addEventListener('DOMContentLoaded', function () {
     var toggle = document.getElementById('navToggle');
     var links = document.getElementById('navLinks');
     if (toggle && links) {
+        function closeMenu() {
+            links.classList.remove('open');
+            toggle.classList.remove('active');
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.setAttribute('aria-label', 'Abrir menu');
+            document.body.classList.remove('nav-open');
+        }
+        function openMenu() {
+            links.classList.add('open');
+            toggle.classList.add('active');
+            toggle.setAttribute('aria-expanded', 'true');
+            toggle.setAttribute('aria-label', 'Fechar menu');
+            document.body.classList.add('nav-open');
+        }
+
         toggle.addEventListener('click', function () {
-            var isOpen = links.classList.toggle('open');
-            toggle.classList.toggle('active');
-            toggle.setAttribute('aria-expanded', isOpen);
+            var isOpen = links.classList.contains('open');
+            if (isOpen) closeMenu();
+            else openMenu();
         });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeMenu();
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!links.classList.contains('open')) return;
+            var clickedInside = links.contains(e.target) || toggle.contains(e.target);
+            if (!clickedInside) closeMenu();
+        });
+
         links.querySelectorAll('a').forEach(function (link) {
-            link.addEventListener('click', function () {
-                links.classList.remove('open');
-                toggle.classList.remove('active');
-                toggle.setAttribute('aria-expanded', 'false');
-            });
+            link.addEventListener('click', closeMenu);
         });
     }
 

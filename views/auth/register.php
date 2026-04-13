@@ -27,7 +27,7 @@
             </div>
 
             <?php if (!empty($error)): ?>
-                <div class="alert alert-error"><?= e($error) ?></div>
+                <div class="alert alert-error" role="alert" aria-live="polite"><?= e($error) ?></div>
             <?php endif; ?>
 
             <a href="<?= url('auth/google') ?>" class="auth-submit auth-submit-google">Continuar com Google</a>
@@ -38,32 +38,33 @@
 
                 <div class="form-group">
                     <label for="name">Nome completo</label>
-                    <input type="text" id="name" name="name" class="form-control" value="<?= old('name') ?>" placeholder="Seu nome" required>
+                    <input type="text" id="name" name="name" class="form-control" value="<?= old('name') ?>" placeholder="Seu nome" autocomplete="name" required>
                 </div>
 
                 <div class="form-group">
                     <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" class="form-control" value="<?= old('email') ?>" placeholder="seu@email.com" required>
+                    <input type="email" id="email" name="email" class="form-control" value="<?= old('email') ?>" placeholder="seu@email.com" autocomplete="email" inputmode="email" autocapitalize="none" required>
                 </div>
 
                 <div class="form-group">
                     <label for="anonymous_name">Seu nome na comunidade</label>
-                    <input type="text" id="anonymous_name" name="anonymous_name" class="form-control" value="<?= old('anonymous_name') ?>" placeholder="Ex: Lua Dourada, Estrela Cosmica..." required minlength="3" maxlength="50">
-                    <p class="text-xs text-muted mt-1">Este sera seu pseudonimo na comunidade. Ninguem vera seu nome real.</p>
+                    <input type="text" id="anonymous_name" name="anonymous_name" class="form-control" value="<?= old('anonymous_name') ?>" placeholder="Ex: Lua Dourada, Estrela Cosmica..." autocomplete="nickname" required minlength="3" maxlength="50" aria-describedby="anonHelp">
+                    <p id="anonHelp" class="text-xs text-muted mt-1">Este sera seu pseudonimo na comunidade. Ninguem vera seu nome real.</p>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="password">Senha</label>
-                        <input type="password" id="password" name="password" class="form-control" placeholder="Minimo 6 caracteres" required minlength="6">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Minimo 6 caracteres" autocomplete="new-password" required minlength="6">
                     </div>
                     <div class="form-group">
                         <label for="password_confirm">Confirmar senha</label>
-                        <input type="password" id="password_confirm" name="password_confirm" class="form-control" placeholder="Repita a senha" required>
+                        <input type="password" id="password_confirm" name="password_confirm" class="form-control" placeholder="Repita a senha" autocomplete="new-password" required>
                     </div>
                 </div>
 
                 <button type="submit" class="auth-submit">Criar minha conta</button>
+                <p class="auth-trust">Dados protegidos • Pseudonimo na comunidade • Sem spam</p>
             </form>
 
             <div class="auth-links">

@@ -27,10 +27,10 @@
             </div>
 
             <?php if (!empty($error)): ?>
-                <div class="alert alert-error"><?= e($error) ?></div>
+                <div class="alert alert-error" role="alert" aria-live="polite"><?= e($error) ?></div>
             <?php endif; ?>
             <?php if (!empty($success)): ?>
-                <div class="alert alert-success"><?= e($success) ?></div>
+                <div class="alert alert-success" role="alert" aria-live="polite"><?= e($success) ?></div>
             <?php endif; ?>
 
             <a href="<?= url('auth/google') ?>" class="auth-submit auth-submit-google">Entrar com Google</a>
@@ -41,15 +41,16 @@
 
                 <div class="form-group">
                     <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" class="form-control" value="<?= old('email') ?>" placeholder="seu@email.com" required>
+                    <input type="email" id="email" name="email" class="form-control" value="<?= old('email') ?>" placeholder="seu@email.com" autocomplete="email" inputmode="email" autocapitalize="none" required>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Senha</label>
-                    <input type="password" id="password" name="password" class="form-control" placeholder="Sua senha" required>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Sua senha" autocomplete="current-password" required>
                 </div>
 
                 <button type="submit" class="auth-submit">Entrar</button>
+                <p class="auth-trust">Dados protegidos • Comunidade anonima • Sem spam</p>
             </form>
 
             <div class="auth-links">

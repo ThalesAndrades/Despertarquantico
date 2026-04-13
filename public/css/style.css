@@ -140,6 +140,8 @@ body {
     overflow-x: hidden;
 }
 
+body.nav-open { overflow: hidden; }
+
 img { max-width: 100%; height: auto; display: block; }
 a { color: var(--gold); text-decoration: none; transition: color var(--transition); }
 a:hover { color: var(--gold-light); }

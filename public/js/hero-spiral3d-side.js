@@ -1,11 +1,3 @@
-/**
- * Hero 3D (GLB) - ESM
- * Importado sob demanda pelo loader para não pesar no carregamento inicial.
- *
- * Export:
- *   mountHeroSpiral3D(rootEl?: HTMLElement): Promise<void>
- */
-
 function webglSupported() {
     try {
         var canvas = document.createElement('canvas');
@@ -29,14 +21,10 @@ export async function mountHeroSpiral3D(rootEl) {
         return;
     }
 
-    // Lazy-load heavy deps only when we actually mount
     var THREE;
-    var GLTFLoader;
     try {
         var threeUrl = new URL('../vendor/three/three.module.js', import.meta.url).href;
-        var gltfUrl = new URL('../vendor/three/GLTFLoader.js', import.meta.url).href;
         THREE = await import(threeUrl);
-        GLTFLoader = (await import(gltfUrl)).GLTFLoader;
     } catch (e) {
         root.dataset.mode = 'poster';
         return;
@@ -44,12 +32,11 @@ export async function mountHeroSpiral3D(rootEl) {
 
     var card = root.querySelector('.hero-spiral3d-card') || root;
     var poster = root.querySelector('.hero-spiral3d-poster');
-    var modelGlb = root.getAttribute('data-glb') || ''; // mantém ?v=... (cache-busting)
 
     var renderer = null;
     var scene = null;
     var camera = null;
-    var model = null;
+    var spiral = null;
     var rafId = 0;
     var running = false;
     var inView = false;
@@ -91,30 +78,52 @@ export async function mountHeroSpiral3D(rootEl) {
         if (!running) return;
         rafId = requestAnimationFrame(loop);
 
-        if (model) {
+        if (spiral) {
             var t = performance.now() * 0.001;
-            var baseY = Math.sin(t * 0.35) * 0.18;
-            var baseX = Math.cos(t * 0.22) * 0.08;
-            var scrollY = (scrollProgress - 0.35) * 0.55;
-            model.rotation.y = baseY + scrollY;
-            model.rotation.x = baseX;
+            var base = t * 0.35;
+            var scrollY = (scrollProgress - 0.35) * 0.65;
+            spiral.rotation.y = (Math.PI * 0.5) + base + scrollY;
+            spiral.rotation.x = 0.18 + Math.sin(t * 0.22) * 0.06;
         }
 
         renderer.render(scene, camera);
     }
 
+    function buildSpiral() {
+        var turns = 7.2;
+        var steps = 260;
+        var radius = 0.62;
+        var height = 1.18;
+        var points = [];
+        for (var i = 0; i <= steps; i++) {
+            var p = i / steps;
+            var a = p * turns * Math.PI * 2;
+            var y = (p - 0.5) * height;
+            var x = Math.cos(a) * radius;
+            var z = Math.sin(a) * radius;
+            points.push(new THREE.Vector3(x, y, z));
+        }
+        var curve = new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.5);
+        var geom = new THREE.TubeGeometry(curve, 520, 0.035, 16, false);
+        var mat = new THREE.MeshStandardMaterial({
+            color: 0xC9A84C,
+            metalness: 0.85,
+            roughness: 0.28
+        });
+        var mesh = new THREE.Mesh(geom, mat);
+        mesh.rotation.x = 0.18;
+        mesh.rotation.y = Math.PI * 0.5;
+        return mesh;
+    }
+
     function init() {
         if (renderer) return;
-        if (!modelGlb) {
-            root.dataset.mode = 'poster';
-            return;
-        }
-
         scene = new THREE.Scene();
 
         var s = size();
         camera = new THREE.PerspectiveCamera(34, s.w / s.h, 0.1, 100);
-        camera.position.set(0, 0.1, 2.6);
+        camera.position.set(2.45, 0.15, 0.15);
+        camera.lookAt(0, 0, 0);
 
         renderer = new THREE.WebGLRenderer({
             alpha: true,
@@ -132,46 +141,20 @@ export async function mountHeroSpiral3D(rootEl) {
         renderer.domElement.setAttribute('aria-hidden', 'true');
         card.appendChild(renderer.domElement);
 
-        var hemi = new THREE.HemisphereLight(0xffffff, 0x0a0a0a, 1.05);
+        var hemi = new THREE.HemisphereLight(0xffffff, 0x0a0a0a, 1.15);
         scene.add(hemi);
-        var dir = new THREE.DirectionalLight(0xffffff, 0.85);
-        dir.position.set(2.2, 3.4, 4.2);
+        var dir = new THREE.DirectionalLight(0xffffff, 0.95);
+        dir.position.set(2.2, 3.1, 3.6);
         scene.add(dir);
+        var rim = new THREE.DirectionalLight(0xDFC06A, 0.55);
+        rim.position.set(-2.6, 0.6, -2.2);
+        scene.add(rim);
 
-        var manager = new THREE.LoadingManager();
-        manager.onLoad = function () {
-            setPosterReady();
-            root.classList.add('hero-spiral3d-ready');
-            if (inView) start();
-        };
+        spiral = buildSpiral();
+        scene.add(spiral);
 
-        var loader = new GLTFLoader(manager);
-        loader.load(modelGlb, function (gltf) {
-            var obj = gltf.scene || (gltf.scenes && gltf.scenes[0]);
-            if (!obj) {
-                root.dataset.mode = 'poster';
-                return;
-            }
-
-            var box = new THREE.Box3().setFromObject(obj);
-            var center = box.getCenter(new THREE.Vector3());
-            obj.position.sub(center);
-
-            var sizeVec = box.getSize(new THREE.Vector3());
-            var maxDim = Math.max(sizeVec.x, sizeVec.y, sizeVec.z) || 1;
-            var scale = 1.65 / maxDim;
-            obj.scale.setScalar(scale);
-
-            obj.rotation.x = 0.12;
-            obj.rotation.y = -0.25;
-            obj.position.y = -0.05;
-
-            model = obj;
-            scene.add(obj);
-            renderer.render(scene, camera);
-        }, undefined, function () {
-            root.dataset.mode = 'poster';
-        });
+        setPosterReady();
+        root.classList.add('hero-spiral3d-ready');
 
         var ro = new ResizeObserver(function () { applySize(); });
         ro.observe(root);
@@ -188,11 +171,11 @@ export async function mountHeroSpiral3D(rootEl) {
             if (document.hidden) stop();
             else if (inView) start();
         });
+
+        renderer.render(scene, camera);
+        if (inView) start();
     }
 
-    // IMPORTANT: keep observing visibility so we can stop rendering offscreen.
-    // Previous behavior disconnected the observer after first intersection, which kept
-    // the RAF loop running even after the user scrolls away (battery/GPU + JS cost).
     var inited = false;
     function scheduleInit() {
         if (inited) return;
@@ -207,7 +190,6 @@ export async function mountHeroSpiral3D(rootEl) {
             var entry = entries && entries[0];
             if (!entry) return;
             inView = !!entry.isIntersecting;
-
             if (inView) {
                 if (!inited) scheduleInit();
                 else start();
@@ -221,3 +203,4 @@ export async function mountHeroSpiral3D(rootEl) {
         scheduleInit();
     }
 }
+

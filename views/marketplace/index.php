@@ -195,8 +195,9 @@ foreach ($products as $p) {
                                 <span><?= (int) $product['lesson_count'] ?> aula<?= (int) $product['lesson_count'] === 1 ? '' : 's' ?></span>
                             </div>
                             <div class="marketplace-card-actions">
+                                <?php $priceBr = 'R$ ' . number_format((float) $product['price'], 2, ',', '.'); ?>
+                                <a href="<?= url('checkout/' . e($product['slug'])) ?>" class="btn btn-gold" aria-label="Comprar <?= e($product['title']) ?> por <?= e($priceBr) ?>">Comprar agora</a>
                                 <a href="<?= url('marketplace/' . e($product['slug'])) ?>" class="btn btn-outline">Ver detalhes</a>
-                                <a href="<?= url('checkout/' . e($product['slug'])) ?>" class="btn btn-gold">Comprar agora</a>
                             </div>
                         </div>
                     </article>

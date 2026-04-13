@@ -32,6 +32,8 @@ $aboutImageUrl = asset($aboutImagePath);
     <meta name="twitter:title" content="<?= e($ogTitle) ?>">
     <meta name="twitter:description" content="<?= e($metaDescription) ?>">
     <meta name="twitter:image" content="<?= e($ogImageUrl) ?>">
+    <!-- LCP hint: hero poster is the default above-the-fold visual (3D loads after) -->
+    <link rel="preload" as="image" href="<?= e(asset('images/landing/hero-spiral-side.svg')) ?>" type="image/svg+xml" fetchpriority="high">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -39,6 +41,7 @@ $aboutImageUrl = asset($aboutImagePath);
     <link rel="stylesheet" href="<?= asset('css/landing.css') ?>">
 </head>
 <body>
+<a class="skip-link" href="#hero">Pular para o conteudo</a>
 
 <!-- NAV -->
 <nav class="landing-nav" id="nav">
@@ -55,7 +58,7 @@ $aboutImageUrl = asset($aboutImagePath);
                 Acessar
             </a>
         </div>
-        <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false">
+        <button class="nav-toggle" id="navToggle" aria-label="Abrir menu" aria-controls="navLinks" aria-expanded="false">
             <span></span><span></span><span></span>
         </button>
     </div>
@@ -86,9 +89,11 @@ $aboutImageUrl = asset($aboutImagePath);
             <a href="<?= e($checkoutUrl) ?>" class="btn btn-gold btn-lg hero-cta-main">
                 Comecar minha jornada
             </a>
-            <a href="<?= url('aplicacao') ?>" class="btn btn-outline btn-lg" style="margin-top:12px;">
-                Aplicar para mentoria premium
+            <p class="hero-cta-note">Garantia 7 dias • Acesso imediato • Pagamento seguro</p>
+            <a href="#programa" class="btn btn-outline btn-lg" style="margin-top:12px;">
+                Ver o que vou receber
             </a>
+            <a class="hero-cta-link" href="<?= url('aplicacao') ?>">Aplicar para mentoria premium</a>
             <div class="hero-proof">
                 <div class="hero-proof-item">
                     <strong>2.500+</strong>
@@ -109,9 +114,9 @@ $aboutImageUrl = asset($aboutImagePath);
         <div class="hero-visual" aria-hidden="true">
             <div class="hero-spiral3d" id="heroSpiral"
                 data-glb="<?= e(asset('models/hero-spiral3d/model.glb')) ?>"
-                data-hero3d-module="<?= e(asset('js/hero-spiral3d-glb.js')) ?>">
+                data-hero3d-module="<?= e(asset('js/hero-spiral3d-side.js')) ?>">
                 <div class="hero-spiral3d-card">
-                    <img class="hero-spiral3d-poster" src="<?= e(asset('models/hero-spiral3d/preview.png')) ?>" alt="" loading="eager" decoding="async" fetchpriority="high">
+                    <img class="hero-spiral3d-poster" src="<?= e(asset('images/landing/hero-spiral-side.svg')) ?>" alt="" width="512" height="512" loading="eager" decoding="async" fetchpriority="high">
                 </div>
             </div>
         </div>

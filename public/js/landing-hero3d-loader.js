@@ -58,6 +58,11 @@ if (!root) {
     root.dataset.mode = 'poster';
   } else {
     let loaded = false;
+    const afterWindowLoad = (cb) => {
+      if (document.readyState === 'complete') return cb();
+      // Avoid competing with LCP-critical work (fonts, hero poster, CSS) on initial load.
+      window.addEventListener('load', cb, { once: true });
+    };
     const load3D = () => {
       if (loaded) return;
       loaded = true;
@@ -70,8 +75,10 @@ if (!root) {
 
     // Warm cache with very low priority once the page is settled
     const idle = window.requestIdleCallback;
-    if (idle) idle(() => prefetch(moduleUrl), { timeout: 1200 });
-    else setTimeout(() => prefetch(moduleUrl), 900);
+    afterWindowLoad(() => {
+      if (idle) idle(() => prefetch(moduleUrl), { timeout: 1400 });
+      else setTimeout(() => prefetch(moduleUrl), 1000);
+    });
 
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver(
@@ -80,9 +87,11 @@ if (!root) {
           if (!entry) return;
           if (entry.isIntersecting) {
             io.disconnect();
-            const idle2 = window.requestIdleCallback;
-            if (idle2) idle2(load3D, { timeout: 800 });
-            else setTimeout(load3D, 250);
+            afterWindowLoad(() => {
+              const idle2 = window.requestIdleCallback;
+              if (idle2) idle2(load3D, { timeout: 900 });
+              else setTimeout(load3D, 350);
+            });
           }
         },
         { rootMargin: '260px 0px' }
@@ -90,8 +99,7 @@ if (!root) {
       io.observe(root);
     } else {
       // Fallback: delay to let LCP settle
-      setTimeout(load3D, 1200);
+      afterWindowLoad(() => setTimeout(load3D, 700));
     }
   }
 }
-

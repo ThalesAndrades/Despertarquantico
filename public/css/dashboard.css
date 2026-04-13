@@ -877,6 +877,12 @@
     transform: translateY(-2px);
     box-shadow: 0 8px 30px rgba(201, 168, 76, 0.25);
 }
+.auth-trust{
+    margin-top: 12px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-faint);
+}
 .auth-submit-google {
     display: block;
     text-align: center;
