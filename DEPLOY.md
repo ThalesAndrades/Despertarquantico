@@ -30,3 +30,14 @@
 - Página inicial: `https://despertarespiral.com/`
 - Healthcheck (precisa do token do `.env`): `https://despertarespiral.com/_health?token=SEU_TOKEN`
 
+### Seed rápido (criar admin + produtos de teste)
+1) No servidor, no `.env`, adicione temporariamente:
+   - `BOOTSTRAP_ENABLED=true`
+   - `BOOTSTRAP_TOKEN=um_token_longo_e_unico`
+   - `ADMIN_BOOTSTRAP_EMAIL=sunyan@despertarespiral.com`
+   - `ADMIN_BOOTSTRAP_PASSWORD=admin123`
+2) Acesse:
+   - `https://despertarespiral.com/_bootstrap?token=SEU_BOOTSTRAP_TOKEN`
+3) Depois disso:
+   - volte `BOOTSTRAP_ENABLED=false` (ou remova as variáveis)
+   - troque a senha do admin no painel

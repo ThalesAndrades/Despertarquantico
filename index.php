@@ -70,6 +70,7 @@ function routeRequiresSession(string $url): bool
         'checkout/cancel',
         'webhook/asaas',
         '_health',
+        '_bootstrap',
     ];
 
     if (in_array($url, $publicStatelessRoutes, true)) {
@@ -185,6 +186,151 @@ if ($method === 'GET' && $url === '_health') {
 
     header('Content-Type: application/json; charset=UTF-8');
     echo json_encode(['ok' => $ok, 'checks' => $checks], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if (($method === 'GET' || $method === 'POST') && $url === '_bootstrap') {
+    $enabled = strtolower((string) Env::get('BOOTSTRAP_ENABLED', '')) === 'true';
+    $token = (string) ($_GET['token'] ?? '');
+    $expected = (string) Env::get('BOOTSTRAP_TOKEN', '');
+    if (!$enabled || $expected === '' || !hash_equals($expected, $token)) {
+        http_response_code(404);
+        exit;
+    }
+
+    $result = [
+        'ok' => false,
+        'seed' => [],
+    ];
+
+    try {
+        Database::getInstance();
+
+        $adminEmail = (string) Env::get('ADMIN_BOOTSTRAP_EMAIL', Env::get('ADMIN_INIT_EMAIL', 'sunyan@despertarespiral.com'));
+        $adminPass = (string) Env::get('ADMIN_BOOTSTRAP_PASSWORD', Env::get('ADMIN_INIT_PASSWORD', ''));
+        $adminName = (string) Env::get('ADMIN_BOOTSTRAP_NAME', Env::get('ADMIN_INIT_NAME', 'Sunyan Nunes'));
+
+        if ($adminPass !== '') {
+            $hash = password_hash($adminPass, PASSWORD_DEFAULT);
+            Database::query(
+                "INSERT INTO users (name, email, password_hash, anonymous_name, role, is_active, auth_provider)
+                 VALUES (?, ?, ?, ?, 'admin', 1, 'local')
+                 ON DUPLICATE KEY UPDATE
+                   name = VALUES(name),
+                   password_hash = VALUES(password_hash),
+                   role = 'admin',
+                   is_active = 1,
+                   auth_provider = 'local'",
+                [$adminName, $adminEmail, $hash, 'Sunyan']
+            );
+            $result['seed']['admin'] = $adminEmail;
+        } else {
+            $result['seed']['admin'] = 'skipped_missing_password';
+        }
+
+        $products = [
+            [
+                'title' => 'Mulher Espiral',
+                'slug' => 'mulher-espiral',
+                'short' => 'Programa exclusivo de transformação feminina.',
+                'desc' => 'Programa completo + bônus. Jornada estruturada em módulos para reconexão e transformação.',
+                'price' => 1299.00,
+                'active' => 1,
+                'sort' => 0,
+            ],
+            [
+                'title' => 'Jornada Essência (Teste)',
+                'slug' => 'jornada-essencia-teste',
+                'short' => 'Produto de teste para validação do marketplace.',
+                'desc' => 'Produto de teste. Ajuste título/descrição depois.',
+                'price' => 97.00,
+                'active' => 1,
+                'sort' => 10,
+            ],
+            [
+                'title' => 'Meditações Guiadas (Teste)',
+                'slug' => 'meditacoes-guiadas-teste',
+                'short' => 'Produto de teste para validar checkout e vitrine.',
+                'desc' => 'Produto de teste. Ajuste título/descrição depois.',
+                'price' => 49.00,
+                'active' => 1,
+                'sort' => 20,
+            ],
+        ];
+
+        foreach ($products as $p) {
+            Database::query(
+                "INSERT INTO products (title, slug, description, short_description, price, is_active, sort_order)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE
+                   title = VALUES(title),
+                   description = VALUES(description),
+                   short_description = VALUES(short_description),
+                   price = VALUES(price),
+                   is_active = VALUES(is_active),
+                   sort_order = VALUES(sort_order)",
+                [$p['title'], $p['slug'], $p['desc'], $p['short'], $p['price'], $p['active'], $p['sort']]
+            );
+        }
+
+        $product = Database::fetch("SELECT id FROM products WHERE slug = ?", ['mulher-espiral']);
+        if ($product) {
+            $pid = (int) $product['id'];
+            $hasModules = Database::count("SELECT COUNT(*) FROM modules WHERE product_id = ?", [$pid]) > 0;
+            if (!$hasModules) {
+                $m1 = (int) Database::insert(
+                    "INSERT INTO modules (product_id, title, sort_order) VALUES (?, ?, ?)",
+                    [$pid, 'Boas-vindas', 1]
+                );
+                $m2 = (int) Database::insert(
+                    "INSERT INTO modules (product_id, title, sort_order) VALUES (?, ?, ?)",
+                    [$pid, 'Despertar da Consciência', 2]
+                );
+
+                Database::insert(
+                    "INSERT INTO lessons (module_id, title, content_type, content_body, duration_minutes, sort_order)
+                     VALUES (?, ?, 'text', ?, 5, 1)",
+                    [$m1, 'Como usar a plataforma', '<p>Conteúdo de teste. Edite no painel admin quando quiser.</p>']
+                );
+                Database::insert(
+                    "INSERT INTO lessons (module_id, title, content_type, content_body, duration_minutes, sort_order)
+                     VALUES (?, ?, 'text', ?, 8, 1)",
+                    [$m2, 'Padrões inconscientes', '<p>Conteúdo de teste. Edite no painel admin quando quiser.</p>']
+                );
+                Database::insert(
+                    "INSERT INTO lessons (module_id, title, content_type, content_body, duration_minutes, sort_order)
+                     VALUES (?, ?, 'text', ?, 6, 2)",
+                    [$m2, 'Reconexão com sua essência', '<p>Conteúdo de teste. Edite no painel admin quando quiser.</p>']
+                );
+            }
+        }
+
+        Database::query(
+            "INSERT IGNORE INTO crm_leads (email, name, source, stage, score, created_at)
+             VALUES (?, ?, ?, ?, ?, NOW())",
+            ['teste@exemplo.com', 'Lead Teste', 'seed', 'new', 10]
+        );
+
+        Database::query(
+            "INSERT INTO high_ticket_applications (name, email, whatsapp, moment, goal, status, created_at)
+             VALUES (?, ?, ?, ?, ?, 'new', NOW())",
+            ['Candidata Teste', 'candidata@exemplo.com', '+55 11 99999-9999', 'Aplicação de teste', 'Objetivo de teste']
+        );
+
+        $result['ok'] = true;
+        $result['seed']['products'] = array_map(fn ($x) => $x['slug'], $products);
+        $result['seed']['notes'] = [
+            'Execute apenas uma vez e depois desative BOOTSTRAP_ENABLED.',
+            'Troque a senha do admin após validar.',
+        ];
+    } catch (Throwable $e) {
+        http_response_code(500);
+        $result['ok'] = false;
+        $result['error'] = get_class($e);
+    }
+
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
