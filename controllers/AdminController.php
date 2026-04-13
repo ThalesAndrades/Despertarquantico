@@ -282,6 +282,191 @@ class AdminController
         closeLayout();
     }
 
+    public function applications(): void
+    {
+        requireAdmin();
+        $status = trim($_GET['status'] ?? '');
+        $params = [];
+        $where = '';
+        if ($status !== '' && in_array($status, ['new', 'contacted', 'qualified', 'unqualified'], true)) {
+            $where = "WHERE status = ?";
+            $params[] = $status;
+        }
+
+        $applications = Database::fetchAll(
+            "SELECT * FROM high_ticket_applications
+             $where
+             ORDER BY created_at DESC
+             LIMIT 200",
+            $params
+        );
+
+        $pageTitle = 'Aplicações (High Ticket)';
+        $adminPage = 'applications';
+        require VIEWS_PATH . '/layouts/admin.php';
+        require VIEWS_PATH . '/admin/applications.php';
+        closeLayout();
+    }
+
+    public function leads(): void
+    {
+        requireAdmin();
+
+        $q = trim($_GET['q'] ?? '');
+        $tag = trim($_GET['tag'] ?? '');
+        $pain = trim($_GET['pain'] ?? '');
+        $stage = trim($_GET['stage'] ?? '');
+        $source = trim($_GET['source'] ?? '');
+        $minScore = trim($_GET['min_score'] ?? '');
+
+        $where = [];
+        $params = [];
+
+        if ($q !== '') {
+            $where[] = "(l.email LIKE ? OR l.name LIKE ? OR l.whatsapp LIKE ?)";
+            $params[] = '%' . $q . '%';
+            $params[] = '%' . $q . '%';
+            $params[] = '%' . $q . '%';
+        }
+        if ($pain !== '') {
+            $where[] = "l.pain_primary = ?";
+            $params[] = $pain;
+        }
+        if ($stage !== '') {
+            $where[] = "l.stage = ?";
+            $params[] = $stage;
+        }
+        if ($source !== '') {
+            $where[] = "l.source = ?";
+            $params[] = $source;
+        }
+        if ($minScore !== '' && ctype_digit($minScore)) {
+            $where[] = "l.score >= ?";
+            $params[] = (int) $minScore;
+        }
+
+        $join = "";
+        if ($tag !== '') {
+            $join = "JOIN crm_lead_tags lt ON lt.lead_id = l.id
+                     JOIN crm_tags t ON t.id = lt.tag_id";
+            $where[] = "t.slug = ?";
+            $params[] = $tag;
+        }
+
+        $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
+
+        $leads = Database::fetchAll(
+            "SELECT l.*
+             FROM crm_leads l
+             $join
+             $whereSql
+             ORDER BY l.last_event_at DESC, l.score DESC
+             LIMIT 300",
+            $params
+        );
+
+        $tagOptions = Database::fetchAll("SELECT slug, name FROM crm_tags ORDER BY name ASC");
+        $painOptions = Database::fetchAll("SELECT pain_primary AS value, COUNT(*) AS total FROM crm_leads WHERE pain_primary IS NOT NULL AND pain_primary <> '' GROUP BY pain_primary ORDER BY total DESC");
+        $stageOptions = Database::fetchAll("SELECT stage AS value, COUNT(*) AS total FROM crm_leads WHERE stage IS NOT NULL AND stage <> '' GROUP BY stage ORDER BY total DESC");
+        $sourceOptions = Database::fetchAll("SELECT source AS value, COUNT(*) AS total FROM crm_leads WHERE source IS NOT NULL AND source <> '' GROUP BY source ORDER BY total DESC");
+
+        $pageTitle = 'CRM (Leads)';
+        $adminPage = 'crm';
+        require VIEWS_PATH . '/layouts/admin.php';
+        require VIEWS_PATH . '/admin/leads.php';
+        closeLayout();
+    }
+
+    public function lead(string $id): void
+    {
+        requireAdmin();
+
+        $lead = Database::fetch("SELECT * FROM crm_leads WHERE id = ?", [(int) $id]);
+        if (!$lead) {
+            redirect('admin/leads');
+        }
+
+        $tags = Database::fetchAll(
+            "SELECT t.*
+             FROM crm_tags t
+             JOIN crm_lead_tags lt ON lt.tag_id = t.id
+             WHERE lt.lead_id = ?
+             ORDER BY t.name ASC",
+            [(int) $id]
+        );
+
+        $events = Database::fetchAll(
+            "SELECT * FROM crm_lead_events WHERE lead_id = ? ORDER BY created_at DESC LIMIT 200",
+            [(int) $id]
+        );
+
+        $notes = Database::fetchAll(
+            "SELECT n.*, u.name AS admin_name
+             FROM crm_lead_notes n
+             LEFT JOIN users u ON u.id = n.admin_user_id
+             WHERE n.lead_id = ?
+             ORDER BY n.created_at DESC",
+            [(int) $id]
+        );
+
+        $tagOptions = Database::fetchAll("SELECT slug, name FROM crm_tags ORDER BY name ASC");
+
+        $pageTitle = 'Lead';
+        $adminPage = 'crm';
+        require VIEWS_PATH . '/layouts/admin.php';
+        require VIEWS_PATH . '/admin/lead.php';
+        closeLayout();
+    }
+
+    public function leadNote(string $id): void
+    {
+        requireAdmin();
+        CSRF::check();
+
+        $note = trim($_POST['note'] ?? '');
+        if ($note === '') {
+            redirect('admin/leads/' . (int) $id);
+        }
+
+        $admin = currentUser();
+        $adminId = $admin ? (int) $admin['id'] : null;
+
+        Database::query(
+            "INSERT INTO crm_lead_notes (lead_id, admin_user_id, note) VALUES (?, ?, ?)",
+            [(int) $id, $adminId, $note]
+        );
+
+        flash('success', 'Nota adicionada.');
+        redirect('admin/leads/' . (int) $id);
+    }
+
+    public function leadTag(string $id): void
+    {
+        requireAdmin();
+        CSRF::check();
+
+        $slug = strtolower(trim($_POST['tag'] ?? ''));
+        $custom = strtolower(trim($_POST['tag_custom'] ?? ''));
+        if ($custom !== '') {
+            $slug = $custom;
+        }
+        if ($slug === '') {
+            redirect('admin/leads/' . (int) $id);
+        }
+
+        $tag = Database::fetch("SELECT id FROM crm_tags WHERE slug = ?", [$slug]);
+        if (!$tag) {
+            Database::query("INSERT INTO crm_tags (slug, name) VALUES (?, ?)", [$slug, $slug]);
+            $tagId = (int) Database::getInstance()->lastInsertId();
+        } else {
+            $tagId = (int) $tag['id'];
+        }
+
+        Database::query("INSERT IGNORE INTO crm_lead_tags (lead_id, tag_id) VALUES (?, ?)", [(int) $id, $tagId]);
+        flash('success', 'Tag aplicada.');
+        redirect('admin/leads/' . (int) $id);
+    }
+
     public function community(): void
     {
         requireAdmin();

@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> - <?= APP_NAME ?></title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0A0A0A" id="themeColorMeta">
+    <?= themeInitScript() ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -19,10 +22,16 @@
                 <p>Crie sua conta e faca parte da comunidade</p>
                 <div class="gold-line"></div>
             </div>
+            <div style="display:flex;justify-content:center;margin:-6px 0 18px;">
+                <?= themeToggleButton('theme-toggle', 'Tema') ?>
+            </div>
 
             <?php if (!empty($error)): ?>
                 <div class="alert alert-error"><?= e($error) ?></div>
             <?php endif; ?>
+
+            <a href="<?= url('auth/google') ?>" class="auth-submit auth-submit-google">Continuar com Google</a>
+            <div class="auth-divider"><span>ou</span></div>
 
             <form method="POST" action="<?= url('register') ?>">
                 <?= CSRF::field() ?>
@@ -39,7 +48,7 @@
 
                 <div class="form-group">
                     <label for="anonymous_name">Seu nome na comunidade</label>
-                    <input type="text" id="anonymous_name" name="anonymous_name" class="form-control" value="<?= old('anonymousName') ?>" placeholder="Ex: Lua Dourada, Estrela Cosmica..." required minlength="3" maxlength="50">
+                    <input type="text" id="anonymous_name" name="anonymous_name" class="form-control" value="<?= old('anonymous_name') ?>" placeholder="Ex: Lua Dourada, Estrela Cosmica..." required minlength="3" maxlength="50">
                     <p class="text-xs text-muted mt-1">Este sera seu pseudonimo na comunidade. Ninguem vera seu nome real.</p>
                 </div>
 
@@ -63,5 +72,6 @@
             </div>
         </div>
     </div>
+    <?= themeScriptTag() ?>
 </body>
 </html>

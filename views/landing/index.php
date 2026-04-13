@@ -1,6 +1,16 @@
 <?php
-$pageTitle = 'Mulher Espiral - Sunyan Nunes';
+$pageTitle = 'Mulher Espiral | ' . APP_NAME;
 $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('register');
+$canonicalUrl = rtrim(APP_URL, '/') . '/';
+$metaDescription = 'Mulher Espiral: a jornada premium de transformacao feminina dentro da plataforma ' . APP_NAME . '. Metodo estruturado, comunidade privada e acesso imediato.';
+$ogTitle = 'Mulher Espiral | ' . APP_NAME;
+$brandImagePath = 'images/landing/home-brand.webp';
+if (!is_file(BASE_PATH . '/public/' . $brandImagePath)) {
+    $brandImagePath = 'images/landing/hero-essencia.svg';
+}
+$ogImageUrl = asset($brandImagePath);
+$aboutImagePath = 'images/landing/about-sunyan.svg';
+$aboutImageUrl = asset($aboutImagePath);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -8,11 +18,20 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title><?= e($pageTitle) ?></title>
-    <meta name="description" content="O programa de transformacao feminina mais completo do Brasil. Metodo exclusivo de Sunyan Nunes para despertar sua essencia e ativar seu poder interior.">
-    <meta name="theme-color" content="#0A0A0A">
-    <meta property="og:title" content="Mulher Espiral - Sunyan Nunes">
-    <meta property="og:description" content="Desperte a mulher espiral que existe em voce. Programa completo de transformacao feminina.">
+    <link rel="canonical" href="<?= e($canonicalUrl) ?>">
+    <meta name="description" content="<?= e($metaDescription) ?>">
+    <meta name="theme-color" content="#0A0A0A" id="themeColorMeta">
+    <?= themeInitScript() ?>
+    <meta property="og:title" content="<?= e($ogTitle) ?>">
+    <meta property="og:description" content="<?= e($metaDescription) ?>">
     <meta property="og:type" content="website">
+    <meta property="og:site_name" content="<?= e(APP_NAME) ?>">
+    <meta property="og:url" content="<?= e($canonicalUrl) ?>">
+    <meta property="og:image" content="<?= e($ogImageUrl) ?>">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?= e($ogTitle) ?>">
+    <meta name="twitter:description" content="<?= e($metaDescription) ?>">
+    <meta name="twitter:image" content="<?= e($ogImageUrl) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -24,12 +43,13 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
 <!-- NAV -->
 <nav class="landing-nav" id="nav">
     <div class="container flex-between">
-        <a href="<?= url('') ?>" class="nav-logo">MULHER ESPIRAL</a>
+        <a href="<?= url('') ?>" class="nav-logo">DESPERTAR ESPIRAL <span class="nav-logo-sub">Mulher Espiral</span></a>
         <div class="nav-links" id="navLinks">
             <a href="#metodo">Metodo</a>
             <a href="#sobre">Sunyan</a>
             <a href="#programa">Programa</a>
             <a href="#depoimentos">Resultados</a>
+            <?= themeToggleButton('theme-toggle theme-toggle-nav', 'Tema') ?>
             <a href="<?= url('login') ?>" class="nav-cta-btn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
                 Acessar
@@ -48,37 +68,51 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
         <div class="hero-orb hero-orb-2"></div>
     </div>
     <div class="container hero-content">
-        <span class="hero-badge">
-            <span class="hero-badge-dot"></span>
-            Programa exclusivo
-        </span>
-        <h1 class="hero-title">
-            Voce nao precisa de mais<br>
-            informacao. Voce precisa<br>
-            de <em>transformacao.</em>
-        </h1>
-        <p class="hero-subtitle">
-            O Mulher Espiral e o metodo que ja guiou mais de 2.500 mulheres
-            a reconectarem com sua essencia, dissolverem padroes limitantes
-            e criarem uma vida alinhada com quem realmente sao.
-        </p>
-        <a href="<?= e($checkoutUrl) ?>" class="btn btn-gold btn-lg hero-cta-main">
-            Comecar minha jornada
-        </a>
-        <div class="hero-proof">
-            <div class="hero-proof-item">
-                <strong>2.500+</strong>
-                <span>mulheres</span>
+        <div class="hero-copy">
+            <span class="hero-badge">
+                <span class="hero-badge-dot"></span>
+                Programa exclusivo
+            </span>
+            <h1 class="hero-title">
+                Voce nao precisa de mais<br>
+                informacao. Voce precisa<br>
+                de <em>transformacao.</em>
+            </h1>
+            <p class="hero-subtitle">
+                O Mulher Espiral e o metodo que ja guiou mais de 2.500 mulheres
+                a reconectarem com sua essencia, dissolverem padroes limitantes
+                e criarem uma vida alinhada com quem realmente sao.
+            </p>
+            <a href="<?= e($checkoutUrl) ?>" class="btn btn-gold btn-lg hero-cta-main">
+                Comecar minha jornada
+            </a>
+            <a href="<?= url('aplicacao') ?>" class="btn btn-outline btn-lg" style="margin-top:12px;">
+                Aplicar para mentoria premium
+            </a>
+            <div class="hero-proof">
+                <div class="hero-proof-item">
+                    <strong>2.500+</strong>
+                    <span>mulheres</span>
+                </div>
+                <div class="hero-proof-sep"></div>
+                <div class="hero-proof-item">
+                    <strong>10</strong>
+                    <span>modulos</span>
+                </div>
+                <div class="hero-proof-sep"></div>
+                <div class="hero-proof-item">
+                    <strong>4.9</strong>
+                    <span>avaliacao</span>
+                </div>
             </div>
-            <div class="hero-proof-sep"></div>
-            <div class="hero-proof-item">
-                <strong>10</strong>
-                <span>modulos</span>
-            </div>
-            <div class="hero-proof-sep"></div>
-            <div class="hero-proof-item">
-                <strong>4.9</strong>
-                <span>avaliacao</span>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+            <div class="hero-spiral3d" id="heroSpiral"
+                data-glb="<?= e(asset('models/hero-spiral3d/model.glb')) ?>"
+                data-hero3d-module="<?= e(asset('js/hero-spiral3d-glb.js')) ?>">
+                <div class="hero-spiral3d-card">
+                    <img class="hero-spiral3d-poster" src="<?= e(asset('models/hero-spiral3d/preview.png')) ?>" alt="" loading="eager" decoding="async" fetchpriority="high">
+                </div>
             </div>
         </div>
     </div>
@@ -98,6 +132,14 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
         </div>
     </div>
 </div>
+
+<section class="home-hero-image" aria-label="Despertar Espiral">
+    <div class="container">
+        <div class="home-hero-image-card">
+            <img src="<?= e($ogImageUrl) ?>" alt="Despertar Espiral" loading="lazy" decoding="async">
+        </div>
+    </div>
+</section>
 
 <!-- CONTEXT: A VERDADE -->
 <section class="section" id="verdade">
@@ -162,7 +204,9 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
     <div class="container">
         <div class="about-layout">
             <div class="about-image">
-                <div class="about-photo-placeholder">SN</div>
+                <div class="about-photo-frame">
+                    <img class="about-photo" src="<?= e($aboutImageUrl) ?>" alt="Sunyan Nunes" loading="lazy" decoding="async">
+                </div>
             </div>
             <div class="about-text">
                 <span class="section-label">QUEM TE GUIA</span>
@@ -360,5 +404,7 @@ $checkoutUrl = ($product ?? null) ? url('checkout/' . $product['slug']) : url('r
 </div>
 
 <script src="<?= asset('js/landing.js') ?>"></script>
+<script type="module" src="<?= asset('js/landing-hero3d-loader.js') ?>"></script>
+<?= themeScriptTag() ?>
 </body>
 </html>

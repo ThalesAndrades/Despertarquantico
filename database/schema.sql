@@ -17,6 +17,10 @@ CREATE TABLE users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    auth_provider VARCHAR(20) NOT NULL DEFAULT 'local',
+    google_id VARCHAR(64) DEFAULT NULL,
+    google_email_verified TINYINT(1) DEFAULT 0,
+    avatar_url VARCHAR(500) DEFAULT NULL,
     anonymous_name VARCHAR(50) UNIQUE DEFAULT NULL,
     role ENUM('member', 'admin') DEFAULT 'member',
     is_active TINYINT(1) DEFAULT 1,
@@ -26,6 +30,8 @@ CREATE TABLE users (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
+    UNIQUE KEY uniq_google_id (google_id),
+    INDEX idx_auth_provider (auth_provider),
     INDEX idx_reset_token (reset_token),
     INDEX idx_asaas_customer (asaas_customer_id)
 ) ENGINE=InnoDB;
@@ -142,6 +148,91 @@ CREATE TABLE login_attempts (
     attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_ip_time (ip_address, attempted_at),
     INDEX idx_email_time (email, attempted_at)
+) ENGINE=InnoDB;
+
+-- =============================================
+-- High Ticket Applications (mentoria premium)
+-- =============================================
+CREATE TABLE high_ticket_applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(120) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    whatsapp VARCHAR(40) NOT NULL,
+    moment TEXT NOT NULL,
+    goal TEXT NOT NULL,
+    status ENUM('new', 'contacted', 'qualified', 'unqualified') DEFAULT 'new',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_email_created (email, created_at),
+    INDEX idx_status_created (status, created_at)
+) ENGINE=InnoDB;
+
+-- =============================================
+-- Marketing CRM (Leads, Tags, Events)
+-- =============================================
+CREATE TABLE crm_leads (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(150) NOT NULL,
+    name VARCHAR(120) DEFAULT NULL,
+    whatsapp VARCHAR(40) DEFAULT NULL,
+    source VARCHAR(80) DEFAULT NULL,
+    pain_primary VARCHAR(80) DEFAULT NULL,
+    social_archetype VARCHAR(80) DEFAULT NULL,
+    stage VARCHAR(80) DEFAULT NULL,
+    utm_source VARCHAR(120) DEFAULT NULL,
+    utm_medium VARCHAR(120) DEFAULT NULL,
+    utm_campaign VARCHAR(120) DEFAULT NULL,
+    utm_content VARCHAR(120) DEFAULT NULL,
+    utm_term VARCHAR(120) DEFAULT NULL,
+    score INT DEFAULT 0,
+    last_event VARCHAR(120) DEFAULT NULL,
+    last_event_at DATETIME DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_email (email),
+    INDEX idx_score (score),
+    INDEX idx_last_event_at (last_event_at),
+    INDEX idx_pain_stage (pain_primary, stage),
+    INDEX idx_source (source)
+) ENGINE=InnoDB;
+
+CREATE TABLE crm_tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    slug VARCHAR(120) NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_slug (slug)
+) ENGINE=InnoDB;
+
+CREATE TABLE crm_lead_tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lead_id INT NOT NULL,
+    tag_id INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_lead_tag (lead_id, tag_id),
+    INDEX idx_tag (tag_id),
+    FOREIGN KEY (lead_id) REFERENCES crm_leads(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES crm_tags(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE crm_lead_events (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lead_id INT NOT NULL,
+    event_name VARCHAR(120) NOT NULL,
+    properties_json TEXT DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_lead_time (lead_id, created_at),
+    INDEX idx_event (event_name),
+    FOREIGN KEY (lead_id) REFERENCES crm_leads(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE crm_lead_notes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lead_id INT NOT NULL,
+    admin_user_id INT DEFAULT NULL,
+    note TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_lead_notes (lead_id, created_at),
+    FOREIGN KEY (lead_id) REFERENCES crm_leads(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- =============================================

@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var heroSection = document.getElementById('hero');
     var ctaSection = document.getElementById('comprar');
     var scrollTopBtn = document.getElementById('scrollTop');
+    var heroSpiral = document.getElementById('heroSpiral');
 
     function onScroll() {
         var scrollY = window.scrollY;
@@ -54,6 +55,38 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     window.addEventListener('scroll', throttle(onScroll, 100), { passive: true });
+
+    if (heroSpiral && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+        var spiralTicking = false;
+        var spiralCard = heroSpiral.querySelector('.hero-spiral3d-card') || heroSpiral;
+
+        function clamp01(v) {
+            return Math.max(0, Math.min(1, v));
+        }
+
+        function updateSpiral() {
+            spiralTicking = false;
+            if (!heroSection) return;
+            var rect = heroSection.getBoundingClientRect();
+            var progress = clamp01((0 - rect.top) / (rect.height * 0.9));
+            var y = progress * 42;
+            var rz = -10 + (progress * 6);
+            var rx = 10 + (progress * 8);
+            var ry = -14 + (progress * 10);
+            var s = 1 + (progress * 0.05);
+            spiralCard.style.transform = 'translate3d(0,' + y.toFixed(2) + 'px,0) rotateZ(' + rz.toFixed(2) + 'deg) rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) scale(' + s.toFixed(4) + ')';
+        }
+
+        function onSpiralScroll() {
+            if (spiralTicking) return;
+            spiralTicking = true;
+            requestAnimationFrame(updateSpiral);
+        }
+
+        window.addEventListener('scroll', onSpiralScroll, { passive: true });
+        window.addEventListener('resize', onSpiralScroll);
+        requestAnimationFrame(updateSpiral);
+    }
 
     // === Scroll to top button ===
     if (scrollTopBtn) {

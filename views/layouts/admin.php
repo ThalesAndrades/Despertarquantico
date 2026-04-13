@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($pageTitle ?? 'Admin') ?> - <?= APP_NAME ?></title>
+    <title><?= e($pageTitle ?? 'Admin') ?> | <?= e(APP_NAME) ?></title>
+    <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#0A0A0A" id="themeColorMeta">
     <?= themeInitScript() ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,6 +37,14 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                 <span>Pedidos</span>
             </a>
+            <a href="<?= url('admin/applications') ?>" class="sidebar-link <?= ($adminPage ?? '') === 'applications' ? 'active' : '' ?>">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/></svg>
+                <span>Aplicações</span>
+            </a>
+            <a href="<?= url('admin/leads') ?>" class="sidebar-link <?= ($adminPage ?? '') === 'crm' ? 'active' : '' ?>">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                <span>CRM</span>
+            </a>
             <a href="<?= url('admin/community') ?>" class="sidebar-link <?= ($adminPage ?? '') === 'community' ? 'active' : '' ?>">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <span>Comunidade</span>
@@ -47,10 +56,13 @@
             </a>
         </nav>
         <div class="sidebar-footer">
-            <a href="<?= url('logout') ?>" class="sidebar-link sidebar-logout">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                <span>Sair</span>
-            </a>
+            <form method="post" action="<?= url('logout') ?>">
+                <?= CSRF::field() ?>
+                <button type="submit" class="sidebar-link sidebar-link-btn sidebar-logout">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Sair</span>
+                </button>
+            </form>
         </div>
     </aside>
 

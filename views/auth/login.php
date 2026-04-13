@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> - <?= APP_NAME ?></title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0A0A0A" id="themeColorMeta">
+    <?= themeInitScript() ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -19,6 +22,9 @@
                 <p>Area exclusiva de membros</p>
                 <div class="gold-line"></div>
             </div>
+            <div style="display:flex;justify-content:center;margin:-6px 0 18px;">
+                <?= themeToggleButton('theme-toggle', 'Tema') ?>
+            </div>
 
             <?php if (!empty($error)): ?>
                 <div class="alert alert-error"><?= e($error) ?></div>
@@ -26,6 +32,9 @@
             <?php if (!empty($success)): ?>
                 <div class="alert alert-success"><?= e($success) ?></div>
             <?php endif; ?>
+
+            <a href="<?= url('auth/google') ?>" class="auth-submit auth-submit-google">Entrar com Google</a>
+            <div class="auth-divider"><span>ou</span></div>
 
             <form method="POST" action="<?= url('login') ?>">
                 <?= CSRF::field() ?>
@@ -50,5 +59,6 @@
             </div>
         </div>
     </div>
+    <?= themeScriptTag() ?>
 </body>
 </html>

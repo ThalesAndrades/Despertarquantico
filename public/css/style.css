@@ -15,6 +15,8 @@
     --border-subtle: rgba(201, 168, 76, 0.12);
     --border-medium: rgba(201, 168, 76, 0.20);
     --border-strong: rgba(201, 168, 76, 0.35);
+    --glass-bg: rgba(255,255,255,0.04);
+    --glass-border-weak: rgba(255,255,255,0.08);
     --gold: #C9A84C;
     --gold-light: #DFC06A;
     --gold-dark: #A8893D;
@@ -48,10 +50,84 @@
     --z-nav: 1000;
 }
 
+html[data-theme="light"] {
+    --bg-primary: #F8F1E7;
+    --bg-secondary: #F1E7DA;
+    --bg-card: #FFFFFF;
+    --bg-card-hover: #FBF7F1;
+    --bg-surface: #FFFFFF;
+    --bg-elevated: #FFFFFF;
+    --border-subtle: rgba(10, 10, 10, 0.10);
+    --border-medium: rgba(10, 10, 10, 0.16);
+    --border-strong: rgba(10, 10, 10, 0.26);
+    --glass-bg: rgba(255,255,255,0.72);
+    --glass-border-weak: rgba(10,10,10,0.08);
+    --gold-glow: rgba(201, 168, 76, 0.18);
+    --gold-subtle: rgba(201, 168, 76, 0.10);
+    --text-primary: #0A0A0A;
+    --text-secondary: rgba(10, 10, 10, 0.72);
+    --text-muted: rgba(10, 10, 10, 0.52);
+    --text-faint: rgba(10, 10, 10, 0.28);
+    --shadow-sm: 0 1px 3px rgba(10,10,10,0.12), 0 1px 2px rgba(10,10,10,0.08);
+    --shadow-md: 0 6px 24px rgba(10,10,10,0.14);
+    --shadow-lg: 0 18px 48px rgba(10,10,10,0.18);
+    --shadow-gold: 0 10px 30px rgba(201, 168, 76, 0.18);
+}
+
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: transform var(--transition), background var(--transition), border-color var(--transition), color var(--transition);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.theme-toggle:hover {
+    transform: translateY(-1px);
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+}
+.theme-toggle:active { transform: translateY(0); }
+.theme-toggle-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: var(--gold-subtle);
+    color: var(--gold);
+    font-size: 13px;
+    line-height: 1;
+}
+.theme-toggle-text {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
 /* Reset & Base */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
 
 body {
     font-family: var(--font-body);

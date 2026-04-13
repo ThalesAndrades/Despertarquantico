@@ -1,9 +1,13 @@
 <!DOCTYPE html>
+<?php
+$appName = defined('APP_NAME') ? (string) APP_NAME : 'Despertar Espiral';
+$appUrl = defined('APP_URL') ? (string) APP_URL : '/';
+?>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Erro interno - Despertar Espiral</title>
+    <title>Erro interno | <?= htmlspecialchars($appName, ENT_QUOTES, 'UTF-8') ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
@@ -24,7 +28,7 @@
         <div class="code">500</div>
         <h1>Algo deu errado por aqui</h1>
         <p>Tivemos um contratempo interno ao processar sua solicitacao. Nossa equipe ja foi notificada. Tente novamente em alguns instantes.</p>
-        <a href="<?= defined('APP_URL') ? APP_URL : '/' ?>">Voltar ao inicio</a>
+        <a href="<?= htmlspecialchars($appUrl, ENT_QUOTES, 'UTF-8') ?>">Voltar ao inicio</a>
         <small>Se o problema persistir, escreva para contato@despertarespiral.com.</small>
     </div>
 </body>

@@ -5,7 +5,15 @@
 
 // Load .env before any config so env() is available everywhere downstream.
 require_once __DIR__ . '/src/Env.php';
-Env::load(__DIR__ . '/.env');
+$envPath = __DIR__ . '/.env';
+if (!is_file($envPath)) {
+    // Shared hosting tip: keep .env one level above public_html so deploys don't overwrite secrets.
+    $parentEnv = dirname(__DIR__) . '/.env';
+    if (is_file($parentEnv)) {
+        $envPath = $parentEnv;
+    }
+}
+Env::load($envPath);
 
 require_once __DIR__ . '/config/app.php';
 
@@ -48,6 +56,9 @@ set_error_handler(function (int $severity, string $message, string $file, int $l
 });
 
 $url = isset($_GET['url']) ? trim($_GET['url'], '/') : '';
+if ($url === 'index.php') {
+    $url = '';
+}
 $method = $_SERVER['REQUEST_METHOD'];
 
 function routeRequiresSession(string $url): bool
@@ -58,6 +69,7 @@ function routeRequiresSession(string $url): bool
         'checkout/success',
         'checkout/cancel',
         'webhook/asaas',
+        '_health',
     ];
 
     if (in_array($url, $publicStatelessRoutes, true)) {
@@ -72,11 +84,18 @@ function routeRequiresSession(string $url): bool
 }
 
 // Session configuration
+ini_set('session.use_only_cookies', '1');
+ini_set('session.use_trans_sid', '0');
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Lax');
 ini_set('session.use_strict_mode', '1');
-ini_set('session.gc_maxlifetime', '7200');
-if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+ini_set('session.gc_maxlifetime', (string) SESSION_LIFETIME);
+ini_set('session.cookie_path', '/');
+$isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
+if (!$isHttps && !empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+    $isHttps = strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https';
+}
+if ($isHttps) {
     ini_set('session.cookie_secure', '1');
 }
 if (routeRequiresSession($url)) {
@@ -84,10 +103,17 @@ if (routeRequiresSession($url)) {
 }
 
 // Security headers
+@header_remove('X-Powered-By');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');
 header('X-XSS-Protection: 1; mode=block');
 header('Referrer-Policy: strict-origin-when-cross-origin');
+if ($isHttps) {
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+}
+header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+header('X-Permitted-Cross-Domain-Policies: none');
+header("Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; object-src 'none'; frame-src https:; media-src 'self' https:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
 
 // Load core files
 require_once __DIR__ . '/src/Database.php';
@@ -97,6 +123,71 @@ require_once __DIR__ . '/src/Auth.php';
 require_once __DIR__ . '/src/Helpers.php';
 require_once __DIR__ . '/src/EventDispatcher.php';
 
+if ($method === 'GET' && $url === '_health') {
+    $token = (string) ($_GET['token'] ?? '');
+    $healthToken = (string) Env::get('HEALTHCHECK_TOKEN', '');
+    $checks = [
+        'php' => PHP_VERSION,
+        'env_loaded' => Env::has('APP_ENV') || is_file(__DIR__ . '/.env') || is_file(dirname(__DIR__) . '/.env'),
+        'required_env' => [
+            'DB_HOST' => Env::has('DB_HOST'),
+            'DB_NAME' => Env::has('DB_NAME'),
+            'DB_USER' => Env::has('DB_USER'),
+            'ASAAS_API_KEY' => Env::has('ASAAS_API_KEY'),
+            'ASAAS_WEBHOOK_TOKEN' => Env::has('ASAAS_WEBHOOK_TOKEN'),
+            'SEQUENZY_ENABLED' => Env::has('SEQUENZY_ENABLED'),
+            'SEQUENZY_API_KEY' => Env::has('SEQUENZY_API_KEY'),
+        ],
+        'paths' => [
+            'storage_logs_writable' => is_dir(__DIR__ . '/storage/logs') && is_writable(__DIR__ . '/storage/logs'),
+            'uploads_writable' => is_dir(__DIR__ . '/uploads') && is_writable(__DIR__ . '/uploads'),
+        ],
+        'db' => [
+            'ok' => false,
+            'error' => null,
+        ],
+    ];
+
+    $requiredOk = true;
+    foreach ($checks['required_env'] as $ok) {
+        if (!$ok) {
+            $requiredOk = false;
+            break;
+        }
+    }
+
+    if (!empty($checks['required_env']['DB_HOST']) && !empty($checks['required_env']['DB_NAME']) && !empty($checks['required_env']['DB_USER'])) {
+        try {
+            Database::getInstance();
+            $checks['db']['ok'] = true;
+        } catch (Throwable $e) {
+            $checks['db']['error'] = get_class($e);
+            if ($healthToken !== '' && hash_equals($healthToken, $token)) {
+                $checks['db']['error_code'] = (string) $e->getCode();
+                $checks['db']['error_message'] = substr((string) $e->getMessage(), 0, 180);
+            }
+        }
+    } else {
+        $checks['db']['error'] = 'missing_env';
+    }
+
+    $ok = $requiredOk && !empty($checks['paths']['storage_logs_writable']) && !empty($checks['db']['ok']);
+
+    if ($healthToken !== '') {
+        if (!hash_equals($healthToken, $token)) {
+            http_response_code(404);
+            exit;
+        }
+    } elseif ($ok) {
+        http_response_code(404);
+        exit;
+    }
+
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode(['ok' => $ok, 'checks' => $checks], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
 // Load controllers
 require_once __DIR__ . '/controllers/HomeController.php';
 require_once __DIR__ . '/controllers/AuthController.php';
@@ -104,6 +195,8 @@ require_once __DIR__ . '/controllers/DashboardController.php';
 require_once __DIR__ . '/controllers/ProductController.php';
 require_once __DIR__ . '/controllers/CommunityController.php';
 require_once __DIR__ . '/controllers/CheckoutController.php';
+require_once __DIR__ . '/controllers/ApplyController.php';
+require_once __DIR__ . '/controllers/LeadController.php';
 require_once __DIR__ . '/controllers/AdminController.php';
 
 // Initialize router
@@ -115,13 +208,21 @@ $router->get('marketplace', [HomeController::class, 'marketplace']);
 $router->get('marketplace/{slug}', [HomeController::class, 'marketplaceProduct']);
 $router->get('login', [AuthController::class, 'loginForm']);
 $router->post('login', [AuthController::class, 'login']);
+$router->get('auth/google', [AuthController::class, 'googleStart']);
+$router->get('auth/google/callback', [AuthController::class, 'googleCallback']);
 $router->get('register', [AuthController::class, 'registerForm']);
 $router->post('register', [AuthController::class, 'register']);
-$router->get('logout', [AuthController::class, 'logout']);
+$router->post('logout', [AuthController::class, 'logout']);
 $router->get('forgot-password', [AuthController::class, 'forgotPasswordForm']);
 $router->post('forgot-password', [AuthController::class, 'forgotPassword']);
 $router->get('reset-password', [AuthController::class, 'resetPasswordForm']);
 $router->post('reset-password', [AuthController::class, 'resetPassword']);
+$router->get('aplicacao', [ApplyController::class, 'form']);
+$router->post('aplicacao', [ApplyController::class, 'submit']);
+$router->get('newsletter', [LeadController::class, 'newsletterForm']);
+$router->post('newsletter', [LeadController::class, 'newsletterSubmit']);
+$router->get('diagnostico', [LeadController::class, 'diagnosticForm']);
+$router->post('diagnostico', [LeadController::class, 'diagnosticSubmit']);
 
 // Checkout routes
 $router->get('checkout/{slug}', [CheckoutController::class, 'create']);
@@ -161,6 +262,11 @@ $router->post('admin/modules/save', [AdminController::class, 'moduleSave']);
 $router->post('admin/lessons/save', [AdminController::class, 'lessonSave']);
 $router->post('admin/lessons/delete/{id}', [AdminController::class, 'lessonDelete']);
 $router->get('admin/orders', [AdminController::class, 'orders']);
+$router->get('admin/applications', [AdminController::class, 'applications']);
+$router->get('admin/leads', [AdminController::class, 'leads']);
+$router->get('admin/leads/{id}', [AdminController::class, 'lead']);
+$router->post('admin/leads/{id}/note', [AdminController::class, 'leadNote']);
+$router->post('admin/leads/{id}/tag', [AdminController::class, 'leadTag']);
 $router->get('admin/community', [AdminController::class, 'community']);
 $router->post('admin/community/toggle/{id}', [AdminController::class, 'togglePost']);
 

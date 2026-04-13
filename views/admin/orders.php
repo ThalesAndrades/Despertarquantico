@@ -20,6 +20,16 @@
             </thead>
             <tbody>
                 <?php foreach ($orders as $order): ?>
+                    <?php
+                    $badgeClass = 'badge-red';
+                    if (($order['status'] ?? '') === 'paid') {
+                        $badgeClass = 'badge-green';
+                    } elseif (($order['status'] ?? '') === 'pending') {
+                        $badgeClass = 'badge-gold';
+                    } elseif (($order['status'] ?? '') === 'refunded') {
+                        $badgeClass = 'badge-purple';
+                    }
+                    ?>
                     <tr>
                         <td class="text-muted">#<?= $order['id'] ?></td>
                         <td class="fw-semibold"><?= e($order['product_title']) ?></td>
@@ -27,7 +37,7 @@
                         <td class="text-muted"><?= e($order['customer_email']) ?></td>
                         <td class="fw-semibold">R$ <?= number_format($order['amount'], 2, ',', '.') ?></td>
                         <td>
-                            <span class="badge <?= match($order['status']) { 'paid' => 'badge-green', 'pending' => 'badge-gold', 'refunded' => 'badge-purple', default => 'badge-red' } ?>">
+                            <span class="badge <?= e($badgeClass) ?>">
                                 <?= e(ucfirst($order['status'])) ?>
                             </span>
                         </td>

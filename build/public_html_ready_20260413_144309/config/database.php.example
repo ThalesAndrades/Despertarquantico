@@ -1,0 +1,13 @@
+<?php
+/**
+ * Database configuration now reads from /.env at the project root.
+ *
+ * This placeholder exists so new contributors know where the config lives.
+ * See /.env.example for the full list of required keys:
+ *   DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_CHARSET (optional)
+ *
+ * On the server, create /.env once manually with the real values and
+ * `config/database.php` will read from it automatically.
+ */
+
+return require __DIR__ . '/database.php';

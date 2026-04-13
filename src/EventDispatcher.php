@@ -31,6 +31,60 @@ class EventDispatcher
         $attributes = is_array($payload['attributes'] ?? null) ? $payload['attributes'] : [];
         $properties = is_array($payload['properties'] ?? null) ? $payload['properties'] : [];
 
+        $config = require BASE_PATH . '/config/sequenzy.php';
+        $mode = strtolower((string) ($config['transactional_mode'] ?? 'template'));
+        
+        if ($mode === 'direct') {
+            require_once BASE_PATH . '/src/EmailTemplates.php';
+            $templateData = [];
+            
+            switch ($event) {
+                case 'user.password_reset_requested':
+                    $templateData = EmailTemplates::passwordReset($properties['reset_url'] ?? '');
+                    break;
+                case 'user.password_reset_completed':
+                    $templateData = EmailTemplates::passwordChanged();
+                    break;
+                case 'product.access_granted':
+                    $templateData = EmailTemplates::accessGranted(
+                        $properties['product_name'] ?? 'Produto',
+                        $properties['order_id'] ?? '',
+                        $properties['payment_method'] ?? ''
+                    );
+                    break;
+                case 'order.overdue':
+                    $templateData = EmailTemplates::paymentOverdue(
+                        $properties['order_id'] ?? '',
+                        $properties['invoice_url'] ?? '',
+                        $properties['checkout_url'] ?? ''
+                    );
+                    break;
+                case 'order.refunded':
+                    $templateData = EmailTemplates::refundConfirmed(
+                        $properties['product_name'] ?? 'Produto',
+                        $properties['order_id'] ?? ''
+                    );
+                    break;
+            }
+
+            if (!empty($templateData)) {
+                $properties['subject'] = $templateData['subject'];
+                $properties['body'] = $templateData['body'];
+            }
+        }
+
+        try {
+            require_once BASE_PATH . '/src/MarketingCRM.php';
+            $crmProperties = $properties;
+            // Nunca persistir tokens/links sensíveis no CRM interno.
+            if ($event === 'user.password_reset_requested') {
+                unset($crmProperties['reset_url'], $crmProperties['reset_token_prefix']);
+            }
+            MarketingCRM::track($event, $email, $attributes, $crmProperties);
+        } catch (Throwable $e) {
+            error_log('EventDispatcher: crm tracking failed: ' . $e->getMessage());
+        }
+
         try {
             self::sequenzy()->send($event, $email, $attributes, $properties);
         } catch (Throwable $e) {

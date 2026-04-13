@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($pageTitle ?? 'Área de Membros') ?> - <?= APP_NAME ?></title>
+    <title><?= e($pageTitle ?? 'Área de Membros') ?> | <?= e(APP_NAME) ?></title>
+    <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#0A0A0A" id="themeColorMeta">
     <?= themeInitScript() ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +19,7 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="<?= url('dashboard') ?>" class="sidebar-logo">✦ <span>Sunyan</span></a>
+            <a href="<?= url('dashboard') ?>" class="sidebar-logo">✦ <span><?= e(APP_NAME) ?></span></a>
         </div>
         <nav class="sidebar-nav">
             <a href="<?= url('dashboard') ?>" class="sidebar-link <?= ($activePage ?? '') === 'dashboard' ? 'active' : '' ?>">
@@ -49,10 +50,13 @@
                     <span class="sidebar-user-anon"><?= e($user['anonymous_name'] ?? '') ?></span>
                 </div>
             </div>
-            <a href="<?= url('logout') ?>" class="sidebar-link sidebar-logout">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                <span>Sair</span>
-            </a>
+            <form method="post" action="<?= url('logout') ?>">
+                <?= CSRF::field() ?>
+                <button type="submit" class="sidebar-link sidebar-link-btn sidebar-logout">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Sair</span>
+                </button>
+            </form>
         </div>
     </aside>
 

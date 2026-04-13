@@ -92,6 +92,11 @@ class Database
         $pdo = self::$instance;
 
         try {
+            // orders: store guest checkout name for later user creation on paid webhook
+            if (!self::columnExists('orders', 'customer_name')) {
+                $pdo->exec("ALTER TABLE orders ADD COLUMN customer_name VARCHAR(120) DEFAULT NULL AFTER customer_email");
+            }
+
             // orders: rename Stripe columns to Asaas equivalents
             if (self::columnExists('orders', 'stripe_session_id') && !self::columnExists('orders', 'asaas_payment_id')) {
                 $pdo->exec("ALTER TABLE orders CHANGE COLUMN stripe_session_id asaas_payment_id VARCHAR(60) NOT NULL");
@@ -115,6 +120,22 @@ class Database
             if (!self::columnExists('users', 'asaas_customer_id')) {
                 $pdo->exec("ALTER TABLE users ADD COLUMN asaas_customer_id VARCHAR(60) DEFAULT NULL AFTER reset_expires");
             }
+            if (!self::columnExists('users', 'auth_provider')) {
+                $pdo->exec("ALTER TABLE users ADD COLUMN auth_provider VARCHAR(20) NOT NULL DEFAULT 'local' AFTER password_hash");
+            }
+            if (!self::columnExists('users', 'google_id')) {
+                $pdo->exec("ALTER TABLE users ADD COLUMN google_id VARCHAR(64) DEFAULT NULL AFTER auth_provider");
+            }
+            if (!self::columnExists('users', 'google_email_verified')) {
+                $pdo->exec("ALTER TABLE users ADD COLUMN google_email_verified TINYINT(1) DEFAULT 0 AFTER google_id");
+            }
+            if (!self::columnExists('users', 'avatar_url')) {
+                $pdo->exec("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500) DEFAULT NULL AFTER google_email_verified");
+            }
+            if (self::columnExists('users', 'google_id') && !self::indexExists('users', 'uniq_google_id')) {
+                $pdo->exec("CREATE UNIQUE INDEX uniq_google_id ON users (google_id)");
+            }
+            self::ensureIndex('users', 'idx_auth_provider', 'auth_provider');
 
             // Indexes (all idempotent via SHOW INDEX check)
             self::ensureIndex('orders', 'idx_asaas_payment', 'asaas_payment_id');
@@ -135,6 +156,127 @@ class Database
                     INDEX idx_email_time (email, attempted_at)
                 ) ENGINE=InnoDB
             ");
+
+            // Webhook event inbox (idempotency + audit)
+            self::ensureTable('webhook_events', "
+                CREATE TABLE webhook_events (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    provider VARCHAR(20) NOT NULL,
+                    event_key VARCHAR(80) NOT NULL,
+                    event_type VARCHAR(80) DEFAULT NULL,
+                    payment_id VARCHAR(60) DEFAULT NULL,
+                    order_id INT DEFAULT NULL,
+                    payload_hash CHAR(64) DEFAULT NULL,
+                    payload_json MEDIUMTEXT DEFAULT NULL,
+                    attempts INT NOT NULL DEFAULT 0,
+                    received_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    processed_at DATETIME DEFAULT NULL,
+                    process_result VARCHAR(40) DEFAULT NULL,
+                    error_message VARCHAR(255) DEFAULT NULL,
+                    UNIQUE KEY uniq_provider_event (provider, event_key),
+                    INDEX idx_payment_event (provider, payment_id, event_type),
+                    INDEX idx_order (order_id),
+                    INDEX idx_processed (processed_at)
+                ) ENGINE=InnoDB
+            ");
+
+            self::ensureTable('high_ticket_applications', "
+                CREATE TABLE high_ticket_applications (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(120) NOT NULL,
+                    email VARCHAR(150) NOT NULL,
+                    whatsapp VARCHAR(40) NOT NULL,
+                    moment TEXT NOT NULL,
+                    goal TEXT NOT NULL,
+                    status ENUM('new', 'contacted', 'qualified', 'unqualified') DEFAULT 'new',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_email_created (email, created_at),
+                    INDEX idx_status_created (status, created_at)
+                ) ENGINE=InnoDB
+            ");
+
+            self::ensureTable('crm_leads', "
+                CREATE TABLE crm_leads (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    email VARCHAR(150) NOT NULL,
+                    name VARCHAR(120) DEFAULT NULL,
+                    whatsapp VARCHAR(40) DEFAULT NULL,
+                    source VARCHAR(80) DEFAULT NULL,
+                    pain_primary VARCHAR(80) DEFAULT NULL,
+                    social_archetype VARCHAR(80) DEFAULT NULL,
+                    stage VARCHAR(80) DEFAULT NULL,
+                    utm_source VARCHAR(120) DEFAULT NULL,
+                    utm_medium VARCHAR(120) DEFAULT NULL,
+                    utm_campaign VARCHAR(120) DEFAULT NULL,
+                    utm_content VARCHAR(120) DEFAULT NULL,
+                    utm_term VARCHAR(120) DEFAULT NULL,
+                    score INT DEFAULT 0,
+                    last_event VARCHAR(120) DEFAULT NULL,
+                    last_event_at DATETIME DEFAULT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE KEY uniq_email (email),
+                    INDEX idx_score (score),
+                    INDEX idx_last_event_at (last_event_at),
+                    INDEX idx_pain_stage (pain_primary, stage),
+                    INDEX idx_source (source)
+                ) ENGINE=InnoDB
+            ");
+
+            self::ensureTable('crm_tags', "
+                CREATE TABLE crm_tags (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    slug VARCHAR(120) NOT NULL,
+                    name VARCHAR(150) NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE KEY uniq_slug (slug)
+                ) ENGINE=InnoDB
+            ");
+
+            self::ensureTable('crm_lead_tags', "
+                CREATE TABLE crm_lead_tags (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    lead_id INT NOT NULL,
+                    tag_id INT NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE KEY uniq_lead_tag (lead_id, tag_id),
+                    INDEX idx_tag (tag_id),
+                    CONSTRAINT fk_crm_lead_tags_lead FOREIGN KEY (lead_id) REFERENCES crm_leads(id) ON DELETE CASCADE,
+                    CONSTRAINT fk_crm_lead_tags_tag FOREIGN KEY (tag_id) REFERENCES crm_tags(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB
+            ");
+
+            self::ensureTable('crm_lead_events', "
+                CREATE TABLE crm_lead_events (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    lead_id INT NOT NULL,
+                    event_name VARCHAR(120) NOT NULL,
+                    properties_json TEXT DEFAULT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_lead_time (lead_id, created_at),
+                    INDEX idx_event (event_name),
+                    CONSTRAINT fk_crm_lead_events_lead FOREIGN KEY (lead_id) REFERENCES crm_leads(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB
+            ");
+
+            self::ensureTable('crm_lead_notes', "
+                CREATE TABLE crm_lead_notes (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    lead_id INT NOT NULL,
+                    admin_user_id INT DEFAULT NULL,
+                    note TEXT NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_lead_notes (lead_id, created_at),
+                    CONSTRAINT fk_crm_lead_notes_lead FOREIGN KEY (lead_id) REFERENCES crm_leads(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB
+            ");
+
+            if (self::tableExists('crm_tags')) {
+                $pdo->prepare("INSERT IGNORE INTO crm_tags (slug, name) VALUES (?, ?)")->execute(['optin', 'Opt-in']);
+                $pdo->prepare("INSERT IGNORE INTO crm_tags (slug, name) VALUES (?, ?)")->execute(['customer', 'Cliente']);
+                $pdo->prepare("INSERT IGNORE INTO crm_tags (slug, name) VALUES (?, ?)")->execute(['intent:checkout', 'Intenção: Checkout']);
+                $pdo->prepare("INSERT IGNORE INTO crm_tags (slug, name) VALUES (?, ?)")->execute(['intent:high-ticket', 'Intenção: High Ticket']);
+            }
 
             // orders: drop legacy idx_session if it points to the renamed column
             self::dropIndexIfExists('orders', 'idx_session');
