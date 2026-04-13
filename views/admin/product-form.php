@@ -13,7 +13,7 @@
         <div class="form-group">
             <label for="title">Título do Produto</label>
             <input type="text" id="title" name="title" class="form-control" required
-                   value="<?= e($product['title'] ?? '') ?>" placeholder="Ex: Mulher Espiral - Despertar Quântico">
+                   value="<?= e($product['title'] ?? '') ?>" placeholder="Ex: Mulher Espiral - Despertar Espiral">
         </div>
 
         <div class="form-group">

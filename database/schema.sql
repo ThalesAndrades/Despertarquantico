@@ -17,6 +17,10 @@ CREATE TABLE users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    auth_provider VARCHAR(20) NOT NULL DEFAULT 'local',
+    google_id VARCHAR(64) DEFAULT NULL,
+    google_email_verified TINYINT(1) DEFAULT 0,
+    avatar_url VARCHAR(500) DEFAULT NULL,
     anonymous_name VARCHAR(50) UNIQUE DEFAULT NULL,
     role ENUM('member', 'admin') DEFAULT 'member',
     is_active TINYINT(1) DEFAULT 1,
@@ -26,6 +30,8 @@ CREATE TABLE users (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
+    UNIQUE KEY uniq_google_id (google_id),
+    INDEX idx_auth_provider (auth_provider),
     INDEX idx_reset_token (reset_token),
     INDEX idx_asaas_customer (asaas_customer_id)
 ) ENGINE=InnoDB;

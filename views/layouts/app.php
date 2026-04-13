@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($pageTitle ?? 'Área de Membros') ?> - <?= APP_NAME ?></title>
+    <title><?= e($pageTitle ?? 'Área de Membros') ?> | <?= e(APP_NAME) ?></title>
+    <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#0A0A0A" id="themeColorMeta">
     <?= themeInitScript() ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +19,7 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="<?= url('dashboard') ?>" class="sidebar-logo">✦ <span>Sunyan</span></a>
+            <a href="<?= url('dashboard') ?>" class="sidebar-logo">✦ <span><?= e(APP_NAME) ?></span></a>
         </div>
         <nav class="sidebar-nav">
             <a href="<?= url('dashboard') ?>" class="sidebar-link <?= ($activePage ?? '') === 'dashboard' ? 'active' : '' ?>">

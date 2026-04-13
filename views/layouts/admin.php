@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($pageTitle ?? 'Admin') ?> - <?= APP_NAME ?></title>
+    <title><?= e($pageTitle ?? 'Admin') ?> | <?= e(APP_NAME) ?></title>
+    <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#0A0A0A" id="themeColorMeta">
     <?= themeInitScript() ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">

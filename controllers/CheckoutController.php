@@ -84,13 +84,14 @@ class CheckoutController
         // We use a temporary placeholder id; then update with the real Asaas id.
         $placeholder = 'pending_' . bin2hex(random_bytes(12));
         $orderId = Database::insert(
-            "INSERT INTO orders (user_id, product_id, asaas_payment_id, customer_email, amount, currency, status, payment_method)
-             VALUES (?, ?, ?, ?, ?, 'brl', 'pending', 'undefined')",
+            "INSERT INTO orders (user_id, product_id, asaas_payment_id, customer_email, customer_name, amount, currency, status, payment_method)
+             VALUES (?, ?, ?, ?, ?, ?, 'brl', 'pending', 'undefined')",
             [
                 $userId,
                 $product['id'],
                 $placeholder,
                 $email,
+                $name,
                 $product['price'],
             ]
         );
@@ -208,6 +209,50 @@ class CheckoutController
             return;
         }
 
+        // ---- Idempotency inbox (provider event id OR payload hash fallback) ----
+        $provider = 'asaas';
+        $providerEventId = (string) ($event['id'] ?? $event['eventId'] ?? $event['webhookId'] ?? '');
+        $eventKey = $providerEventId !== '' ? $providerEventId : hash('sha256', $payload);
+        $payloadHash = hash('sha256', $payload);
+        $externalOrderId = (ctype_digit((string) $externalReference) ? (int) $externalReference : null);
+
+        try {
+            Database::query(
+                "INSERT INTO webhook_events (provider, event_key, event_type, payment_id, order_id, payload_hash, payload_json, attempts)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+                 ON DUPLICATE KEY UPDATE
+                    attempts = attempts + 1,
+                    event_type = VALUES(event_type),
+                    payment_id = VALUES(payment_id),
+                    order_id = COALESCE(VALUES(order_id), order_id),
+                    payload_hash = VALUES(payload_hash),
+                    payload_json = VALUES(payload_json),
+                    received_at = NOW()",
+                [
+                    $provider,
+                    $eventKey,
+                    $eventType,
+                    $asaasPaymentId,
+                    $externalOrderId,
+                    $payloadHash,
+                    $payload,
+                ]
+            );
+        } catch (Throwable $e) {
+            // Never fail the webhook on inbox write — still process to avoid losing paid orders.
+            error_log('Asaas webhook: failed to persist webhook_events inbox: ' . $e->getMessage());
+        }
+
+        $inboxRow = Database::fetch(
+            "SELECT id, processed_at FROM webhook_events WHERE provider = ? AND event_key = ?",
+            [$provider, $eventKey]
+        );
+        if ($inboxRow && !empty($inboxRow['processed_at'])) {
+            http_response_code(200);
+            echo json_encode(['received' => true, 'idempotent' => true]);
+            return;
+        }
+
         $order = Database::fetch(
             "SELECT o.*, p.title as product_title, p.slug as product_slug
              FROM orders o JOIN products p ON o.product_id = p.id
@@ -232,13 +277,74 @@ class CheckoutController
             return;
         }
 
+        // ---- Validate payment state via Asaas API before mutating local state ----
+        $apiPayment = $asaas->retrievePayment($asaasPaymentId);
+        if (!$apiPayment || empty($apiPayment['id'])) {
+            // Returning 503 encourages Asaas to retry; we do NOT mark processed_at so retries still run.
+            if ($inboxRow && !empty($inboxRow['id'])) {
+                Database::query(
+                    "UPDATE webhook_events SET error_message = ?, process_result = ? WHERE id = ?",
+                    ['api_retrieve_failed', 'retry', (int) $inboxRow['id']]
+                );
+            }
+            http_response_code(503);
+            echo json_encode(['error' => 'Could not validate payment']);
+            return;
+        }
+
+        $apiExternalRef = (string) ($apiPayment['externalReference'] ?? '');
+        if ($apiExternalRef !== '' && ctype_digit($apiExternalRef) && (int) $apiExternalRef !== (int) $order['id']) {
+            error_log("Asaas webhook: externalReference mismatch for payment {$asaasPaymentId} (got {$apiExternalRef}, expected {$order['id']})");
+            if ($inboxRow && !empty($inboxRow['id'])) {
+                Database::query(
+                    "UPDATE webhook_events SET processed_at = NOW(), process_result = ?, error_message = ? WHERE id = ?",
+                    ['ignored', 'external_reference_mismatch', (int) $inboxRow['id']]
+                );
+            }
+            http_response_code(200);
+            echo json_encode(['received' => true, 'ignored' => 'externalReference mismatch']);
+            return;
+        }
+
+        $apiValue = isset($apiPayment['value']) ? (float) $apiPayment['value'] : null;
+        if ($apiValue !== null) {
+            $orderValue = (float) $order['amount'];
+            // Compare with cent-level tolerance.
+            if (abs($apiValue - $orderValue) > 0.01) {
+                error_log("Asaas webhook: value mismatch for order {$order['id']} (api={$apiValue}, local={$orderValue})");
+                if ($inboxRow && !empty($inboxRow['id'])) {
+                    Database::query(
+                        "UPDATE webhook_events SET processed_at = NOW(), process_result = ?, error_message = ? WHERE id = ?",
+                        ['ignored', 'value_mismatch', (int) $inboxRow['id']]
+                    );
+                }
+                http_response_code(200);
+                echo json_encode(['received' => true, 'ignored' => 'value mismatch']);
+                return;
+            }
+        }
+
+        $apiStatus = strtoupper((string) ($apiPayment['status'] ?? ''));
+        $apiIsPaid = $asaas->isPaidStatus($apiStatus);
+        $apiIsRefunded = $asaas->isRefundedStatus($apiStatus);
+        $apiIsOverdue = $asaas->isOverdueStatus($apiStatus);
+
         switch ($eventType) {
             case 'PAYMENT_CONFIRMED':
             case 'PAYMENT_RECEIVED':
+                if ($apiIsPaid) {
                 $this->handlePaymentPaid($order, $paymentMethod, $eventType);
+                } else {
+                    error_log("Asaas webhook: paid event {$eventType} but API status={$apiStatus} for payment {$asaasPaymentId}");
+                }
                 break;
 
             case 'PAYMENT_OVERDUE':
+                if (!$apiIsOverdue && $apiStatus !== '') {
+                    // Keep local state unchanged; rely on API truth to avoid false 'failed'.
+                    error_log("Asaas webhook: overdue event but API status={$apiStatus} for payment {$asaasPaymentId}");
+                    break;
+                }
                 Database::query(
                     "UPDATE orders SET status = 'failed', asaas_event = ? WHERE id = ?",
                     [$eventType, $order['id']]
@@ -256,6 +362,10 @@ class CheckoutController
 
             case 'PAYMENT_REFUNDED':
             case 'PAYMENT_DELETED':
+                if (!$apiIsRefunded && $apiStatus !== '') {
+                    error_log("Asaas webhook: refund/delete event but API status={$apiStatus} for payment {$asaasPaymentId}");
+                    break;
+                }
                 Database::query(
                     "UPDATE orders SET status = 'refunded', asaas_event = ? WHERE id = ?",
                     [$eventType, $order['id']]
@@ -271,6 +381,7 @@ class CheckoutController
                     'properties' => [
                         'order_id' => (int) $order['id'],
                         'product_slug' => $order['product_slug'],
+                        'product_name' => $order['product_title'],
                         'invoice_url' => $order['asaas_invoice_url'] ?? null,
                     ],
                 ]);
@@ -280,6 +391,13 @@ class CheckoutController
                 // Log unhandled events for visibility but don't fail.
                 error_log("Asaas webhook: unhandled event {$eventType} for payment {$asaasPaymentId}");
                 break;
+        }
+
+        if ($inboxRow && !empty($inboxRow['id'])) {
+            Database::query(
+                "UPDATE webhook_events SET processed_at = NOW(), process_result = ?, error_message = NULL WHERE id = ?",
+                ['ok', (int) $inboxRow['id']]
+            );
         }
 
         http_response_code(200);
@@ -292,25 +410,34 @@ class CheckoutController
      */
     private function handlePaymentPaid(array $order, string $paymentMethod, string $eventType): void
     {
-        // Idempotency — don't re-process PAYMENT_RECEIVED after PAYMENT_CONFIRMED.
-        if ($order['status'] === 'paid') {
-            Database::query(
-                "UPDATE orders SET asaas_event = ? WHERE id = ?",
-                [$eventType, $order['id']]
-            );
-            return;
+        // Idempotency — only the first processor flips pending->paid.
+        $updated = Database::query(
+            "UPDATE orders
+             SET status = 'paid', paid_at = NOW(), payment_method = ?, asaas_event = ?
+             WHERE id = ? AND status <> 'paid'",
+            [$paymentMethod, $eventType, $order['id']]
+        )->rowCount();
+
+        $shouldDispatch = $updated > 0;
+        if (!$shouldDispatch) {
+            // Still record the last Asaas event for visibility.
+            Database::query("UPDATE orders SET asaas_event = ? WHERE id = ?", [$eventType, $order['id']]);
         }
 
-        Database::query(
-            "UPDATE orders SET status = 'paid', paid_at = NOW(), payment_method = ?, asaas_event = ? WHERE id = ?",
-            [$paymentMethod, $eventType, $order['id']]
-        );
-
         $userId = $order['user_id'];
+        $guestUserCreated = false;
         if (!$userId && !empty($order['customer_email'])) {
-            $user = Database::fetch("SELECT id FROM users WHERE email = ?", [$order['customer_email']]);
+            // Bind to existing user OR create a new local account for guest purchases.
+            $user = Database::fetch("SELECT id FROM users WHERE LOWER(email) = ?", [strtolower((string) $order['customer_email'])]);
             if ($user) {
-                $userId = $user['id'];
+                $userId = (int) $user['id'];
+            } else {
+                $name = trim((string) ($order['customer_name'] ?? ''));
+                $created = Auth::ensureUserForGuestPurchase($name !== '' ? $name : 'Membro', (string) $order['customer_email']);
+                $userId = (int) $created['id'];
+                $guestUserCreated = !empty($created['created']);
+            }
+            if ($userId) {
                 Database::query("UPDATE orders SET user_id = ? WHERE id = ?", [$userId, $order['id']]);
             }
         }
@@ -321,24 +448,49 @@ class CheckoutController
                 [$userId, $order['product_id']]
             );
 
-            EventDispatcher::dispatch('product.access_granted', [
+            // Guest checkout: send a "defina sua senha" email once (only if we created the user now).
+            if ($shouldDispatch && $guestUserCreated) {
+                $token = Auth::createResetTokenForUserId((int) $userId);
+                if ($token) {
+                    $resetUrl = APP_URL . '/reset-password?token=' . $token;
+                    EventDispatcher::dispatch('user.password_reset_requested', [
+                        'email' => (string) $order['customer_email'],
+                        'attributes' => [
+                            'name' => (string) ($order['customer_name'] ?? null),
+                        ],
+                        'properties' => [
+                            'reset_url' => $resetUrl,
+                            'source' => 'checkout_guest',
+                        ],
+                    ]);
+                }
+            }
+
+            if ($shouldDispatch) {
+                EventDispatcher::dispatch('product.access_granted', [
+                    'email' => $order['customer_email'],
+                    'properties' => [
+                        'product_slug' => $order['product_slug'],
+                        'product_id' => (int) $order['product_id'],
+                        'product_name' => $order['product_title'],
+                        'order_id' => (int) $order['id'],
+                        'payment_method' => $paymentMethod,
+                    ],
+                ]);
+            }
+        }
+
+        if ($shouldDispatch) {
+            EventDispatcher::dispatch('order.paid', [
                 'email' => $order['customer_email'],
                 'properties' => [
+                    'order_id' => (int) $order['id'],
                     'product_slug' => $order['product_slug'],
-                    'product_id' => (int) $order['product_id'],
+                    'amount' => (float) $order['amount'],
+                    'payment_method' => $paymentMethod,
                 ],
             ]);
         }
-
-        EventDispatcher::dispatch('order.paid', [
-            'email' => $order['customer_email'],
-            'properties' => [
-                'order_id' => (int) $order['id'],
-                'product_slug' => $order['product_slug'],
-                'amount' => (float) $order['amount'],
-                'payment_method' => $paymentMethod,
-            ],
-        ]);
     }
 
     private function mapBillingTypeToMethod(string $billingType): string

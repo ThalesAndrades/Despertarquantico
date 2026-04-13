@@ -16,9 +16,25 @@
  */
 
 require_once __DIR__ . '/src/Env.php';
-Env::load(__DIR__ . '/.env');
+$envPath = __DIR__ . '/.env';
+if (!is_file($envPath)) {
+    // Mesmo comportamento do front controller: permitir .env fora do public_html.
+    $parentEnv = dirname(__DIR__) . '/.env';
+    if (is_file($parentEnv)) {
+        $envPath = $parentEnv;
+    }
+}
+Env::load($envPath);
 
 $appEnv = Env::get('APP_ENV', 'production');
+$installToken = (string) Env::get('INSTALL_TOKEN', '');
+$providedToken = (string) ($_GET['token'] ?? '');
+
+// Optional hard guard (recommended): if INSTALL_TOKEN is set, require it in the URL.
+if ($installToken !== '' && !hash_equals($installToken, $providedToken)) {
+    http_response_code(404);
+    exit;
+}
 
 header('Content-Type: text/html; charset=UTF-8');
 echo '<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8">';
@@ -32,7 +48,7 @@ echo '<h1>Instalador - Despertar Espiral</h1>';
 // Production guard
 if (strtolower($appEnv) === 'production') {
     http_response_code(403);
-    echo '<p class="err">Instalador desativado em producao. Defina APP_ENV=staging no .env para liberar, ou simplesmente rode a aplicacao — o schema e criado automaticamente no primeiro boot.</p>';
+    echo '<p class="err">Instalador desativado em producao. Em producao, use o primeiro acesso normal da aplicacao (o schema e criado automaticamente) e mantenha este arquivo bloqueado/removido.</p>';
     echo '</body></html>';
     exit;
 }
@@ -60,7 +76,7 @@ try {
     ]);
     echo '<p class="ok">[OK] Conexao MySQL estabelecida</p>';
 } catch (PDOException $e) {
-    echo '<p class="err">[ERR] Conexao: ' . htmlspecialchars($e->getMessage()) . '</p></body></html>';
+    echo '<p class="err">[ERR] Conexao: ' . htmlspecialchars((string) $e->getMessage(), ENT_QUOTES, 'UTF-8') . '</p></body></html>';
     exit;
 }
 
@@ -70,7 +86,7 @@ try {
     $pdo->exec("USE `{$dbName}`");
     echo '<p class="ok">[OK] Banco "' . htmlspecialchars($dbName) . '" pronto</p>';
 } catch (PDOException $e) {
-    echo '<p class="err">[ERR] Banco: ' . htmlspecialchars($e->getMessage()) . '</p></body></html>';
+    echo '<p class="err">[ERR] Banco: ' . htmlspecialchars((string) $e->getMessage(), ENT_QUOTES, 'UTF-8') . '</p></body></html>';
     exit;
 }
 
@@ -107,7 +123,7 @@ foreach ($statements as $stmt) {
         }
     } catch (PDOException $e) {
         if ($e->getCode() !== '42S01') {
-            echo '<p class="err">[WARN] SQL: ' . htmlspecialchars($e->getMessage()) . '</p>';
+            echo '<p class="err">[WARN] SQL: ' . htmlspecialchars((string) $e->getMessage(), ENT_QUOTES, 'UTF-8') . '</p>';
         }
     }
 }
@@ -130,10 +146,10 @@ if ($adminPass === '') {
         } else {
             $pdo->prepare("INSERT INTO users (name, email, password_hash, anonymous_name, role) VALUES (?,?,?,?,?)")
                 ->execute([$adminName, $adminEmail, $hash, 'Sunyan', 'admin']);
-            echo '<p class="ok">[OK] Admin criada: ' . htmlspecialchars($adminEmail) . '</p>';
+            echo '<p class="ok">[OK] Admin criada: ' . htmlspecialchars($adminEmail, ENT_QUOTES, 'UTF-8') . '</p>';
         }
     } catch (PDOException $e) {
-        echo '<p class="err">[ERR] Admin: ' . htmlspecialchars($e->getMessage()) . '</p>';
+        echo '<p class="err">[ERR] Admin: ' . htmlspecialchars((string) $e->getMessage(), ENT_QUOTES, 'UTF-8') . '</p>';
     }
 }
 

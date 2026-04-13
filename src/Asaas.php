@@ -67,6 +67,28 @@ class AsaasClient
     }
 
     /**
+     * Status helpers (API truth) — keep webhook processing consistent across events.
+     * Reference: Asaas payment status values (varies by billing type).
+     */
+    public function isPaidStatus(string $status): bool
+    {
+        $status = strtoupper(trim($status));
+        return in_array($status, ['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH'], true);
+    }
+
+    public function isRefundedStatus(string $status): bool
+    {
+        $status = strtoupper(trim($status));
+        return in_array($status, ['REFUNDED'], true);
+    }
+
+    public function isOverdueStatus(string $status): bool
+    {
+        $status = strtoupper(trim($status));
+        return in_array($status, ['OVERDUE'], true);
+    }
+
+    /**
      * Verify the webhook pre-shared token using a timing-safe comparison.
      * Asaas sends the same authToken you configured in the dashboard via
      * the `asaas-access-token` HTTP header.

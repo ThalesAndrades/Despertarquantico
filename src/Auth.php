@@ -61,16 +61,38 @@ class Auth
         return null;
     }
 
+    public static function loginById(int $userId): bool
+    {
+        $user = Database::fetch("SELECT * FROM users WHERE id = ? AND is_active = 1", [$userId]);
+        if (!$user) {
+            return false;
+        }
+        self::setSession($user);
+        return true;
+    }
+
     public static function logout(): void
     {
         ensureSessionStarted();
         $_SESSION = [];
         if (ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
-                $params['path'], $params['domain'],
-                $params['secure'], $params['httponly']
-            );
+            // PHP 7.4+: use options array so SameSite is respected during deletion.
+            $secure = !empty($params['secure']);
+            if (!$secure && !empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+                $secure = strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https';
+            }
+            $cookieOptions = [
+                'expires' => time() - 42000,
+                'path' => $params['path'] ?: '/',
+                'secure' => $secure,
+                'httponly' => !empty($params['httponly']),
+                'samesite' => 'Lax',
+            ];
+            if (!empty($params['domain'])) {
+                $cookieOptions['domain'] = $params['domain'];
+            }
+            setcookie(session_name(), '', $cookieOptions);
         }
         session_destroy();
     }
@@ -86,14 +108,57 @@ class Auth
             return null;
         }
 
+        return self::createResetTokenForUserId((int) $user['id']);
+    }
+
+    /**
+     * Create a password reset / set-password token for an existing user id.
+     * Useful for guest checkout flows where we create a user on payment confirmation.
+     */
+    public static function createResetTokenForUserId(int $userId): ?string
+    {
+        $user = Database::fetch(
+            "SELECT id FROM users WHERE id = ? AND is_active = 1",
+            [$userId]
+        );
+        if (!$user) {
+            return null;
+        }
+
         $token = bin2hex(random_bytes(32));
         $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
         Database::query(
             "UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?",
-            [$token, $expires, $user['id']]
+            [$token, $expires, (int) $user['id']]
         );
 
         return $token;
+    }
+
+    /**
+     * Ensure a local user exists for a paid guest checkout (email-based).
+     * Returns: ['id' => int, 'created' => bool]
+     */
+    public static function ensureUserForGuestPurchase(string $name, string $email): array
+    {
+        $email = self::normalizeEmail($email);
+        $name = trim($name) !== '' ? trim($name) : 'Membro';
+
+        $existing = Database::fetch("SELECT id FROM users WHERE LOWER(email) = ?", [$email]);
+        if ($existing) {
+            return ['id' => (int) $existing['id'], 'created' => false];
+        }
+
+        // Create a random password hash (user will set a real password via email link).
+        $hash = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
+        $anonymousName = self::generateUniqueAnonymousName($name);
+
+        $id = Database::insert(
+            "INSERT INTO users (name, email, password_hash, anonymous_name, auth_provider) VALUES (?, ?, ?, ?, 'local')",
+            [$name, $email, $hash, $anonymousName]
+        );
+
+        return ['id' => (int) $id, 'created' => true];
     }
 
     public static function resetPassword(string $token, string $newPassword): bool
@@ -176,5 +241,25 @@ class Auth
         $_SESSION['user_email'] = $user['email'];
         $_SESSION['user_anonymous_name'] = $user['anonymous_name'];
         $_SESSION['user_role'] = $user['role'];
+    }
+
+    private static function generateUniqueAnonymousName(string $name): string
+    {
+        $base = trim(preg_replace('/\s+/', ' ', $name));
+        $base = preg_replace('/[^a-zA-ZÀ-ÿ0-9 ]/u', '', $base);
+        $first = trim(explode(' ', $base)[0] ?? '');
+        $first = $first !== '' ? $first : 'Espiral';
+        $first = function_exists('mb_substr') ? mb_substr($first, 0, 18) : substr($first, 0, 18);
+
+        for ($i = 0; $i < 12; $i++) {
+            $suffix = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+            $candidate = $first . $suffix;
+            $exists = Database::fetch("SELECT id FROM users WHERE anonymous_name = ?", [$candidate]);
+            if (!$exists) {
+                return $candidate;
+            }
+        }
+
+        return 'Espiral' . bin2hex(random_bytes(3));
     }
 }

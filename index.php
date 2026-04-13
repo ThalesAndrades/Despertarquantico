@@ -5,7 +5,15 @@
 
 // Load .env before any config so env() is available everywhere downstream.
 require_once __DIR__ . '/src/Env.php';
-Env::load(__DIR__ . '/.env');
+$envPath = __DIR__ . '/.env';
+if (!is_file($envPath)) {
+    // Shared hosting tip: keep .env one level above public_html so deploys don't overwrite secrets.
+    $parentEnv = dirname(__DIR__) . '/.env';
+    if (is_file($parentEnv)) {
+        $envPath = $parentEnv;
+    }
+}
+Env::load($envPath);
 
 require_once __DIR__ . '/config/app.php';
 
@@ -48,6 +56,9 @@ set_error_handler(function (int $severity, string $message, string $file, int $l
 });
 
 $url = isset($_GET['url']) ? trim($_GET['url'], '/') : '';
+if ($url === 'index.php') {
+    $url = '';
+}
 $method = $_SERVER['REQUEST_METHOD'];
 
 function routeRequiresSession(string $url): bool
@@ -73,10 +84,13 @@ function routeRequiresSession(string $url): bool
 }
 
 // Session configuration
+ini_set('session.use_only_cookies', '1');
+ini_set('session.use_trans_sid', '0');
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Lax');
 ini_set('session.use_strict_mode', '1');
-ini_set('session.gc_maxlifetime', '7200');
+ini_set('session.gc_maxlifetime', (string) SESSION_LIFETIME);
+ini_set('session.cookie_path', '/');
 $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
 if (!$isHttps && !empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
     $isHttps = strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https';
@@ -89,6 +103,7 @@ if (routeRequiresSession($url)) {
 }
 
 // Security headers
+@header_remove('X-Powered-By');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');
 header('X-XSS-Protection: 1; mode=block');
@@ -97,7 +112,8 @@ if ($isHttps) {
     header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 }
 header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
-header("Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; frame-src https:; media-src 'self' https:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
+header('X-Permitted-Cross-Domain-Policies: none');
+header("Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; object-src 'none'; frame-src https:; media-src 'self' https:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
 
 // Load core files
 require_once __DIR__ . '/src/Database.php';
@@ -112,7 +128,7 @@ if ($method === 'GET' && $url === '_health') {
     $healthToken = (string) Env::get('HEALTHCHECK_TOKEN', '');
     $checks = [
         'php' => PHP_VERSION,
-        'env_loaded' => Env::has('APP_ENV') || is_file(__DIR__ . '/.env'),
+        'env_loaded' => Env::has('APP_ENV') || is_file(__DIR__ . '/.env') || is_file(dirname(__DIR__) . '/.env'),
         'required_env' => [
             'DB_HOST' => Env::has('DB_HOST'),
             'DB_NAME' => Env::has('DB_NAME'),
@@ -146,6 +162,10 @@ if ($method === 'GET' && $url === '_health') {
             $checks['db']['ok'] = true;
         } catch (Throwable $e) {
             $checks['db']['error'] = get_class($e);
+            if ($healthToken !== '' && hash_equals($healthToken, $token)) {
+                $checks['db']['error_code'] = (string) $e->getCode();
+                $checks['db']['error_message'] = substr((string) $e->getMessage(), 0, 180);
+            }
         }
     } else {
         $checks['db']['error'] = 'missing_env';
@@ -188,6 +208,8 @@ $router->get('marketplace', [HomeController::class, 'marketplace']);
 $router->get('marketplace/{slug}', [HomeController::class, 'marketplaceProduct']);
 $router->get('login', [AuthController::class, 'loginForm']);
 $router->post('login', [AuthController::class, 'login']);
+$router->get('auth/google', [AuthController::class, 'googleStart']);
+$router->get('auth/google/callback', [AuthController::class, 'googleCallback']);
 $router->get('register', [AuthController::class, 'registerForm']);
 $router->post('register', [AuthController::class, 'register']);
 $router->post('logout', [AuthController::class, 'logout']);

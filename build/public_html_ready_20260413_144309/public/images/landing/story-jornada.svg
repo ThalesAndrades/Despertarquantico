@@ -1,0 +1,36 @@
+<svg width="960" height="960" viewBox="0 0 960 960" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="960" height="960" rx="44" fill="#0D0B10"/>
+<rect x="30" y="30" width="900" height="900" rx="32" fill="url(#bg)"/>
+<circle cx="296" cy="726" r="182" fill="url(#glow)"/>
+<rect x="150" y="150" width="660" height="660" rx="34" fill="#141119" stroke="#4A3C18"/>
+<path d="M276 274H686" stroke="#2B2316" stroke-width="10" stroke-linecap="round"/>
+<path d="M276 360H618" stroke="#2B2316" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+<path d="M276 446H540" stroke="#2B2316" stroke-width="10" stroke-linecap="round" opacity="0.65"/>
+<path d="M276 532H460" stroke="#2B2316" stroke-width="10" stroke-linecap="round" opacity="0.55"/>
+<path d="M276 618H386" stroke="#2B2316" stroke-width="10" stroke-linecap="round" opacity="0.45"/>
+<path d="M278 728C364 659 432 616 482 600C551 579 604 613 628 674C650 730 620 786 561 804C495 824 439 784 432 722" stroke="url(#path)" stroke-width="18" stroke-linecap="round"/>
+<circle cx="278" cy="728" r="16" fill="#C9A84C"/>
+<circle cx="482" cy="600" r="12" fill="#E0C46E"/>
+<circle cx="561" cy="804" r="14" fill="#A68430"/>
+<rect x="522" y="246" width="234" height="92" rx="22" fill="#1A1620" stroke="#4C3F1F"/>
+<text x="639" y="283" text-anchor="middle" fill="#D9C586" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Progresso visivel</text>
+<text x="639" y="312" text-anchor="middle" fill="#A9A293" font-family="Inter, Arial, sans-serif" font-size="14">Sem se perder no caminho</text>
+<rect x="182" y="662" width="224" height="106" rx="24" fill="#17131A" stroke="#4C3F1F"/>
+<text x="294" y="705" text-anchor="middle" fill="#EADAA6" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700">Jornada em modulos</text>
+<text x="294" y="733" text-anchor="middle" fill="#9D978A" font-family="Inter, Arial, sans-serif" font-size="13">Proximo passo definido</text>
+<defs>
+<linearGradient id="bg" x1="480" y1="30" x2="480" y2="930" gradientUnits="userSpaceOnUse">
+<stop stop-color="#130F16"/>
+<stop offset="1" stop-color="#09080B"/>
+</linearGradient>
+<radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(296 726) rotate(90) scale(182)">
+<stop stop-color="#C9A84C" stop-opacity="0.22"/>
+<stop offset="1" stop-color="#C9A84C" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="path" x1="278" y1="600" x2="628" y2="804" gradientUnits="userSpaceOnUse">
+<stop stop-color="#F0E5C1"/>
+<stop offset="0.5" stop-color="#D2B96D"/>
+<stop offset="1" stop-color="#9F7C28"/>
+</linearGradient>
+</defs>
+</svg>

@@ -72,14 +72,19 @@ function themeInitScript(): string
 <script>
 (function () {
     try {
-        var storageKey = 'mulher-espiral-theme';
-        var savedTheme = localStorage.getItem(storageKey);
-        var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-        var theme = savedTheme || (prefersLight ? 'light' : 'dark');
+        var storageKey = 'mulher-espiral-theme-override';
+        var legacyModeKey = 'mulher-espiral-theme-mode';
+        var legacyKey = 'mulher-espiral-theme';
+        var override = localStorage.getItem(storageKey) || localStorage.getItem(legacyModeKey) || localStorage.getItem(legacyKey) || '';
+        if (override !== 'light' && override !== 'dark') override = '';
+        var hour = (new Date()).getHours();
+        var theme = override !== '' ? override : ((hour >= 6 && hour < 19) ? 'light' : 'dark');
         document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.setAttribute('data-theme-mode', override !== '' ? 'manual' : 'auto');
         document.documentElement.style.colorScheme = theme;
     } catch (error) {
         document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.setAttribute('data-theme-mode', 'auto');
         document.documentElement.style.colorScheme = 'dark';
     }
 })();
@@ -89,8 +94,7 @@ HTML;
 
 function themeScriptTag(): string
 {
-    return '<script src="' . asset('js/theme.js') . '" defer></script>'
-        . '<script src="' . asset('js/frequency-bg.js') . '" defer></script>';
+    return '<script src="' . asset('js/theme.js') . '" defer></script>';
 }
 
 function themeToggleButton(string $classes = 'theme-toggle', string $label = 'Tema'): string
@@ -194,13 +198,28 @@ function slugify(string $text): string
 
 function uploadImage(array $file, string $directory): ?string
 {
+    $directory = trim($directory, '/');
+    if ($directory === '' || strpos($directory, '..') !== false) {
+        return null;
+    }
     if ($file['error'] !== UPLOAD_ERR_OK || $file['size'] > MAX_UPLOAD_SIZE) {
+        return null;
+    }
+    if (empty($file['tmp_name']) || !is_file($file['tmp_name'])) {
+        return null;
+    }
+    if (!is_uploaded_file($file['tmp_name'])) {
         return null;
     }
 
     $finfo = new finfo(FILEINFO_MIME_TYPE);
     $mime = $finfo->file($file['tmp_name']);
     if (!in_array($mime, ALLOWED_IMAGE_TYPES)) {
+        return null;
+    }
+    // Extra validation: ensure it's a readable image and the declared mime matches.
+    $imgInfo = @getimagesize($file['tmp_name']);
+    if ($imgInfo === false || empty($imgInfo['mime']) || $imgInfo['mime'] !== $mime) {
         return null;
     }
 
@@ -218,6 +237,7 @@ function uploadImage(array $file, string $directory): ?string
     }
 
     if (move_uploaded_file($file['tmp_name'], $path . '/' . $filename)) {
+        @chmod($path . '/' . $filename, 0644);
         return $directory . '/' . $filename;
     }
     return null;

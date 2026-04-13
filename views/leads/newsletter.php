@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Newsletter — Despertar Espiral';
+$pageTitle = 'Newsletter';
 $metaDescription = 'Receba reflexões e práticas do método Despertar Espiral. Conteúdo direto, profundo e aplicável.';
 $utm = [
     'utm_source' => $_GET['utm_source'] ?? '',
@@ -14,7 +14,7 @@ $utm = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title><?= e($pageTitle) ?> - <?= e(APP_NAME) ?></title>
+    <title><?= e($pageTitle) ?> | <?= e(APP_NAME) ?></title>
     <meta name="description" content="<?= e($metaDescription) ?>">
     <meta name="theme-color" content="#0A0A0A">
     <link rel="preconnect" href="https://fonts.googleapis.com">

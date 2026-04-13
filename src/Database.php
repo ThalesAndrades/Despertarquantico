@@ -92,6 +92,11 @@ class Database
         $pdo = self::$instance;
 
         try {
+            // orders: store guest checkout name for later user creation on paid webhook
+            if (!self::columnExists('orders', 'customer_name')) {
+                $pdo->exec("ALTER TABLE orders ADD COLUMN customer_name VARCHAR(120) DEFAULT NULL AFTER customer_email");
+            }
+
             // orders: rename Stripe columns to Asaas equivalents
             if (self::columnExists('orders', 'stripe_session_id') && !self::columnExists('orders', 'asaas_payment_id')) {
                 $pdo->exec("ALTER TABLE orders CHANGE COLUMN stripe_session_id asaas_payment_id VARCHAR(60) NOT NULL");
@@ -115,6 +120,22 @@ class Database
             if (!self::columnExists('users', 'asaas_customer_id')) {
                 $pdo->exec("ALTER TABLE users ADD COLUMN asaas_customer_id VARCHAR(60) DEFAULT NULL AFTER reset_expires");
             }
+            if (!self::columnExists('users', 'auth_provider')) {
+                $pdo->exec("ALTER TABLE users ADD COLUMN auth_provider VARCHAR(20) NOT NULL DEFAULT 'local' AFTER password_hash");
+            }
+            if (!self::columnExists('users', 'google_id')) {
+                $pdo->exec("ALTER TABLE users ADD COLUMN google_id VARCHAR(64) DEFAULT NULL AFTER auth_provider");
+            }
+            if (!self::columnExists('users', 'google_email_verified')) {
+                $pdo->exec("ALTER TABLE users ADD COLUMN google_email_verified TINYINT(1) DEFAULT 0 AFTER google_id");
+            }
+            if (!self::columnExists('users', 'avatar_url')) {
+                $pdo->exec("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500) DEFAULT NULL AFTER google_email_verified");
+            }
+            if (self::columnExists('users', 'google_id') && !self::indexExists('users', 'uniq_google_id')) {
+                $pdo->exec("CREATE UNIQUE INDEX uniq_google_id ON users (google_id)");
+            }
+            self::ensureIndex('users', 'idx_auth_provider', 'auth_provider');
 
             // Indexes (all idempotent via SHOW INDEX check)
             self::ensureIndex('orders', 'idx_asaas_payment', 'asaas_payment_id');
@@ -133,6 +154,29 @@ class Database
                     attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     INDEX idx_ip_time (ip_address, attempted_at),
                     INDEX idx_email_time (email, attempted_at)
+                ) ENGINE=InnoDB
+            ");
+
+            // Webhook event inbox (idempotency + audit)
+            self::ensureTable('webhook_events', "
+                CREATE TABLE webhook_events (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    provider VARCHAR(20) NOT NULL,
+                    event_key VARCHAR(80) NOT NULL,
+                    event_type VARCHAR(80) DEFAULT NULL,
+                    payment_id VARCHAR(60) DEFAULT NULL,
+                    order_id INT DEFAULT NULL,
+                    payload_hash CHAR(64) DEFAULT NULL,
+                    payload_json MEDIUMTEXT DEFAULT NULL,
+                    attempts INT NOT NULL DEFAULT 0,
+                    received_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    processed_at DATETIME DEFAULT NULL,
+                    process_result VARCHAR(40) DEFAULT NULL,
+                    error_message VARCHAR(255) DEFAULT NULL,
+                    UNIQUE KEY uniq_provider_event (provider, event_key),
+                    INDEX idx_payment_event (provider, payment_id, event_type),
+                    INDEX idx_order (order_id),
+                    INDEX idx_processed (processed_at)
                 ) ENGINE=InnoDB
             ");
 
