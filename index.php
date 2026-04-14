@@ -63,10 +63,11 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 function routeRequiresSession(string $url): bool
 {
+    // checkout/success needs the session so the viewer's identity can be
+    // verified before surfacing order details (see CheckoutController::success).
     static $publicStatelessRoutes = [
         '',
         'marketplace',
-        'checkout/success',
         'checkout/cancel',
         'webhook/asaas',
         '_health',
@@ -370,11 +371,13 @@ $router->post('newsletter', [LeadController::class, 'newsletterSubmit']);
 $router->get('diagnostico', [LeadController::class, 'diagnosticForm']);
 $router->post('diagnostico', [LeadController::class, 'diagnosticSubmit']);
 
-// Checkout routes
-$router->get('checkout/{slug}', [CheckoutController::class, 'create']);
-$router->post('checkout/{slug}', [CheckoutController::class, 'createPost']);
+// Checkout routes — specific routes MUST come before the generic {slug}
+// pattern, otherwise `checkout/success` and `checkout/cancel` would be
+// captured as product slugs and fail (breaking Asaas post-payment redirect).
 $router->get('checkout/success', [CheckoutController::class, 'success']);
 $router->get('checkout/cancel', [CheckoutController::class, 'cancel']);
+$router->get('checkout/{slug}', [CheckoutController::class, 'create']);
+$router->post('checkout/{slug}', [CheckoutController::class, 'createPost']);
 $router->post('webhook/asaas', [CheckoutController::class, 'webhook']);
 
 // Authenticated routes

@@ -147,12 +147,29 @@ class CheckoutController
         $orderId = (int) ($_GET['order'] ?? 0);
         $order = null;
         if ($orderId > 0) {
-            $order = Database::fetch(
+            $candidate = Database::fetch(
                 "SELECT o.*, p.title as product_title
                  FROM orders o JOIN products p ON o.product_id = p.id
                  WHERE o.id = ?",
                 [$orderId]
             );
+
+            // Only surface order details to a viewer that plausibly owns it.
+            // Anyone can guess sequential order ids; without this check,
+            // the page would leak the product title and amount.
+            if ($candidate) {
+                $sessionUserId = (int) ($_SESSION['user_id'] ?? 0);
+                $sessionEmail = strtolower((string) ($_SESSION['user_email'] ?? ''));
+                $orderUserId = (int) ($candidate['user_id'] ?? 0);
+                $orderEmail = strtolower((string) ($candidate['customer_email'] ?? ''));
+
+                $ownsBySession = $sessionUserId > 0 && $orderUserId === $sessionUserId;
+                $ownsByEmail = $sessionEmail !== '' && $sessionEmail === $orderEmail;
+
+                if ($ownsBySession || $ownsByEmail) {
+                    $order = $candidate;
+                }
+            }
         }
 
         view('checkout/success', compact('order'));

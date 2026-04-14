@@ -143,7 +143,14 @@ function requireAdmin(): void
     requireAuth();
     if (($_SESSION['user_role'] ?? '') !== 'admin') {
         http_response_code(403);
-        die('Acesso negado.');
+        $message = 'Voce nao tem permissao para acessar esta pagina.';
+        $errorPage = VIEWS_PATH . '/errors/403.php';
+        if (is_file($errorPage)) {
+            require $errorPage;
+        } else {
+            echo 'Acesso negado.';
+        }
+        exit;
     }
 }
 

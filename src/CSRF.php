@@ -30,7 +30,14 @@ class CSRF
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && !self::verify()) {
             http_response_code(403);
-            die('Token de segurança inválido. Por favor, recarregue a página e tente novamente.');
+            $message = 'Token de seguranca invalido. Recarregue a pagina e tente novamente.';
+            $errorPage = defined('VIEWS_PATH') ? VIEWS_PATH . '/errors/403.php' : null;
+            if ($errorPage && is_file($errorPage)) {
+                require $errorPage;
+            } else {
+                echo 'Token de seguranca invalido.';
+            }
+            exit;
         }
     }
 }

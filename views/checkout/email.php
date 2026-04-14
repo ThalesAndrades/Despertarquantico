@@ -26,6 +26,11 @@
                 <p class="checkout-helper">Voce esta a um passo de receber acesso imediato ao programa e a comunidade privada.</p>
             </div>
 
+            <?php $checkoutError = flash('error'); ?>
+            <?php if ($checkoutError): ?>
+                <div class="alert alert-error" role="alert" aria-live="polite"><?= e($checkoutError) ?></div>
+            <?php endif; ?>
+
             <form method="POST" action="<?= url('checkout/' . e($product['slug'])) ?>">
                 <?= CSRF::field() ?>
                 <div class="form-group text-left">

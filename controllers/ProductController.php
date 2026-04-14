@@ -68,7 +68,7 @@ class ProductController
         requireAuth();
         $userId = $_SESSION['user_id'];
 
-        $product = Database::fetch("SELECT * FROM products WHERE slug = ?", [$slug]);
+        $product = Database::fetch("SELECT * FROM products WHERE slug = ? AND is_active = 1", [$slug]);
         if (!$product) { redirect('products'); return; }
 
         $hasAccess = Database::fetch("SELECT 1 FROM user_products WHERE user_id = ? AND product_id = ?", [$userId, $product['id']]);
