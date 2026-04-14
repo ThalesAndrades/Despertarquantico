@@ -125,6 +125,7 @@ CREATE TABLE orders (
     asaas_event VARCHAR(50) DEFAULT NULL,
     payment_method ENUM('pix', 'credit_card', 'boleto', 'undefined') DEFAULT 'undefined',
     customer_email VARCHAR(150) NOT NULL,
+    customer_name VARCHAR(120) DEFAULT NULL,
     amount DECIMAL(10,2) NOT NULL,
     currency VARCHAR(3) DEFAULT 'brl',
     status ENUM('pending', 'paid', 'failed', 'refunded') DEFAULT 'pending',
