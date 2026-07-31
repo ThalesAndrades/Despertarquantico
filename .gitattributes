@@ -1,0 +1,36 @@
+# Normalizacao de fim de linha — o servidor (Hostinger/Linux) usa LF.
+# Sem isso, o core.autocrlf=true do Windows suja o working tree inteiro.
+* text=auto eol=lf
+
+# Codigo e configuracao
+*.php      text eol=lf
+*.css      text eol=lf
+*.js       text eol=lf
+*.html     text eol=lf
+*.json     text eol=lf
+*.md       text eol=lf
+*.sql      text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+.htaccess  text eol=lf
+.env.example text eol=lf
+*.svg      text eol=lf
+
+# Binarios — nunca normalizar
+*.zip  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.eot  binary
+*.pdf  binary
+*.docx binary
+*.xlsx binary
+*.mp4  binary
+*.mp3  binary
