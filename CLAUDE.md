@@ -45,15 +45,17 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 │   ├── Asaas.php          # Cliente Asaas via cURL (PIX, cartao, boleto)
 │   ├── Sequenzy.php       # Cliente webhook Sequenzy
 │   └── EventDispatcher.php # Fachada de eventos do ciclo de vida
-├── controllers/           # 7 controllers MVC
+├── controllers/           # 9 controllers MVC
 │   ├── HomeController.php
 │   ├── AuthController.php
 │   ├── DashboardController.php
 │   ├── ProductController.php
 │   ├── CommunityController.php
 │   ├── CheckoutController.php
+│   ├── ApplyController.php    # Funil high-ticket (aplicacao)
+│   ├── LeadController.php     # CRM: captura de leads / newsletter / diagnostico
 │   └── AdminController.php
-├── views/                 # 25 templates PHP
+├── views/                 # 34 templates PHP
 │   ├── layouts/           # app.php, admin.php, landing.php
 │   ├── landing/           # Homepage publica
 │   ├── auth/              # Login, registro, reset senha
@@ -64,7 +66,7 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 │   ├── admin/             # Painel administrativo
 │   └── errors/            # 404
 ├── database/
-│   └── schema.sql         # Schema MySQL (11 tabelas)
+│   └── schema.sql         # Schema MySQL (17 tabelas)
 ├── public/
 │   ├── css/               # style.css, dashboard.css, landing.css
 │   ├── js/                # app.js, community.js, landing.js
@@ -74,7 +76,7 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 
 ---
 
-## Banco de Dados (11 tabelas)
+## Banco de Dados (17 tabelas)
 
 | Tabela | Funcao |
 |--------|--------|
@@ -89,6 +91,12 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 | `community_posts` | Posts do forum (5 categorias, is_pinned, is_visible) |
 | `community_comments` | Comentarios em posts |
 | `community_likes` | Likes em posts e comentarios |
+| `crm_leads` | CRM: lead capturado (origem, status do funil) |
+| `crm_tags` | CRM: tags disponiveis (slug unico) |
+| `crm_lead_tags` | CRM: relacao lead-tag (many-to-many) |
+| `crm_lead_events` | CRM: timeline de eventos do lead |
+| `crm_lead_notes` | CRM: anotacoes manuais no lead |
+| `high_ticket_applications` | Funil high-ticket: formulario de aplicacao |
 
 **Categorias da comunidade:** geral, desabafo, duvidas, conquistas, dicas
 

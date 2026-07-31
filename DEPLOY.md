@@ -31,13 +31,24 @@
 - Healthcheck (precisa do token do `.env`): `https://despertarespiral.com/_health?token=SEU_TOKEN`
 
 ### Seed rápido (criar admin + produtos de teste)
-1) No servidor, no `.env`, adicione temporariamente:
+> ⚠️ **Nunca use senha fraca aqui.** Este endpoint cria um usuário **admin**. Uma senha
+> previsível somada a um `BOOTSTRAP_ENABLED` esquecido em `true` entrega o painel inteiro.
+
+1) Gere segredos fortes e aleatórios (não invente à mão):
+   ```bash
+   # token do bootstrap
+   openssl rand -hex 32
+   # senha inicial do admin
+   openssl rand -base64 24
+   ```
+2) No servidor, no `.env`, adicione temporariamente:
    - `BOOTSTRAP_ENABLED=true`
-   - `BOOTSTRAP_TOKEN=um_token_longo_e_unico`
+   - `BOOTSTRAP_TOKEN=<saída do primeiro comando>`
    - `ADMIN_BOOTSTRAP_EMAIL=sunyan@despertarespiral.com`
-   - `ADMIN_BOOTSTRAP_PASSWORD=admin123`
-2) Acesse:
+   - `ADMIN_BOOTSTRAP_PASSWORD=<saída do segundo comando>`
+3) Acesse:
    - `https://despertarespiral.com/_bootstrap?token=SEU_BOOTSTRAP_TOKEN`
-3) Depois disso:
-   - volte `BOOTSTRAP_ENABLED=false` (ou remova as variáveis)
+4) **Imediatamente depois (não deixe para depois):**
+   - `BOOTSTRAP_ENABLED=false` — ou, melhor, **remova** as quatro variáveis do `.env`
    - troque a senha do admin no painel
+   - confirme que `https://despertarespiral.com/_bootstrap?token=...` agora responde 404/403
