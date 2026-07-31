@@ -26,14 +26,14 @@ CREATE TABLE users (
     is_active TINYINT(1) DEFAULT 1,
     reset_token VARCHAR(64) DEFAULT NULL,
     reset_expires DATETIME DEFAULT NULL,
-    asaas_customer_id VARCHAR(60) DEFAULT NULL,
+    provider_customer_id VARCHAR(60) DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
     UNIQUE KEY uniq_google_id (google_id),
     INDEX idx_auth_provider (auth_provider),
     INDEX idx_reset_token (reset_token),
-    INDEX idx_asaas_customer (asaas_customer_id)
+    INDEX idx_provider_customer (provider_customer_id)
 ) ENGINE=InnoDB;
 
 -- =============================================
@@ -114,16 +114,25 @@ CREATE TABLE lesson_progress (
 ) ENGINE=InnoDB;
 
 -- =============================================
--- Orders (Asaas payments: PIX, credit card, boleto)
+-- Orders (Woovi/OpenPix — PIX)
+--
+-- As colunas sao NEUTRAS de gateway (provider_*) de proposito: a plataforma ja
+-- trocou de Asaas para Woovi uma vez, e uma proxima troca nao deve exigir
+-- renomear coluna de novo. Pedidos antigos ficam com provider='asaas'.
+-- payment_method mantem os valores legados no ENUM para nao quebrar as linhas
+-- de cartao/boleto vendidas na epoca do Asaas.
 -- =============================================
 CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT DEFAULT NULL,
     product_id INT NOT NULL,
-    asaas_payment_id VARCHAR(60) UNIQUE NOT NULL,
-    asaas_invoice_url VARCHAR(500) DEFAULT NULL,
-    asaas_event VARCHAR(50) DEFAULT NULL,
-    payment_method ENUM('pix', 'credit_card', 'boleto', 'undefined') DEFAULT 'undefined',
+    provider VARCHAR(20) NOT NULL DEFAULT 'woovi',
+    provider_charge_id VARCHAR(60) UNIQUE NOT NULL,
+    provider_correlation_id VARCHAR(60) DEFAULT NULL,
+    provider_payment_url VARCHAR(500) DEFAULT NULL,
+    provider_event VARCHAR(50) DEFAULT NULL,
+    brcode TEXT DEFAULT NULL,
+    payment_method ENUM('pix', 'credit_card', 'boleto', 'undefined') DEFAULT 'pix',
     customer_email VARCHAR(150) NOT NULL,
     customer_name VARCHAR(120) DEFAULT NULL,
     amount DECIMAL(10,2) NOT NULL,
@@ -133,7 +142,8 @@ CREATE TABLE orders (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    INDEX idx_asaas_payment (asaas_payment_id),
+    INDEX idx_provider_charge (provider_charge_id),
+    INDEX idx_provider_correlation (provider_correlation_id),
     INDEX idx_status (status),
     INDEX idx_customer_email (customer_email),
     INDEX idx_user_status (user_id, status)

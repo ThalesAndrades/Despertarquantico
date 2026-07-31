@@ -8,7 +8,11 @@
 **Hospedagem:** Hostinger (shared hosting)
 **Linguagem:** PHP 7.4+ (sem frameworks externos, sem Composer)
 
-Plataforma premium de cursos online para transformacao feminina baseada no metodo "Despertar Espiral". Inclui area de membros, comunidade anonima, checkout via Asaas (PIX + cartao + boleto), automacoes de ciclo de vida via Sequenzy e painel administrativo completo.
+Plataforma premium de cursos online para transformacao feminina baseada no metodo "Despertar Espiral". Inclui area de membros, comunidade anonima, checkout via Woovi/OpenPix (PIX), automacoes de ciclo de vida via Sequenzy e painel administrativo completo.
+
+> **Historico de gateway:** Stripe -> Asaas -> **Woovi** (jul/2026). A troca para Woovi
+> tornou o checkout **PIX-only**: o checkout padrao da Woovi ainda nao oferece cartao
+> nem boleto. Pedidos antigos permanecem no banco com `provider='asaas'`.
 
 ---
 
@@ -18,7 +22,7 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 - **Frontend:** HTML5, CSS3 puro (variaveis CSS), Vanilla JS
 - **Banco:** MySQL 5.7+ / MariaDB
 - **Servidor:** Apache (mod_rewrite)
-- **Pagamentos:** Asaas (via cURL, sem SDK) — PIX + cartao + boleto em checkout hospedado (`billingType: UNDEFINED`)
+- **Pagamentos:** Woovi/OpenPix (via cURL, sem SDK) — **PIX apenas**, checkout hospedado (`charge.paymentLinkUrl`). Valor em CENTAVOS.
 - **Automacoes:** Sequenzy (webhook unidirecional, eventos de ciclo de vida)
 - **Email:** PHP mail() / SMTP Hostinger
 - **Fontes:** Playfair Display (display) + Inter (body)
@@ -33,7 +37,7 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 ├── index.php              # Front controller (entry point)
 ├── install.php            # Instalador automatico Hostinger
 ├── .htaccess              # HTTPS + rewrite para index.php
-├── config/                # Configuracoes (app, database, asaas, sequenzy, mail)
+├── config/                # Configuracoes (app, database, woovi, sequenzy, mail)
 ├── src/                   # Classes core do framework
 │   ├── Env.php            # Loader de .env (sem dependencias)
 │   ├── Router.php         # Roteamento URL com regex
@@ -42,7 +46,7 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 │   ├── CSRF.php           # Protecao CSRF
 │   ├── Helpers.php        # Funcoes globais (e(), redirect(), view()...)
 │   ├── Mailer.php         # Envio de emails HTML
-│   ├── Asaas.php          # Cliente Asaas via cURL (PIX, cartao, boleto)
+│   ├── Woovi.php          # Cliente Woovi/OpenPix via cURL (PIX) + validacao de assinatura
 │   ├── Sequenzy.php       # Cliente webhook Sequenzy
 │   └── EventDispatcher.php # Fachada de eventos do ciclo de vida
 ├── controllers/           # 9 controllers MVC
@@ -86,7 +90,8 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 | `lessons` | Aulas (FK module_id, tipo: video/text/pdf/audio) |
 | `user_products` | Acesso usuario-produto (many-to-many) |
 | `lesson_progress` | Progresso por aula (completed boolean) |
-| `orders` | Pedidos Asaas (asaas_payment_id, payment_method pix/credit_card/boleto, status: pending/paid/failed/refunded) |
+| `orders` | Pedidos (colunas NEUTRAS de gateway: `provider`, `provider_charge_id`, `provider_correlation_id`, `provider_payment_url`, `provider_event`, `brcode`; status: pending/paid/failed/refunded) |
+| `webhook_events` | Inbox de idempotencia dos webhooks (chave unica provider+event_key) |
 | `login_attempts` | Rate limit de login por IP + email |
 | `community_posts` | Posts do forum (5 categorias, is_pinned, is_visible) |
 | `community_comments` | Comentarios em posts |
@@ -110,8 +115,9 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 - `GET /` - Landing page
 - `GET|POST /login, /register, /logout` - Autenticacao
 - `GET|POST /forgot-password, /reset-password` - Recuperacao de senha
-- `GET|POST /checkout/{slug}` - Checkout Asaas (redireciona para invoiceUrl)
-- `POST /webhook/asaas` - Webhook de pagamento (header `asaas-access-token`)
+- `GET|POST /checkout/{slug}` - Checkout Woovi (redireciona para `charge.paymentLinkUrl`)
+- `POST /webhook/woovi` - Webhook de pagamento (assinatura RSA no header `x-webhook-signature`)
+- `POST /webhook/asaas` - **Legado.** Nao processa; grava no inbox como `needs_manual_review`
 
 **Autenticadas (requireAuth):**
 - `GET /dashboard` - Dashboard do membro
@@ -135,10 +141,10 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 ## Convencoes de Codigo
 
 ### PHP
-- Classes: PascalCase (`ProductController`, `AsaasClient`)
+- Classes: PascalCase (`ProductController`, `WooviClient`)
 - Metodos: camelCase (`markProgress()`, `createPayment()`)
 - Constantes: UPPER_SNAKE (`APP_NAME`, `SESSION_LIFETIME`)
-- Colunas DB: snake_case (`user_id`, `asaas_payment_id`)
+- Colunas DB: snake_case (`user_id`, `provider_charge_id`)
 - Helpers globais: snake_case (`e()`, `redirect()`, `view()`, `flash()`)
 
 ### CSS
@@ -163,7 +169,7 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 - **Sessao:** httpOnly, SameSite=Lax, Secure, gc_maxlifetime=7200
 - **Headers:** X-Content-Type-Options, X-Frame-Options, X-XSS-Protection
 - **HTTPS:** Forcado via .htaccess
-- **Asaas:** Webhook autenticado por pre-shared token (header `asaas-access-token`, comparacao via `hash_equals`)
+- **Woovi:** Webhook autenticado por **assinatura RSA-SHA256** (header `x-webhook-signature`, validada com a chave publica da Woovi via `openssl_verify`). Falha FECHADO se a chave publica estiver ausente. Coberto por testes em `tests/cases/WooviWebhookTest.php`.
 - **Uploads:** Validacao MIME type (jpeg, png, webp), limite 10MB
 
 ---
@@ -174,7 +180,7 @@ Plataforma premium de cursos online para transformacao feminina baseada no metod
 |---------|----------|
 | `config/app.php` | APP_NAME, APP_URL, APP_ENV, SESSION_LIFETIME, limites upload |
 | `config/database.php` | Host, dbname, user, password (lidos de `.env`) |
-| `config/asaas.php` | api_key, env (sandbox/production), webhook_token, wallet_id |
+| `config/woovi.php` | app_id, base_url, webhook_public_key (com override por env), timeout |
 | `config/sequenzy.php` | webhook_url, enabled, timeout |
 | `config/mail.php` | SMTP host/port/user/pass, from_email (`noreply@despertarespiral.com`) |
 
@@ -201,8 +207,11 @@ Segredos nunca vivem no repo: todas as chaves sao lidas do `.env` via `Env::get(
 
 ```bash
 # Nao ha build step - PHP puro servido diretamente
-# Nao ha testes automatizados
 # Nao ha migrations CLI - schema.sql roda automaticamente
+
+# TESTES (lint php -l + suite): nao exige PHP instalado na maquina, so Docker.
+# Sai com codigo 1 se algo quebrar, entao serve de gate antes do deploy.
+docker run --rm -v "$PWD:/app" -w /app php:8.2-cli php tests/run.php
 
 # Deploy: upload via Hostinger File Manager → install.php → deletar install.php
 ```

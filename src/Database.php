@@ -104,11 +104,51 @@ class Database
             if (self::columnExists('orders', 'stripe_payment_intent') && !self::columnExists('orders', 'asaas_invoice_url')) {
                 $pdo->exec("ALTER TABLE orders CHANGE COLUMN stripe_payment_intent asaas_invoice_url VARCHAR(500) DEFAULT NULL");
             }
-            if (!self::columnExists('orders', 'asaas_event')) {
+            if (!self::columnExists('orders', 'asaas_event') && !self::columnExists('orders', 'provider_event')) {
                 $pdo->exec("ALTER TABLE orders ADD COLUMN asaas_event VARCHAR(50) DEFAULT NULL AFTER asaas_invoice_url");
             }
             if (!self::columnExists('orders', 'payment_method')) {
-                $pdo->exec("ALTER TABLE orders ADD COLUMN payment_method ENUM('pix', 'credit_card', 'boleto', 'undefined') DEFAULT 'undefined' AFTER asaas_event");
+                $pdo->exec("ALTER TABLE orders ADD COLUMN payment_method ENUM('pix', 'credit_card', 'boleto', 'undefined') DEFAULT 'undefined'");
+            }
+
+            // ---- orders: Asaas -> Woovi (colunas neutras de gateway) ----
+            // Renomear preserva os dados das vendas ja feitas pelo Asaas.
+            if (self::columnExists('orders', 'asaas_payment_id') && !self::columnExists('orders', 'provider_charge_id')) {
+                $pdo->exec("ALTER TABLE orders CHANGE COLUMN asaas_payment_id provider_charge_id VARCHAR(60) NOT NULL");
+            }
+            if (self::columnExists('orders', 'asaas_invoice_url') && !self::columnExists('orders', 'provider_payment_url')) {
+                $pdo->exec("ALTER TABLE orders CHANGE COLUMN asaas_invoice_url provider_payment_url VARCHAR(500) DEFAULT NULL");
+            }
+            if (self::columnExists('orders', 'asaas_event') && !self::columnExists('orders', 'provider_event')) {
+                $pdo->exec("ALTER TABLE orders CHANGE COLUMN asaas_event provider_event VARCHAR(50) DEFAULT NULL");
+            }
+            if (!self::columnExists('orders', 'provider')) {
+                // As linhas que JA EXISTEM sao do Asaas — por isso o default 'asaas'
+                // na criacao da coluna, que preenche o historico corretamente.
+                $pdo->exec("ALTER TABLE orders ADD COLUMN provider VARCHAR(20) NOT NULL DEFAULT 'asaas' AFTER product_id");
+                // A partir daqui, todo pedido novo nasce Woovi.
+                $pdo->exec("ALTER TABLE orders ALTER COLUMN provider SET DEFAULT 'woovi'");
+            }
+            if (!self::columnExists('orders', 'provider_correlation_id')) {
+                $pdo->exec("ALTER TABLE orders ADD COLUMN provider_correlation_id VARCHAR(60) DEFAULT NULL AFTER provider_charge_id");
+            }
+            if (!self::columnExists('orders', 'brcode')) {
+                $pdo->exec("ALTER TABLE orders ADD COLUMN brcode TEXT DEFAULT NULL AFTER provider_event");
+            }
+
+            // ---- users: asaas_customer_id -> provider_customer_id ----
+            // A Woovi nao exige cadastro previo de cliente (os dados vao inline na
+            // cobranca), entao a coluna deixa de ser escrita — mas o historico fica.
+            if (self::columnExists('users', 'asaas_customer_id') && !self::columnExists('users', 'provider_customer_id')) {
+                $pdo->exec("ALTER TABLE users CHANGE COLUMN asaas_customer_id provider_customer_id VARCHAR(60) DEFAULT NULL");
+            }
+
+            // Indices antigos com nome de gateway: substituidos pelos neutros abaixo.
+            if (self::indexExists('orders', 'idx_asaas_payment')) {
+                $pdo->exec("DROP INDEX idx_asaas_payment ON orders");
+            }
+            if (self::indexExists('users', 'idx_asaas_customer')) {
+                $pdo->exec("DROP INDEX idx_asaas_customer ON users");
             }
 
             // products: drop unused stripe_price_id if it still exists
@@ -116,9 +156,9 @@ class Database
                 $pdo->exec("ALTER TABLE products DROP COLUMN stripe_price_id");
             }
 
-            // users: Asaas customer id for checkout reuse
-            if (!self::columnExists('users', 'asaas_customer_id')) {
-                $pdo->exec("ALTER TABLE users ADD COLUMN asaas_customer_id VARCHAR(60) DEFAULT NULL AFTER reset_expires");
+            // users: id do cliente no gateway (legado do Asaas; a Woovi nao usa)
+            if (!self::columnExists('users', 'asaas_customer_id') && !self::columnExists('users', 'provider_customer_id')) {
+                $pdo->exec("ALTER TABLE users ADD COLUMN provider_customer_id VARCHAR(60) DEFAULT NULL AFTER reset_expires");
             }
             if (!self::columnExists('users', 'auth_provider')) {
                 $pdo->exec("ALTER TABLE users ADD COLUMN auth_provider VARCHAR(20) NOT NULL DEFAULT 'local' AFTER password_hash");
@@ -138,9 +178,10 @@ class Database
             self::ensureIndex('users', 'idx_auth_provider', 'auth_provider');
 
             // Indexes (all idempotent via SHOW INDEX check)
-            self::ensureIndex('orders', 'idx_asaas_payment', 'asaas_payment_id');
+            self::ensureIndex('orders', 'idx_provider_charge', 'provider_charge_id');
+            self::ensureIndex('orders', 'idx_provider_correlation', 'provider_correlation_id');
             self::ensureIndex('orders', 'idx_user_status', 'user_id, status');
-            self::ensureIndex('users', 'idx_asaas_customer', 'asaas_customer_id');
+            self::ensureIndex('users', 'idx_provider_customer', 'provider_customer_id');
             self::ensureIndex('modules', 'idx_modules_product', 'product_id');
             self::ensureIndex('lessons', 'idx_lessons_module', 'module_id');
             self::ensureIndex('user_products', 'idx_user_products_user', 'user_id');

@@ -55,7 +55,7 @@
                 <span class="trust-dot"></span>
                 <span>Sem mensalidade</span>
             </div>
-            <p class="checkout-secure">&#128274; Pagamento seguro processado pela Asaas. Seus dados estao protegidos.</p>
+            <p class="checkout-secure">&#128274; Pagamento via PIX, processado pela Woovi. Seus dados estao protegidos.</p>
             <p class="mt-2"><a href="<?= url('') ?>" class="text-sm text-gold">&#8592; Voltar</a></p>
         </div>
     </div>

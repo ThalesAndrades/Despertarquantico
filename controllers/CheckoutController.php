@@ -49,43 +49,22 @@ class CheckoutController
         $userId = $_SESSION['user_id'] ?? null;
         closeSession();
 
-        require_once BASE_PATH . '/src/Asaas.php';
-        $asaas = new AsaasClient();
+        require_once BASE_PATH . '/src/Woovi.php';
+        $woovi = new WooviClient();
 
-        // Reuse or create Asaas customer.
-        $asaasCustomerId = null;
-        if ($userId) {
-            $existingUser = Database::fetch(
-                "SELECT asaas_customer_id FROM users WHERE id = ?",
-                [$userId]
-            );
-            if ($existingUser && !empty($existingUser['asaas_customer_id'])) {
-                $asaasCustomerId = $existingUser['asaas_customer_id'];
-            }
+        if (!$woovi->isConfigured()) {
+            error_log('Checkout: WOOVI_APP_ID ausente — cobranca nao pode ser criada');
+            flash('error', 'Pagamento temporariamente indisponível. Tente novamente em instantes.');
+            redirect('checkout/' . $slug);
+            return;
         }
 
-        if (!$asaasCustomerId) {
-            $customer = $asaas->createCustomer($name, $email, $submittedCpf ?: null);
-            if (!$customer || empty($customer['id'])) {
-                flash('error', 'Erro ao criar cadastro de pagamento. Tente novamente.');
-                redirect('checkout/' . $slug);
-                return;
-            }
-            $asaasCustomerId = $customer['id'];
-            if ($userId) {
-                Database::query(
-                    "UPDATE users SET asaas_customer_id = ? WHERE id = ? AND (asaas_customer_id IS NULL OR asaas_customer_id = '')",
-                    [$asaasCustomerId, $userId]
-                );
-            }
-        }
-
-        // Create order row first so we have a local reference to send to Asaas.
-        // We use a temporary placeholder id; then update with the real Asaas id.
+        // Cria o pedido primeiro para termos um id local que vira o correlationID
+        // da Woovi (identificador idempotente da cobranca do lado deles).
         $placeholder = 'pending_' . bin2hex(random_bytes(12));
         $orderId = Database::insert(
-            "INSERT INTO orders (user_id, product_id, asaas_payment_id, customer_email, customer_name, amount, currency, status, payment_method)
-             VALUES (?, ?, ?, ?, ?, ?, 'brl', 'pending', 'undefined')",
+            "INSERT INTO orders (user_id, product_id, provider, provider_charge_id, customer_email, customer_name, amount, currency, status, payment_method)
+             VALUES (?, ?, 'woovi', ?, ?, ?, ?, 'brl', 'pending', 'pix')",
             [
                 $userId,
                 $product['id'],
@@ -96,32 +75,46 @@ class CheckoutController
             ]
         );
 
-        $successUrl = APP_URL . '/checkout/success?order=' . $orderId;
+        $correlationId = self::correlationIdForOrder((int) $orderId);
 
-        $payment = $asaas->createPayment([
-            'customer' => $asaasCustomerId,
-            'billingType' => 'UNDEFINED',
-            'value' => (float) $product['price'],
-            'dueDate' => date('Y-m-d', strtotime('+3 days')),
-            'description' => $product['title'] . ' - Despertar Espiral',
-            'externalReference' => (string) $orderId,
-            'callback' => [
-                'successUrl' => $successUrl,
-                'autoRedirect' => true,
-            ],
-        ]);
+        // A Woovi trabalha em CENTAVOS. Arredondar antes de converter evita
+        // perder um centavo por imprecisao de float (ex.: 97.00 -> 9699).
+        $valueInCents = (int) round(((float) $product['price']) * 100);
 
-        if (!$payment || empty($payment['id']) || empty($payment['invoiceUrl'])) {
-            // Roll back the pending order so we don't leave orphans.
+        $response = $woovi->createCharge(
+            $valueInCents,
+            $correlationId,
+            $product['title'] . ' - Despertar Espiral',
+            [
+                'name' => $name,
+                'email' => $email,
+                'taxID' => $submittedCpf ?: '',
+            ]
+        );
+
+        $charge = is_array($response) ? ($response['charge'] ?? null) : null;
+        $paymentUrl = is_array($charge) ? (string) ($charge['paymentLinkUrl'] ?? '') : '';
+        $chargeId = is_array($charge) ? (string) ($charge['identifier'] ?? '') : '';
+
+        if (!$charge || $paymentUrl === '') {
+            // Desfaz o pedido pendente para nao deixar orfao no banco.
             Database::query("DELETE FROM orders WHERE id = ?", [$orderId]);
-            flash('error', 'Erro ao processar pagamento. Tente novamente.');
+            flash('error', 'Erro ao gerar o PIX. Tente novamente.');
             redirect('checkout/' . $slug);
             return;
         }
 
         Database::query(
-            "UPDATE orders SET asaas_payment_id = ?, asaas_invoice_url = ? WHERE id = ?",
-            [$payment['id'], $payment['invoiceUrl'], $orderId]
+            "UPDATE orders
+             SET provider_charge_id = ?, provider_correlation_id = ?, provider_payment_url = ?, brcode = ?
+             WHERE id = ?",
+            [
+                $chargeId !== '' ? $chargeId : $correlationId,
+                $correlationId,
+                $paymentUrl,
+                (string) ($charge['brCode'] ?? ''),
+                $orderId,
+            ]
         );
 
         EventDispatcher::dispatch('checkout.started', [
@@ -133,12 +126,13 @@ class CheckoutController
                 'amount' => (float) $product['price'],
                 'order_id' => (int) $orderId,
                 'checkout_url' => APP_URL . '/checkout/' . $product['slug'],
-                'invoice_url' => $payment['invoiceUrl'],
-                'asaas_payment_id' => $payment['id'],
+                'invoice_url' => $paymentUrl,
+                'payment_provider' => 'woovi',
+                'woovi_charge_id' => $chargeId,
             ],
         ]);
 
-        header('Location: ' . $payment['invoiceUrl']);
+        header('Location: ' . $paymentUrl);
         exit;
     }
 
@@ -181,14 +175,61 @@ class CheckoutController
     }
 
     /**
-     * Asaas webhook endpoint — public, stateless, no session/CSRF.
-     * Authenticated via the `asaas-access-token` header (pre-shared token
-     * matching ASAAS_WEBHOOK_TOKEN in .env).
+     * correlationID enviado a Woovi. Deterministico a partir do id do pedido,
+     * para que o webhook consiga achar o pedido mesmo se a resposta da criacao
+     * da cobranca se perder no meio do caminho.
+     */
+    public static function correlationIdForOrder(int $orderId): string
+    {
+        return 'DE-' . $orderId;
+    }
+
+    /**
+     * Extrai o id do pedido de um correlationID. Retorna null se nao for nosso.
+     */
+    public static function orderIdFromCorrelationId(string $correlationId): ?int
+    {
+        if (preg_match('/^DE-(\d+)$/', $correlationId, $m) !== 1) {
+            return null;
+        }
+        return (int) $m[1];
+    }
+
+    /**
+     * Chave de idempotencia do evento. A Woovi nao manda id de evento, entao
+     * derivamos de (tipo + cobranca + movimento pix). Sem o endToEndId, dois
+     * reembolsos parciais da mesma cobranca colidiriam e o segundo seria
+     * silenciosamente descartado.
+     */
+    public static function webhookEventKey(string $eventType, array $charge, array $pix, string $rawPayload): string
+    {
+        $chargeRef = (string) ($charge['identifier'] ?? $charge['correlationID'] ?? '');
+        if ($chargeRef === '') {
+            return substr(hash('sha256', $rawPayload), 0, 80);
+        }
+
+        $key = $eventType . ':' . $chargeRef;
+
+        $movement = (string) ($pix['endToEndId'] ?? $pix['transactionID'] ?? $pix['time'] ?? '');
+        if ($movement !== '') {
+            $key .= ':' . $movement;
+        }
+
+        // A coluna event_key e VARCHAR(80).
+        return strlen($key) > 80 ? substr(hash('sha256', $key), 0, 80) : $key;
+    }
+
+    /**
+     * Webhook da Woovi — publico, stateless, sem sessao/CSRF.
+     *
+     * Autenticado pela assinatura RSA-SHA256 no header `x-webhook-signature`,
+     * validada com a chave publica da Woovi. Diferente do Asaas, NAO ha token
+     * pre-compartilhado.
      */
     public function webhook(): void
     {
         $payload = file_get_contents('php://input');
-        $headerToken = $_SERVER['HTTP_ASAAS_ACCESS_TOKEN'] ?? '';
+        $signature = (string) ($_SERVER['HTTP_X_WEBHOOK_SIGNATURE'] ?? '');
 
         if (empty($payload)) {
             http_response_code(400);
@@ -196,42 +237,42 @@ class CheckoutController
             return;
         }
 
-        require_once BASE_PATH . '/src/Asaas.php';
-        $asaas = new AsaasClient();
+        require_once BASE_PATH . '/src/Woovi.php';
+        $woovi = new WooviClient();
 
-        if (!$asaas->verifyWebhookToken($headerToken)) {
-            error_log('Asaas webhook rejected: invalid asaas-access-token header');
+        if (!$woovi->verifyWebhookSignature((string) $payload, $signature)) {
+            error_log('Woovi webhook rejeitado: assinatura x-webhook-signature invalida');
             http_response_code(401);
-            echo json_encode(['error' => 'Invalid token']);
+            echo json_encode(['error' => 'Invalid signature']);
             return;
         }
 
-        $event = json_decode($payload, true);
+        $event = json_decode((string) $payload, true);
         if (!is_array($event) || empty($event['event'])) {
             http_response_code(400);
             echo json_encode(['error' => 'Malformed payload']);
             return;
         }
 
-        $eventType = $event['event'];
-        $payment = $event['payment'] ?? [];
-        $asaasPaymentId = $payment['id'] ?? '';
-        $externalReference = $payment['externalReference'] ?? '';
-        $billingType = strtolower($payment['billingType'] ?? 'undefined');
-        $paymentMethod = $this->mapBillingTypeToMethod($billingType);
+        $eventType = (string) $event['event'];
+        $charge = is_array($event['charge'] ?? null) ? $event['charge'] : [];
+        $pix = is_array($event['pix'] ?? null) ? $event['pix'] : [];
 
-        if ($asaasPaymentId === '') {
+        $correlationId = (string) ($charge['correlationID'] ?? '');
+        $chargeIdentifier = (string) ($charge['identifier'] ?? '');
+
+        if ($correlationId === '' && $chargeIdentifier === '') {
+            // Ex.: webhook de teste da Woovi, que nao traz cobranca.
             http_response_code(200);
-            echo json_encode(['received' => true, 'ignored' => 'no payment id']);
+            echo json_encode(['received' => true, 'ignored' => 'no charge in payload']);
             return;
         }
 
-        // ---- Idempotency inbox (provider event id OR payload hash fallback) ----
-        $provider = 'asaas';
-        $providerEventId = (string) ($event['id'] ?? $event['eventId'] ?? $event['webhookId'] ?? '');
-        $eventKey = $providerEventId !== '' ? $providerEventId : hash('sha256', $payload);
-        $payloadHash = hash('sha256', $payload);
-        $externalOrderId = (ctype_digit((string) $externalReference) ? (int) $externalReference : null);
+        // ---- Inbox de idempotencia ----
+        $provider = 'woovi';
+        $eventKey = self::webhookEventKey($eventType, $charge, $pix, (string) $payload);
+        $payloadHash = hash('sha256', (string) $payload);
+        $externalOrderId = self::orderIdFromCorrelationId($correlationId);
 
         try {
             Database::query(
@@ -249,15 +290,16 @@ class CheckoutController
                     $provider,
                     $eventKey,
                     $eventType,
-                    $asaasPaymentId,
+                    $chargeIdentifier !== '' ? $chargeIdentifier : $correlationId,
                     $externalOrderId,
                     $payloadHash,
                     $payload,
                 ]
             );
         } catch (Throwable $e) {
-            // Never fail the webhook on inbox write — still process to avoid losing paid orders.
-            error_log('Asaas webhook: failed to persist webhook_events inbox: ' . $e->getMessage());
+            // Nunca falhar o webhook por causa do inbox — processar mesmo assim,
+            // para nao perder pedido pago.
+            error_log('Woovi webhook: falha ao gravar inbox webhook_events: ' . $e->getMessage());
         }
 
         $inboxRow = Database::fetch(
@@ -270,34 +312,41 @@ class CheckoutController
             return;
         }
 
-        $order = Database::fetch(
-            "SELECT o.*, p.title as product_title, p.slug as product_slug
-             FROM orders o JOIN products p ON o.product_id = p.id
-             WHERE o.asaas_payment_id = ?",
-            [$asaasPaymentId]
-        );
-
-        // Fallback: lookup by externalReference (order id) if we missed the race.
-        if (!$order && $externalReference !== '' && ctype_digit((string) $externalReference)) {
+        // ---- Localiza o pedido ----
+        $order = null;
+        if ($externalOrderId !== null) {
             $order = Database::fetch(
                 "SELECT o.*, p.title as product_title, p.slug as product_slug
                  FROM orders o JOIN products p ON o.product_id = p.id
                  WHERE o.id = ?",
-                [(int) $externalReference]
+                [$externalOrderId]
+            );
+        }
+        if (!$order && $chargeIdentifier !== '') {
+            $order = Database::fetch(
+                "SELECT o.*, p.title as product_title, p.slug as product_slug
+                 FROM orders o JOIN products p ON o.product_id = p.id
+                 WHERE o.provider_charge_id = ?",
+                [$chargeIdentifier]
             );
         }
 
         if (!$order) {
-            error_log("Asaas webhook: order not found for payment {$asaasPaymentId} (event {$eventType})");
+            error_log("Woovi webhook: pedido nao encontrado para {$correlationId} / {$chargeIdentifier} (evento {$eventType})");
             http_response_code(200);
             echo json_encode(['received' => true, 'ignored' => 'order not found']);
             return;
         }
 
-        // ---- Validate payment state via Asaas API before mutating local state ----
-        $apiPayment = $asaas->retrievePayment($asaasPaymentId);
-        if (!$apiPayment || empty($apiPayment['id'])) {
-            // Returning 503 encourages Asaas to retry; we do NOT mark processed_at so retries still run.
+        // ---- Revalida na API antes de mexer em estado local ----
+        // O payload assinado ja e confiavel, mas consultar a API protege contra
+        // replay de um evento antigo depois de um estorno.
+        $lookupId = $correlationId !== '' ? $correlationId : $chargeIdentifier;
+        $apiResponse = $woovi->getCharge($lookupId);
+        $apiCharge = is_array($apiResponse) ? ($apiResponse['charge'] ?? $apiResponse) : null;
+
+        if (!is_array($apiCharge) || empty($apiCharge['status'])) {
+            // 503 faz a Woovi reenviar; nao marcamos processed_at para o retry rodar.
             if ($inboxRow && !empty($inboxRow['id'])) {
                 Database::query(
                     "UPDATE webhook_events SET error_message = ?, process_result = ? WHERE id = ?",
@@ -305,30 +354,16 @@ class CheckoutController
                 );
             }
             http_response_code(503);
-            echo json_encode(['error' => 'Could not validate payment']);
+            echo json_encode(['error' => 'Could not validate charge']);
             return;
         }
 
-        $apiExternalRef = (string) ($apiPayment['externalReference'] ?? '');
-        if ($apiExternalRef !== '' && ctype_digit($apiExternalRef) && (int) $apiExternalRef !== (int) $order['id']) {
-            error_log("Asaas webhook: externalReference mismatch for payment {$asaasPaymentId} (got {$apiExternalRef}, expected {$order['id']})");
-            if ($inboxRow && !empty($inboxRow['id'])) {
-                Database::query(
-                    "UPDATE webhook_events SET processed_at = NOW(), process_result = ?, error_message = ? WHERE id = ?",
-                    ['ignored', 'external_reference_mismatch', (int) $inboxRow['id']]
-                );
-            }
-            http_response_code(200);
-            echo json_encode(['received' => true, 'ignored' => 'externalReference mismatch']);
-            return;
-        }
-
-        $apiValue = isset($apiPayment['value']) ? (float) $apiPayment['value'] : null;
-        if ($apiValue !== null) {
-            $orderValue = (float) $order['amount'];
-            // Compare with cent-level tolerance.
-            if (abs($apiValue - $orderValue) > 0.01) {
-                error_log("Asaas webhook: value mismatch for order {$order['id']} (api={$apiValue}, local={$orderValue})");
+        // Confere o valor (em centavos) contra o pedido local.
+        $apiValueCents = isset($apiCharge['value']) ? (int) $apiCharge['value'] : null;
+        if ($apiValueCents !== null) {
+            $orderValueCents = (int) round(((float) $order['amount']) * 100);
+            if ($apiValueCents !== $orderValueCents) {
+                error_log("Woovi webhook: valor divergente no pedido {$order['id']} (api={$apiValueCents}, local={$orderValueCents})");
                 if ($inboxRow && !empty($inboxRow['id'])) {
                     Database::query(
                         "UPDATE webhook_events SET processed_at = NOW(), process_result = ?, error_message = ? WHERE id = ?",
@@ -341,29 +376,25 @@ class CheckoutController
             }
         }
 
-        $apiStatus = strtoupper((string) ($apiPayment['status'] ?? ''));
-        $apiIsPaid = $asaas->isPaidStatus($apiStatus);
-        $apiIsRefunded = $asaas->isRefundedStatus($apiStatus);
-        $apiIsOverdue = $asaas->isOverdueStatus($apiStatus);
+        $apiStatus = strtoupper((string) ($apiCharge['status'] ?? ''));
 
         switch ($eventType) {
-            case 'PAYMENT_CONFIRMED':
-            case 'PAYMENT_RECEIVED':
-                if ($apiIsPaid) {
-                $this->handlePaymentPaid($order, $paymentMethod, $eventType);
+            case 'OPENPIX:CHARGE_COMPLETED':
+            case 'OPENPIX:TRANSACTION_RECEIVED':
+                if ($apiStatus === 'COMPLETED') {
+                    $this->handlePaymentPaid($order, 'pix', $eventType);
                 } else {
-                    error_log("Asaas webhook: paid event {$eventType} but API status={$apiStatus} for payment {$asaasPaymentId}");
+                    error_log("Woovi webhook: evento de pagamento {$eventType} mas status da API={$apiStatus} para {$lookupId}");
                 }
                 break;
 
-            case 'PAYMENT_OVERDUE':
-                if (!$apiIsOverdue && $apiStatus !== '') {
-                    // Keep local state unchanged; rely on API truth to avoid false 'failed'.
-                    error_log("Asaas webhook: overdue event but API status={$apiStatus} for payment {$asaasPaymentId}");
+            case 'OPENPIX:CHARGE_EXPIRED':
+                if ($apiStatus !== 'EXPIRED') {
+                    error_log("Woovi webhook: evento de expiracao mas status da API={$apiStatus} para {$lookupId}");
                     break;
                 }
                 Database::query(
-                    "UPDATE orders SET status = 'failed', asaas_event = ? WHERE id = ?",
+                    "UPDATE orders SET status = 'failed', provider_event = ? WHERE id = ? AND status <> 'paid'",
                     [$eventType, $order['id']]
                 );
                 EventDispatcher::dispatch('order.overdue', [
@@ -371,20 +402,26 @@ class CheckoutController
                     'properties' => [
                         'order_id' => (int) $order['id'],
                         'product_slug' => $order['product_slug'],
-                        'invoice_url' => $order['asaas_invoice_url'] ?? null,
+                        'invoice_url' => $order['provider_payment_url'] ?? null,
                         'checkout_url' => APP_URL . '/checkout/' . $order['product_slug'],
                     ],
                 ]);
                 break;
 
-            case 'PAYMENT_REFUNDED':
-            case 'PAYMENT_DELETED':
-                if (!$apiIsRefunded && $apiStatus !== '') {
-                    error_log("Asaas webhook: refund/delete event but API status={$apiStatus} for payment {$asaasPaymentId}");
+            case 'OPENPIX:TRANSACTION_REFUND_RECEIVED':
+                // Reembolso parcial NAO revoga acesso — so o total.
+                $isPartial = (bool) ($pix['partial'] ?? false);
+                if ($isPartial) {
+                    Database::query(
+                        "UPDATE orders SET provider_event = ? WHERE id = ?",
+                        [$eventType, $order['id']]
+                    );
+                    error_log("Woovi webhook: reembolso PARCIAL no pedido {$order['id']} — acesso mantido");
                     break;
                 }
+
                 Database::query(
-                    "UPDATE orders SET status = 'refunded', asaas_event = ? WHERE id = ?",
+                    "UPDATE orders SET status = 'refunded', provider_event = ? WHERE id = ?",
                     [$eventType, $order['id']]
                 );
                 if (!empty($order['user_id'])) {
@@ -399,14 +436,14 @@ class CheckoutController
                         'order_id' => (int) $order['id'],
                         'product_slug' => $order['product_slug'],
                         'product_name' => $order['product_title'],
-                        'invoice_url' => $order['asaas_invoice_url'] ?? null,
+                        'invoice_url' => $order['provider_payment_url'] ?? null,
                     ],
                 ]);
                 break;
 
             default:
-                // Log unhandled events for visibility but don't fail.
-                error_log("Asaas webhook: unhandled event {$eventType} for payment {$asaasPaymentId}");
+                // Registra eventos nao tratados para visibilidade, sem falhar.
+                error_log("Woovi webhook: evento nao tratado {$eventType} para {$lookupId}");
                 break;
         }
 
@@ -422,6 +459,54 @@ class CheckoutController
     }
 
     /**
+     * Endpoint legado do Asaas.
+     *
+     * O gateway foi trocado por Woovi, mas uma cobranca do Asaas gerada ANTES do
+     * cutover pode ser paga DEPOIS. Sem esta rota, esse webhook levaria 404 e a
+     * cliente pagaria sem receber acesso, sem deixar rastro.
+     *
+     * Nao processamos automaticamente (nao ha mais como validar na API do Asaas):
+     * gravamos no inbox marcado para revisao manual e gritamos no log.
+     */
+    public function legacyAsaasWebhook(): void
+    {
+        $payload = (string) file_get_contents('php://input');
+
+        $event = json_decode($payload, true);
+        $eventType = is_array($event) ? (string) ($event['event'] ?? 'unknown') : 'unparseable';
+        $paymentId = '';
+        if (is_array($event) && isset($event['payment']) && is_array($event['payment'])) {
+            $paymentId = (string) ($event['payment']['id'] ?? '');
+        }
+
+        error_log(
+            "ATENCAO — webhook do Asaas (gateway descontinuado) recebido: evento={$eventType} " .
+            "pagamento={$paymentId}. Se for pagamento confirmado, liberar acesso MANUALMENTE no /admin."
+        );
+
+        try {
+            Database::query(
+                "INSERT INTO webhook_events (provider, event_key, event_type, payment_id, payload_hash, payload_json, attempts, process_result)
+                 VALUES ('asaas', ?, ?, ?, ?, ?, 1, 'needs_manual_review')
+                 ON DUPLICATE KEY UPDATE attempts = attempts + 1, received_at = NOW()",
+                [
+                    substr(hash('sha256', $payload), 0, 80),
+                    $eventType,
+                    $paymentId,
+                    hash('sha256', $payload),
+                    $payload,
+                ]
+            );
+        } catch (Throwable $e) {
+            error_log('Webhook legado do Asaas: falha ao gravar inbox: ' . $e->getMessage());
+        }
+
+        // 200 para o Asaas parar de reenviar — o rastro ja esta no inbox e no log.
+        http_response_code(200);
+        echo json_encode(['received' => true, 'deprecated' => 'gateway migrado para woovi']);
+    }
+
+    /**
      * Mark an order as paid and grant product access, fire events and send
      * the confirmation email.
      */
@@ -430,15 +515,15 @@ class CheckoutController
         // Idempotency — only the first processor flips pending->paid.
         $updated = Database::query(
             "UPDATE orders
-             SET status = 'paid', paid_at = NOW(), payment_method = ?, asaas_event = ?
+             SET status = 'paid', paid_at = NOW(), payment_method = ?, provider_event = ?
              WHERE id = ? AND status <> 'paid'",
             [$paymentMethod, $eventType, $order['id']]
         )->rowCount();
 
         $shouldDispatch = $updated > 0;
         if (!$shouldDispatch) {
-            // Still record the last Asaas event for visibility.
-            Database::query("UPDATE orders SET asaas_event = ? WHERE id = ?", [$eventType, $order['id']]);
+            // Still record the last provider event for visibility.
+            Database::query("UPDATE orders SET provider_event = ? WHERE id = ?", [$eventType, $order['id']]);
         }
 
         $userId = $order['user_id'];
@@ -508,19 +593,5 @@ class CheckoutController
                 ],
             ]);
         }
-    }
-
-    private function mapBillingTypeToMethod(string $billingType): string
-    {
-        if ($billingType === 'pix') {
-            return 'pix';
-        }
-        if ($billingType === 'credit_card') {
-            return 'credit_card';
-        }
-        if ($billingType === 'boleto') {
-            return 'boleto';
-        }
-        return 'undefined';
     }
 }

@@ -45,7 +45,7 @@ class Mailer
     }
 
     /**
-     * Order confirmation — sent from the Asaas webhook after status=paid.
+     * Order confirmation — sent from the Woovi webhook after status=paid.
      * This is a minimal fallback; the rich nurture flow lives in Sequenzy.
      */
     public static function sendOrderConfirmation(

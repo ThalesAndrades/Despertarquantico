@@ -87,7 +87,7 @@ foreach ($products as $p) {
             <div class="marketplace-hero-meta">
                 <span><?= count($products) ?> infoproduto<?= count($products) === 1 ? '' : 's' ?> disponivel<?= count($products) === 1 ? '' : 'eis' ?></span>
                 <span class="trust-dot"></span>
-                <span>Checkout seguro (Asaas)</span>
+                <span>Checkout seguro (PIX via Woovi)</span>
                 <span class="trust-dot"></span>
                 <span>Acesso imediato</span>
             </div>
@@ -118,7 +118,7 @@ foreach ($products as $p) {
             <div class="marketplace-step">
                 <div class="marketplace-step-kicker">2</div>
                 <h3>Pague com seguranca</h3>
-                <p>Checkout transparente e rapido, com meios de pagamento brasileiros (Asaas).</p>
+                <p>Checkout transparente e rapido, com PIX processado pela Woovi.</p>
             </div>
             <div class="marketplace-step">
                 <div class="marketplace-step-kicker">3</div>
@@ -218,7 +218,7 @@ foreach ($products as $p) {
             </details>
             <details class="marketplace-faq-item">
                 <summary>Quais formas de pagamento eu posso usar?</summary>
-                <p>PIX, cartao e boleto — com checkout seguro via Asaas.</p>
+                <p>PIX com confirmacao na hora — checkout seguro via Woovi.</p>
             </details>
             <details class="marketplace-faq-item">
                 <summary>Posso comprar mesmo sem cadastro?</summary>

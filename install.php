@@ -172,7 +172,7 @@ echo '<ol>';
 echo '<li>Acesse <a href="/" style="color:#C9A84C">despertarespiral.com</a> para conferir a landing</li>';
 echo '<li>Faca login em <code>/login</code> com a admin definida no .env</li>';
 echo '<li>Troque a senha da admin apos o primeiro login</li>';
-echo '<li>Configure o webhook Asaas apontando para <code>' . (Env::get('APP_URL', 'https://despertarespiral.com')) . '/webhook/asaas</code> com o mesmo <code>ASAAS_WEBHOOK_TOKEN</code> do .env</li>';
+echo '<li>Configure o webhook da Woovi apontando para <code>' . (Env::get('APP_URL', 'https://despertarespiral.com')) . '/webhook/woovi</code> (evento: cobrança paga). A autenticação é por assinatura, não há token para colar.</li>';
 echo '<li>Verifique no Sequenzy que eventos estao chegando na webhook URL configurada</li>';
 echo '<li class="err" style="font-weight:bold;margin-top:12px">EXCLUA ESTE ARQUIVO (install.php) do servidor por seguranca</li>';
 echo '</ol>';

@@ -69,7 +69,8 @@ function routeRequiresSession(string $url): bool
         '',
         'marketplace',
         'checkout/cancel',
-        'webhook/asaas',
+        'webhook/woovi',
+        'webhook/asaas', // legado: cobrancas do Asaas ainda em aberto no cutover
         '_health',
         '_bootstrap',
     ];
@@ -135,8 +136,7 @@ if ($method === 'GET' && $url === '_health') {
             'DB_HOST' => Env::has('DB_HOST'),
             'DB_NAME' => Env::has('DB_NAME'),
             'DB_USER' => Env::has('DB_USER'),
-            'ASAAS_API_KEY' => Env::has('ASAAS_API_KEY'),
-            'ASAAS_WEBHOOK_TOKEN' => Env::has('ASAAS_WEBHOOK_TOKEN'),
+            'WOOVI_APP_ID' => Env::has('WOOVI_APP_ID'),
             'SEQUENZY_ENABLED' => Env::has('SEQUENZY_ENABLED'),
             'SEQUENZY_API_KEY' => Env::has('SEQUENZY_API_KEY'),
         ],
@@ -373,12 +373,16 @@ $router->post('diagnostico', [LeadController::class, 'diagnosticSubmit']);
 
 // Checkout routes — specific routes MUST come before the generic {slug}
 // pattern, otherwise `checkout/success` and `checkout/cancel` would be
-// captured as product slugs and fail (breaking Asaas post-payment redirect).
+// captured as product slugs and fail (breaking post-payment redirect).
 $router->get('checkout/success', [CheckoutController::class, 'success']);
 $router->get('checkout/cancel', [CheckoutController::class, 'cancel']);
 $router->get('checkout/{slug}', [CheckoutController::class, 'create']);
 $router->post('checkout/{slug}', [CheckoutController::class, 'createPost']);
-$router->post('webhook/asaas', [CheckoutController::class, 'webhook']);
+$router->post('webhook/woovi', [CheckoutController::class, 'webhook']);
+// Legado: uma cobranca do Asaas paga DEPOIS do cutover ainda bate aqui. Nao
+// processamos mais (o cliente Asaas foi removido), mas registramos para revisao
+// manual em vez de devolver 404 e perder o rastro de um pagamento real.
+$router->post('webhook/asaas', [CheckoutController::class, 'legacyAsaasWebhook']);
 
 // Authenticated routes
 $router->get('dashboard', [DashboardController::class, 'index']);

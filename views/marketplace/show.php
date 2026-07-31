@@ -100,7 +100,7 @@ $jsonLdProduct = [
             <div class="marketplace-trust-row" aria-label="Sinais de confianca">
                 <span class="marketplace-trust-item">PIX • cartao • boleto</span>
                 <span class="trust-dot"></span>
-                <span class="marketplace-trust-item">Checkout Asaas</span>
+                <span class="marketplace-trust-item">Checkout PIX (Woovi)</span>
                 <span class="trust-dot"></span>
                 <span class="marketplace-trust-item">Direito de arrependimento 7 dias</span>
             </div>
